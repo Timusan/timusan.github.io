@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>shisaa.jp (Posts about full text search)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/categories/full-text-search.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><copyright>Contents © 2017 &lt;a href="mailto:tim@shisaa.jp"&gt;Tim van der Linden&lt;/a&gt; </copyright><lastBuildDate>Sat, 17 Jun 2017 07:08:38 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>PostgreSQL: A full text search engine - Part 3</title><link>http://shisaa.jp/postset/postgresql-full-text-search-part-3.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;p&gt;And so we arrive at the last part of the series.&lt;/p&gt;
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.jp (full text search)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/categories/full-text-search.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><lastBuildDate>Mon, 05 Jan 2015 12:42:48 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>PostgreSQL: A full text search engine - Part 3</title><link>http://shisaa.jp/postset/postgresql-full-text-search-part-3.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;p&gt;And so we arrive at the last part of the series.&lt;/p&gt;
 &lt;p&gt;If you have not done so, please read &lt;a href="http://shisaa.jp/postset/postgresql-full-text-search-part-1.html" title="First chapter introducing the full text search capabilities of PostgreSQL."&gt;part one&lt;/a&gt; and &lt;a href="http://shisaa.jp/postset/postgresql-full-text-search-part-2.html" title="Second chapter introducing the full text search capabilities of PostgreSQL."&gt;part two&lt;/a&gt; before embarking.&lt;/p&gt;
 &lt;p&gt;Today we will close up the introduction into PostgreSQL's full text capabilities by showing you a few aspects I have intentionally neglected in the previous parts. The most important ones being ranking and indexing.&lt;/p&gt;
 &lt;p&gt;So let us take off right away!&lt;/p&gt;
@@ -10,35 +10,35 @@
 &lt;h4&gt;Normal ranking&lt;/h4&gt;
 &lt;p&gt;The first case, ranking based on how many times certain words occur, has a accompanying function ready to be used: &lt;em&gt;ts_rank()&lt;/em&gt;. It accepts a mandatory &lt;em&gt;tsvector&lt;/em&gt; and a &lt;em&gt;tsquery&lt;/em&gt; as its arguments and returns a float which represents how high the given document ranks. The function also accepts a &lt;em&gt;weights array&lt;/em&gt; and &lt;em&gt;normalization integer&lt;/em&gt;, but that is for later down the road.&lt;/p&gt;
 &lt;p&gt;Let us test out the basic functionality:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Elephants and dolphins do not live in the same habitat.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Elephants and dolphins do not live in the same habitat.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
                &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants'&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;This is an regular old 'on the fly' query where we feed a string which we convert to a tsvector and a &lt;em&gt;token&lt;/em&gt; which is converted to a tsquery. The ranking result of this is:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;.0607927
+&lt;pre class="code literal-block"&gt;0.0607927
 &lt;/pre&gt;
 
 
 &lt;p&gt;This does not say much, does it? Okay, let us throw a few more tokens in the mix:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Elephants and dolphins do not live in the same habitat.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Elephants and dolphins do not live in the same habitat.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
                &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; dolphins'&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Now we want to query the two tokens &lt;em&gt;elephants&lt;/em&gt; and &lt;em&gt;dolphins&lt;/em&gt;. We chain them together in an AND (&lt;em&gt;&amp;amp;&lt;/em&gt;) formation. The ranking:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;.0985009
+&lt;pre class="code literal-block"&gt;0.0985009
 &lt;/pre&gt;
 
 
 &lt;p&gt;Hmm, getting higher, good. More tokens please:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Elephants and dolphins do not live in the same habitat.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Elephants and dolphins do not live in the same habitat.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
                &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; dolphins &amp;amp; habitat &amp;amp; living'&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Results in:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;.414037
+&lt;pre class="code literal-block"&gt;0.414037
 &lt;/pre&gt;
 
 
@@ -49,19 +49,19 @@
 &lt;p&gt;Do you remember the weights we saw in chapter one? A quick rundown: You can optionally give weights to lexemes in a tsvector to group them together. This is, most of the time, used to reflect the original document structure within a tsvector. We also saw that, actually, all lexemes contain a standard weight of '&lt;em&gt;D&lt;/em&gt;' unless specified otherwise.&lt;/p&gt;
 &lt;p&gt;Weights, when ranking, define importance of words. The &lt;em&gt;ts_rank()&lt;/em&gt; function will automatically take these weights into account and use a &lt;em&gt;weights array&lt;/em&gt; to influence the ranking float. Remember that there are only four possible weights: &lt;em&gt;A&lt;/em&gt;, &lt;em&gt;B&lt;/em&gt;, &lt;em&gt;C&lt;/em&gt; and &lt;em&gt;D&lt;/em&gt;. &lt;/p&gt;
 &lt;p&gt;The weights array has a default value of:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;{&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;.1, &lt;span class="m"&gt;0&lt;/span&gt;.2, &lt;span class="m"&gt;0&lt;/span&gt;.4, &lt;span class="m"&gt;1&lt;/span&gt;.0&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="o"&gt;{&lt;/span&gt;0.1, 0.2, 0.4, 1.0&lt;span class="o"&gt;}&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;These values correspond to the weight letters you can assign. Note that these are in reverse order, the array represents: {D,C,B,A}.&lt;/p&gt;
 &lt;p&gt;Let us test that out. We take the same query as before, but now using the &lt;em&gt;setweight()&lt;/em&gt; function, we will apply a weight of &lt;em&gt;C&lt;/em&gt; to all lexemes:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;setweight&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Elephants and dolphins do not live in the same habitat.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;&lt;span class="s1"&gt;'C'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;setweight&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Elephants and dolphins do not live in the same habitat.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;&lt;span class="s1"&gt;'C'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
                &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; dolphins &amp;amp; habitat &amp;amp; live'&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;The result:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;.674972
+&lt;pre class="code literal-block"&gt;0.674972
 &lt;/pre&gt;
 
 
@@ -69,14 +69,14 @@
 The reason for this is that the floats in the weights array &lt;em&gt;influence&lt;/em&gt; the ranking calculation.
 Just for fun, you can override the default weights array, simply by passing it in as a first argument.
 Let us put the weights all equal to the default of &lt;em&gt;D&lt;/em&gt; being &lt;em&gt;0.1&lt;/em&gt;:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;array&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;array&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt;
                &lt;span class="n"&gt;setweight&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Elephants and dolphins do not live in the same habitat.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;&lt;span class="s1"&gt;'C'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
                &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; dolphins &amp;amp; habitat &amp;amp; live'&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And we get back:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;.414037
+&lt;pre class="code literal-block"&gt;0.414037
 &lt;/pre&gt;
 
 
@@ -86,19 +86,17 @@ Let us put the weights all equal to the default of &lt;em&gt;D&lt;/em&gt; being 
 &lt;p&gt;Document length is also an important factor when judging the relevance. A short document which matches on four or five tokens has a different relevance than a three times as long document which matches on the same amount of tokens. The shorter one is probably more relevant then the longer one.&lt;/p&gt;
 &lt;p&gt;The same ranking function &lt;em&gt;ts_rank()&lt;/em&gt; has an extra, final optional parameter that you can pass in called the &lt;em&gt;normalization integer&lt;/em&gt;. This integer can have a combination of seven different values, they can be a single integer or mixed with a pipe (|) to pass in multiple values.&lt;/p&gt;
 &lt;p&gt;The default value is &lt;em&gt;0&lt;/em&gt; - meaning that it will ignore document length all together, giving us the more "unfair" behavior. The next values you can give are &lt;em&gt;1&lt;/em&gt;, &lt;em&gt;2&lt;/em&gt;, &lt;em&gt;4&lt;/em&gt;, &lt;em&gt;8&lt;/em&gt;, &lt;em&gt;16&lt;/em&gt; and &lt;em&gt;32&lt;/em&gt; which stand for the following manipulations of the ranking float:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;1: It will divide the ranking float by the sum of 1 and the logarithmic number of the document length. The latter number is the ratio this document has compared to the other documents you wish to compare.&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;1: It will divide the ranking float by the sum of 1 and the logarithmic number of the document length. The latter number is the ratio this document has compared to the other documents you wish to compare.&lt;/li&gt;
 &lt;li&gt;2: Simply divides the ranking float by the length of the document.&lt;/li&gt;
 &lt;li&gt;4: Divides the ranking float by the harmonic mean (the fair average) between matched tokens. This one is only uses by the other ranking function &lt;em&gt;ts_rank_cd&lt;/em&gt;.&lt;/li&gt;
 &lt;li&gt;8: Divides the ranking float by the number of &lt;em&gt;unique&lt;/em&gt; words that are found in the document. &lt;/li&gt;
 &lt;li&gt;16: Divides the ranking float by the sum of 1 and the logarithmic number of the number of &lt;em&gt;unique&lt;/em&gt; words found in the document.&lt;/li&gt;
 &lt;li&gt;32: Simply divides the ranking float by &lt;em&gt;itself&lt;/em&gt; and adds one to that.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;These are a lot of values and some of them are quite confusing. But all of these have only one purpose: to make ranking more "fair", based on various use cases.&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;These are a lot of values and some of them are quite confusing. But all of these have only one purpose: to make ranking more "fair", based on various use cases.&lt;/p&gt;
 &lt;p&gt;Take, for example, &lt;em&gt;1&lt;/em&gt; and &lt;em&gt;2&lt;/em&gt;. These calculate document length by taking into account the amount of &lt;em&gt;words&lt;/em&gt; present in the document.
 The &lt;em&gt;words&lt;/em&gt; here reference the amount of &lt;em&gt;pointers&lt;/em&gt; that are present in the tsvector.&lt;/p&gt;
 &lt;p&gt;To illustrate, we will convert the sentence "These token are repeating on purpose. Bad tokens!" into a tsvector, resulting in:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'bad'&lt;/span&gt;:7 &lt;span class="s1"&gt;'purpos'&lt;/span&gt;:6 &lt;span class="s1"&gt;'repeat'&lt;/span&gt;:4 &lt;span class="s1"&gt;'token'&lt;/span&gt;:2,8
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'bad'&lt;/span&gt;:7 &lt;span class="s1"&gt;'purpos'&lt;/span&gt;:6 &lt;span class="s1"&gt;'repeat'&lt;/span&gt;:4 &lt;span class="s1"&gt;'token'&lt;/span&gt;:2,8
 &lt;/pre&gt;
 
 
@@ -113,7 +111,7 @@ As I said in the beginning, it is a gray area, left open for interpretation.&lt;
 &lt;p&gt;First we need to create a few documents (tsvectors) inside our famous phraseTable (from the previous chapters) that we will use throughout this chapter.
 Connect to your phrase database, add a "title" column, truncate whatever we have stored there and insert a few variable length documents based on Edgar Allan Poe's "The Raven".
 I have prepared the whole syntax below, this time you may copy-and-paste:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;ADD&lt;/span&gt; &lt;span class="k"&gt;COLUMN&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="nb"&gt;VARCHAR&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;ADD&lt;/span&gt; &lt;span class="k"&gt;COLUMN&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="nb"&gt;VARCHAR&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="k"&gt;TRUNCATE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;into&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more."'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s1"&gt;'Tiny Allan'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;into&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more." Ah, distinctly I remember it was in the bleak December, And each separate dying ember wrought its ghost upon the floor. Eagerly I wished the morrow - vainly I had sought to borrow From my books surcease of sorrow - sorrow for the lost Lenore - For the rare and radiant maiden whom the angels name Lenore - Nameless here for evermore.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s1"&gt;'Small Allan'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
@@ -124,14 +122,12 @@ I have prepared the whole syntax below, this time you may copy-and-paste:&lt;/p&
 
 &lt;p&gt;Nothing better then some good old Edgar to demonstrate a full text search ranking. Here we have four different lengths of the same verse making for four documents of different lengths stored in our tsvector column. Now we would like to search through these documents and find the keywords &lt;em&gt;'door'&lt;/em&gt; and &lt;em&gt;'gently'&lt;/em&gt;, ranking them as we go.&lt;/p&gt;
 &lt;p&gt;For later reference, let us first count how many times our keywords occur in the sentence:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Tiny Allan: "door" 2, "gently" 1&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;Tiny Allan: "door" 2, "gently" 1&lt;/li&gt;
 &lt;li&gt;Small Allan: "door" 2, "gently" 1&lt;/li&gt;
 &lt;li&gt;Medium Allan: "door" 4, "gently" 1&lt;/li&gt;
 &lt;li&gt;Big Allan: "door" 6, "gently" 2&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;First, let us simply rank the result with the default normalization of &lt;em&gt;0&lt;/em&gt;:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
+&lt;/ul&gt;&lt;p&gt;First, let us simply rank the result with the default normalization of &lt;em&gt;0&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
@@ -140,34 +136,34 @@ I have prepared the whole syntax below, this time you may copy-and-paste:&lt;/p&
 &lt;p&gt;Before we go over the results, a little bit about this query for people who are not so familiar with this SQL syntax.
 We do a simple &lt;em&gt;SELECT&lt;/em&gt; from a data set using &lt;em&gt;FROM&lt;/em&gt; filtering it with a &lt;em&gt;WHERE&lt;/em&gt; clause.
 Going over it line by line:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;We &lt;em&gt;SELECT&lt;/em&gt; on the &lt;em&gt;title&lt;/em&gt; column we just made and on a "on-the-fly" column we create for the result set named &lt;em&gt;rank&lt;/em&gt; which contains the result of the &lt;em&gt;ts_rank()&lt;/em&gt; function.&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;In the &lt;em&gt;FROM&lt;/em&gt; clause you can put a series of statements that will deliver the data for the query. In this case we take our normal database &lt;em&gt;table&lt;/em&gt; and the result of the &lt;em&gt;to_tsquery()&lt;/em&gt; function which we name &lt;em&gt;keywords&lt;/em&gt; so we can use it throughout the query itself.&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Here we filter the result set using the &lt;em&gt;WHERE&lt;/em&gt; clause and the &lt;em&gt;matching&lt;/em&gt; operator (@@). The @@ is a Boolean operator, meaning it will simply return &lt;em&gt;true&lt;/em&gt; or &lt;em&gt;false&lt;/em&gt;.
 So in this case, we check if the result of the &lt;em&gt;to_tsquery()&lt;/em&gt; function (named keywords and which will return lexemes) &lt;em&gt;match&lt;/em&gt; the results of the phrase &lt;em&gt;column&lt;/em&gt; from our table (which contains &lt;em&gt;tsvectors&lt;/em&gt; and thus lexemes). We want to rank only those phrases that actually contain our keywords.&lt;/p&gt;
 &lt;p&gt;Now, back to our ranking. The result of this query will be:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     &lt;span class="p"&gt;|&lt;/span&gt;   rank    
+&lt;pre class="code literal-block"&gt;   title     &lt;span class="p"&gt;|&lt;/span&gt;   rank    
 --------------+-----------
-Tiny Allan   &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.0906565
-Small Allan  &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.0906565
-Medium Allan &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.0906565
-Big Allan    &lt;span class="p"&gt;|&lt;/span&gt;   &lt;span class="m"&gt;0&lt;/span&gt;.10109
+Tiny Allan   &lt;span class="p"&gt;|&lt;/span&gt; 0.0906565
+Small Allan  &lt;span class="p"&gt;|&lt;/span&gt; 0.0906565
+Medium Allan &lt;span class="p"&gt;|&lt;/span&gt; 0.0906565
+Big Allan    &lt;span class="p"&gt;|&lt;/span&gt;   0.10109
 &lt;/pre&gt;
 
 
 &lt;p&gt;Let us order the results first, so the most relevant document is always on top:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;
     &lt;span class="k"&gt;ORDER&lt;/span&gt; &lt;span class="k"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt; &lt;span class="k"&gt;DESC&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -175,19 +171,19 @@ Big Allan    &lt;span class="p"&gt;|&lt;/span&gt;   &lt;span class="m"&gt;0&lt;/
 
 
 &lt;p&gt;Result:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     &lt;span class="p"&gt;|&lt;/span&gt;   rank    
+&lt;pre class="code literal-block"&gt;   title     &lt;span class="p"&gt;|&lt;/span&gt;   rank    
 --------------+-----------
-Big Allan    &lt;span class="p"&gt;|&lt;/span&gt;   &lt;span class="m"&gt;0&lt;/span&gt;.10109
-Tiny Allan   &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.0906565
-Small Allan  &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.0906565
-Medium Allan &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.0906565
+Big Allan    &lt;span class="p"&gt;|&lt;/span&gt;   0.10109
+Tiny Allan   &lt;span class="p"&gt;|&lt;/span&gt; 0.0906565
+Small Allan  &lt;span class="p"&gt;|&lt;/span&gt; 0.0906565
+Medium Allan &lt;span class="p"&gt;|&lt;/span&gt; 0.0906565
 &lt;/pre&gt;
 
 
 &lt;p&gt;"Big Allen" is on top, for it has more occurrences of the keywords "door" and "gently".
 But to be fair, in ratio "Tiny Allan" has almost the same amount of occurrences of both keywords. Three times less, but it also is three times as small.&lt;/p&gt;
 &lt;p&gt;So let us take document length (based on &lt;em&gt;word count&lt;/em&gt;) into account, setting our &lt;em&gt;normalization&lt;/em&gt; to &lt;em&gt;1&lt;/em&gt;:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;
     &lt;span class="k"&gt;ORDER&lt;/span&gt; &lt;span class="k"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt; &lt;span class="k"&gt;DESC&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -195,18 +191,18 @@ But to be fair, in ratio "Tiny Allan" has almost the same amount of occurrences 
 
 
 &lt;p&gt;You will get:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     &lt;span class="p"&gt;|&lt;/span&gt;   rank    
+&lt;pre class="code literal-block"&gt;   title     &lt;span class="p"&gt;|&lt;/span&gt;   rank    
 --------------+-----------
-Tiny Allan   &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.0181313
-Small Allan  &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.0151094
-Big Allan    &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.0145124
-Medium Allan &lt;span class="p"&gt;|&lt;/span&gt;  &lt;span class="m"&gt;0&lt;/span&gt;.013831
+Tiny Allan   &lt;span class="p"&gt;|&lt;/span&gt; 0.0181313
+Small Allan  &lt;span class="p"&gt;|&lt;/span&gt; 0.0151094
+Big Allan    &lt;span class="p"&gt;|&lt;/span&gt; 0.0145124
+Medium Allan &lt;span class="p"&gt;|&lt;/span&gt;  0.013831
 &lt;/pre&gt;
 
 
 &lt;p&gt;This could be seen as a more fair ranking, "Tiny Allan" is now on top because, considering its &lt;em&gt;ratio&lt;/em&gt;, it is the most relevant. "Medium Allan" falls all the way down because it is almost as big as "Big Allan", but contains lesser occurrences of the keywords. In total five keywords in contrast to "Big Allan" who has eight but is only slightly bigger.&lt;/p&gt;
 &lt;p&gt;Let us do the same, but count the document length based on the &lt;em&gt;unique&lt;/em&gt; occurrences using integer &lt;em&gt;8&lt;/em&gt;:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;
     &lt;span class="k"&gt;ORDER&lt;/span&gt; &lt;span class="k"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt; &lt;span class="k"&gt;DESC&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -214,10 +210,10 @@ Medium Allan &lt;span class="p"&gt;|&lt;/span&gt;  &lt;span class="m"&gt;0&lt;/s
 
 
 &lt;p&gt;The result:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;Tiny Allan   &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.00335765
-Small Allan  &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.00161887
-Medium Allan &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.00119285
-Big Allan    &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.00105303
+&lt;pre class="code literal-block"&gt;Tiny Allan   &lt;span class="p"&gt;|&lt;/span&gt; 0.00335765
+Small Allan  &lt;span class="p"&gt;|&lt;/span&gt; 0.00161887
+Medium Allan &lt;span class="p"&gt;|&lt;/span&gt; 0.00119285
+Big Allan    &lt;span class="p"&gt;|&lt;/span&gt; 0.00105303
 &lt;/pre&gt;
 
 
@@ -237,7 +233,7 @@ It makes sense that this ranking function only works on multiple tokens, on sing
 &lt;p&gt;In our "Raven" examples this might be a little bit hard to see, so let me demonstrate this with a couple of new, on-the-fly queries.&lt;/p&gt;
 &lt;p&gt;We wish to search for the tokens &lt;em&gt;'token'&lt;/em&gt; and &lt;em&gt;'count'&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;First, a sentence in which the searched for tokens are wide apart: "These tokens are very wide apart and therefor do not count as much.":&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'These tokens are very wide apart and do not count as much.'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'token &amp;amp; count'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;
     &lt;span class="k"&gt;ORDER&lt;/span&gt; &lt;span class="k"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt; &lt;span class="k"&gt;DESC&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -245,17 +241,17 @@ It makes sense that this ranking function only works on multiple tokens, on sing
 
 
 &lt;p&gt;Will have this tsvector:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'apart'&lt;/span&gt;:6 &lt;span class="s1"&gt;'count'&lt;/span&gt;:10 &lt;span class="s1"&gt;'much'&lt;/span&gt;:12 &lt;span class="s1"&gt;'token'&lt;/span&gt;:2 &lt;span class="s1"&gt;'wide'&lt;/span&gt;:5
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'apart'&lt;/span&gt;:6 &lt;span class="s1"&gt;'count'&lt;/span&gt;:10 &lt;span class="s1"&gt;'much'&lt;/span&gt;:12 &lt;span class="s1"&gt;'token'&lt;/span&gt;:2 &lt;span class="s1"&gt;'wide'&lt;/span&gt;:5
 &lt;/pre&gt;
 
 
 &lt;p&gt;And this result:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt; &lt;span class="m"&gt;0&lt;/span&gt;.008624
+&lt;pre class="code literal-block"&gt; 0.008624
 &lt;/pre&gt;
 
 
 &lt;p&gt;Let us put these tokens closer together now: "These tokens count for much now that they are not so wide apart!":&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'These tokens count for much now that they are not so wide apart!'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'token &amp;amp; count'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;
     &lt;span class="k"&gt;ORDER&lt;/span&gt; &lt;span class="k"&gt;BY&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt; &lt;span class="k"&gt;DESC&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -263,12 +259,12 @@ It makes sense that this ranking function only works on multiple tokens, on sing
 
 
 &lt;p&gt;The vector:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'apart'&lt;/span&gt;:13 &lt;span class="s1"&gt;'count'&lt;/span&gt;:3 &lt;span class="s1"&gt;'much'&lt;/span&gt;:5 &lt;span class="s1"&gt;'token'&lt;/span&gt;:2 &lt;span class="s1"&gt;'wide'&lt;/span&gt;:12
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'apart'&lt;/span&gt;:13 &lt;span class="s1"&gt;'count'&lt;/span&gt;:3 &lt;span class="s1"&gt;'much'&lt;/span&gt;:5 &lt;span class="s1"&gt;'token'&lt;/span&gt;:2 &lt;span class="s1"&gt;'wide'&lt;/span&gt;:12
 &lt;/pre&gt;
 
 
 &lt;p&gt;The result:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;.0198206
+&lt;pre class="code literal-block"&gt;0.0198206
 &lt;/pre&gt;
 
 
@@ -286,7 +282,7 @@ But this is considered beyond the scope of this series (and maybe also beyond th
 For this PostgreSQL delivers us yet another function: &lt;em&gt;ts_headline()&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;To demonstrate its use, we first have to make our small database a little bit bigger by inserting the original text of the "Raven" next to our tsvectors.
 So, again, copy and past this new set of queries (yes you may...):&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;TRUNCATE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;TRUNCATE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;ADD&lt;/span&gt; &lt;span class="k"&gt;COLUMN&lt;/span&gt; &lt;span class="n"&gt;article&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;into&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more."'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s1"&gt;'Tiny Allan'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more."'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;into&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more." Ah, distinctly I remember it was in the bleak December, And each separate dying ember wrought its ghost upon the floor. Eagerly I wished the morrow - vainly I had sought to borrow From my books surcease of sorrow - sorrow for the lost Lenore - For the rare and radiant maiden whom the angels name Lenore - Nameless here for evermore.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s1"&gt;'Small Allan'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more." Ah, distinctly I remember it was in the bleak December, And each separate dying ember wrought its ghost upon the floor. Eagerly I wished the morrow - vainly I had sought to borrow From my books surcease of sorrow - sorrow for the lost Lenore - For the rare and radiant maiden whom the angels name Lenore - Nameless here for evermore.'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
@@ -299,14 +295,14 @@ So, again, copy and past this new set of queries (yes you may...):&lt;/p&gt;
 &lt;p&gt;The reason for this being that this &lt;em&gt;ts_headline()&lt;/em&gt; function searches in the original documents (being our &lt;em&gt;article&lt;/em&gt; column) rather that in your ts_vector column.
 Two arguments are mandatory: the original article and the ts_query. The optional arguments are the full text configuration you wish to use and a string of additional, comma separated options.&lt;/p&gt;
 &lt;p&gt;But first, let us take a look at its most basic usage:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Will give you:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     |                                                      result                                                      
+&lt;pre class="code literal-block"&gt;   title     |                                                      result                                                      
 --------------+------------------------------------------------------------------------------------------------------------------
 Tiny Allan   | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping at my chamber &amp;lt;b&amp;gt;door&amp;lt;/b&amp;gt;. "Tis some visitor," I muttered, "tapping at my chamber
 Small Allan  | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping at my chamber &amp;lt;b&amp;gt;door&amp;lt;/b&amp;gt;. "Tis some visitor," I muttered, "tapping at my chamber
@@ -320,28 +316,28 @@ That is actual all there is to this function, it return the results with the tok
 &lt;p&gt;However, there are some nice options you can set to alter this basic behavior.&lt;/p&gt;
 &lt;p&gt;The first one up is the HTML tag you wish to put around you highlighted words. For this you have two variables &lt;em&gt;StartSel&lt;/em&gt; and &lt;em&gt;StopSel&lt;/em&gt;.
 If we wanted this to be a "&amp;lt;em&amp;gt;" tag instead, we could tell the function to change as follows:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'StartSel=&amp;lt;em&amp;gt;,StopSel=&amp;lt;/em&amp;gt;'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'StartSel=&amp;lt;em&amp;gt;,StopSel=&amp;lt;/em&amp;gt;'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And now we will get back an &amp;lt;em&amp;gt; instead of a &amp;lt;b&amp;gt; (including just one row this time):&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     |                                                        result                                                        
+&lt;pre class="code literal-block"&gt;   title     |                                                        result                                                        
 --------------+----------------------------------------------------------------------------------------------------------------------
 Tiny Allan   | &amp;lt;em&amp;gt;gently&amp;lt;/em&amp;gt; rapping, rapping at my chamber &amp;lt;em&amp;gt;door&amp;lt;/em&amp;gt;. "Tis some visitor," I muttered, "tapping at my chamber
 &lt;/pre&gt;
 
 
 &lt;p&gt;In fact, it does not need to be HTML at all, you can put (almost) any string there:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'StartSel=foobar&amp;gt;&amp;gt;,StopSel=&amp;lt;&amp;lt;barfoo '&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'StartSel=foobar&amp;gt;&amp;gt;,StopSel=&amp;lt;&amp;lt;barfoo '&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Result:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     |                                                               result                                                               
+&lt;pre class="code literal-block"&gt;   title     |                                                               result                                                               
 --------------+------------------------------------------------------------------------------------------------------------------------------------
 Tiny Allan   | foobar&amp;gt;&amp;gt;gently&amp;lt;&amp;lt;barfoo rapping, rapping at my chamber foobar&amp;gt;&amp;gt;door&amp;lt;&amp;lt;barfoo. "Tis some visitor," I muttered, "tapping at my chamber
 &lt;/pre&gt;
@@ -349,28 +345,28 @@ Tiny Allan   | foobar&amp;gt;&amp;gt;gently&amp;lt;&amp;lt;barfoo rapping, rappi
 
 &lt;p&gt;Quite awesome!&lt;/p&gt;
 &lt;p&gt;Another attribute you can tamper with is how many words should be included in the result set by using the &lt;em&gt;MaxWords&lt;/em&gt; and &lt;em&gt;MinWords&lt;/em&gt;: &lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'MaxWords=4,MinWords=1'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'MaxWords=4,MinWords=1'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Which gives you:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     |             result             
+&lt;pre class="code literal-block"&gt;   title     |             result             
 --------------+--------------------------------
 Tiny Allan   | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping
 &lt;/pre&gt;
 
 
 &lt;p&gt;To make the resulting headline a little bit more readable there is an attribute in this options string called &lt;em&gt;ShortWord&lt;/em&gt; which tells the function which is the shortest word that may appear at the start or end of the headline. &lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'ShortWord=8'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'ShortWord=8'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Will give you:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     |                                                                                   result                                                                                    
+&lt;pre class="code literal-block"&gt;   title     |                                                                                   result                                                                                    
 --------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Tiny Allan   | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping at my chamber &amp;lt;b&amp;gt;door&amp;lt;/b&amp;gt;. "Tis some visitor," I muttered, "tapping at my chamber &amp;lt;b&amp;gt;door&amp;lt;/b&amp;gt; - Only this, and nothing more."
 Small Allan  | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping at my chamber &amp;lt;b&amp;gt;door&amp;lt;/b&amp;gt;. "Tis some visitor," I muttered, "tapping at my chamber &amp;lt;b&amp;gt;door&amp;lt;/b&amp;gt; - Only this, and nothing more." Ah, distinctly
@@ -379,14 +375,14 @@ Small Allan  | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping at my 
 
 &lt;p&gt;Now it will try and set word boundaries to words of minimal 8 letters. This time I included the second line of the result set. As you can see the engine could not find an 8 letter word at the remainder of the document, so it simply prints it until the end. The second row, "Small Allan" is a bit bigger and the word "distinctly" has more then 8 letters, so is set as the boundary,&lt;/p&gt;
 &lt;p&gt;So far the headline function has given us almost full sentences and not really fragments of text. This is because the optional &lt;em&gt;MaxFragments&lt;/em&gt; defaults to 0. If we up this variable, it will start to include fragments and not sentences. Let us try it out:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'MaxFragments=2,MaxWords=8,MinWords=1'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'MaxFragments=2,MaxWords=8,MinWords=1'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Gives you&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     |                                                     result                                                      
+&lt;pre class="code literal-block"&gt;   title     |                                                     result                                                      
 --------------+-----------------------------------------------------------------------------------------------------------------
 Tiny Allan   | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping at my chamber &amp;lt;b&amp;gt;door&amp;lt;/b&amp;gt;
 ...
@@ -397,14 +393,14 @@ Big Allan    | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping at my 
 &lt;p&gt;I include only the first and last line of this result set. As you can see on the last line, the result is now fragmented, and we get back different pieces of our result.
 If, for instance, four or five tokens match in our document, setting the &lt;em&gt;MaxFragments&lt;/em&gt; to a higher value will show more of these matches glued together.&lt;/p&gt;
 &lt;p&gt;Accompanying this &lt;em&gt;MaxFragments&lt;/em&gt; option is the &lt;em&gt;FragmentDelimiter&lt;/em&gt; variable which is used to define, well, the delimiter between the fragments. Short demo:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'MaxFragments=2,FragmentDelimiter=;,MaxWords=8,MinWords=1'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'MaxFragments=2,FragmentDelimiter=;,MaxWords=8,MinWords=1'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;You will get:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;   title     |                                                   result                                                    
+&lt;pre class="code literal-block"&gt;   title     |                                                   result                                                    
 --------------+-------------------------------------------------------------------------------------------------------------
 Big Allan    | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping at my chamber &amp;lt;b&amp;gt;door&amp;lt;/b&amp;gt;;chamber &amp;lt;b&amp;gt;door&amp;lt;/b&amp;gt; - This it is, and nothing more
 &lt;/pre&gt;
@@ -413,7 +409,7 @@ Big Allan    | &amp;lt;b&amp;gt;gently&amp;lt;/b&amp;gt; rapping, rapping at my 
 &lt;p&gt;Including only the last line, you will see we now have a semicolon (;) instead of a ellipses (...). Neat.&lt;/p&gt;
 &lt;p&gt;A final, less common option for the &lt;em&gt;ts_headline()&lt;/em&gt; function is to ignore all the word boundaries we set before and simply return the &lt;em&gt;whole&lt;/em&gt; document and highlight all the words of relevance.
 This variable is called &lt;em&gt;HighlightAll&lt;/em&gt; and is a Boolean set to &lt;em&gt;false&lt;/em&gt; by default:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'HighlightAll=true'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'HighlightAll=true'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
@@ -427,7 +423,7 @@ This variable is called &lt;em&gt;HighlightAll&lt;/em&gt; and is a Boolean set t
 &lt;p&gt;This does not mean that you have to avoid this function, if so I would have told you from the start and skipped this whole part. No, it is there to be used. But use it in a correct way.&lt;/p&gt;
 &lt;p&gt;A correct way often seen is to use the highlighting only on the top results you are interested in - the top results the user has on their screen at the moment.
 This could be achieved in SQL with a so called &lt;em&gt;subquery&lt;/em&gt;.&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_headline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="k"&gt;result&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;ts_rank&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;rank&lt;/span&gt;
           &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'door &amp;amp; gently'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
           &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;keywords&lt;/span&gt;
@@ -460,7 +456,7 @@ I seriously suggest you read that stuff, it is golden knowledge for every seriou
 The data that is within your table rows will be ordered and chopped up to fit within the tree.&lt;/p&gt;
 &lt;p&gt;It is called &lt;em&gt;Balanced&lt;/em&gt;, meaning that each level of the tree has the same amount of nodes.&lt;/p&gt;
 &lt;p&gt;Take this picture for example:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;            &lt;span class="p"&gt;|&lt;/span&gt;root&lt;span class="p"&gt;|&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;            &lt;span class="p"&gt;|&lt;/span&gt;root&lt;span class="p"&gt;|&lt;/span&gt;
               &lt;span class="p"&gt;|&lt;/span&gt;
        ----------------
        &lt;span class="p"&gt;|&lt;/span&gt;               &lt;span class="p"&gt;|&lt;/span&gt;
@@ -473,12 +469,10 @@ The data that is within your table rows will be ordered and chopped up to fit wi
 
 
 &lt;p&gt;In &lt;em&gt;B-tree&lt;/em&gt; terms, we summarize this tree by saying:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;It has an &lt;em&gt;order&lt;/em&gt; of 2, meaning that each node will contain two leaves only&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;It has an &lt;em&gt;order&lt;/em&gt; of 2, meaning that each node will contain two leaves only&lt;/li&gt;
 &lt;li&gt;It has a &lt;em&gt;depth&lt;/em&gt; of 3, meaning it is three levels deep (including the root node)&lt;/li&gt;
 &lt;li&gt;It has 4 &lt;em&gt;leaves&lt;/em&gt;, meaning that the amount of nodes that do not contain children is 4 (bottom row)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;If you set the &lt;em&gt;order&lt;/em&gt; of your tree to a higher number, more nodes can fit onto a single row and you will end up with a lesser &lt;em&gt;depth&lt;/em&gt;.&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;If you set the &lt;em&gt;order&lt;/em&gt; of your tree to a higher number, more nodes can fit onto a single row and you will end up with a lesser &lt;em&gt;depth&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;Now the actual power of an index comes from an I/O perspective. As you know (or will know now) the thing that will slow down a program/computer the most is I/O.
 This can be network I/O, disk I/O, etc. In case of our database we will speak of disk I/O. &lt;/p&gt;
 &lt;p&gt;When a database has to go and &lt;em&gt;scan&lt;/em&gt; your table without an index is has to plow through all your rows to find a match.
@@ -522,7 +516,7 @@ If your data does not get read much, but is updated frequently, maybe a &lt;em&g
 &lt;p&gt;We have (very roughly) seen what an index is and what we have available for full text, but how do you actually build such an index?&lt;/p&gt;
 &lt;p&gt;Luckily for us, this too has been neatly abstracted and is very simple to do.&lt;/p&gt;
 &lt;p&gt;If we wanted our phraseTable to contain an index, we simply could go about and create it with the following syntax:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt; &lt;span class="n"&gt;phrasetable_idx&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;USING&lt;/span&gt; &lt;span class="n"&gt;gin&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt; &lt;span class="n"&gt;phrasetable_idx&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;USING&lt;/span&gt; &lt;span class="n"&gt;gin&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -530,21 +524,21 @@ If your data does not get read much, but is updated frequently, maybe a &lt;em&g
 &lt;p&gt;Just like we did before, we will now re-populate our &lt;em&gt;phrase&lt;/em&gt; column, but this time we will fill it with the data we want to have indexed: article and title.
 Let me show you what I mean.&lt;/p&gt;
 &lt;p&gt;First, empty the four &lt;em&gt;phrase&lt;/em&gt; columns in our tiny database:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;DROP&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;DROP&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;set&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Notice that I removed the &lt;em&gt;NOT NULL&lt;/em&gt; constraint.
 Next we can populate it containing a tsvector of both the &lt;em&gt;title&lt;/em&gt; and the &lt;em&gt;article&lt;/em&gt; columns:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="s1"&gt;' '&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="s1"&gt;' '&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;The &lt;em&gt;coalesce&lt;/em&gt; function may be something that you are unfamiliar with.
 This functions simply returns the first argument which is &lt;em&gt;not&lt;/em&gt; NULL.
 In this case we use:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -552,20 +546,20 @@ In this case we use:&lt;/p&gt;
 We use &lt;em&gt;coalesce&lt;/em&gt; here to substitute a value for NULL, being the empty string.&lt;/p&gt;
 &lt;p&gt;If we would not substitute NULL then our &lt;em&gt;tsvector&lt;/em&gt; generation would fail if either the title or article column would be NULL.&lt;/p&gt;
 &lt;p&gt;Next we can create an index on that newly filled column:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt; &lt;span class="n"&gt;phrasetable_idx&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;USING&lt;/span&gt; &lt;span class="n"&gt;gin&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt; &lt;span class="n"&gt;phrasetable_idx&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;USING&lt;/span&gt; &lt;span class="n"&gt;gin&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And we have magic, there now is a &lt;em&gt;GiN&lt;/em&gt; index on that column which will be used during full text search.&lt;/p&gt;
 &lt;p&gt;To create a &lt;em&gt;GiST&lt;/em&gt; index we could use exactly the same syntax:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt; &lt;span class="n"&gt;phrasetable_idx&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;USING&lt;/span&gt; &lt;span class="n"&gt;gist&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt; &lt;span class="n"&gt;phrasetable_idx&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;USING&lt;/span&gt; &lt;span class="n"&gt;gist&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Now, the disk-space savvy readers will have noticed that our "phrase" column now contains some redundant information as we store the tsvector of the article and title column that was already in the database.
 If you do not wish to have this extra column, you could created &lt;em&gt;expression&lt;/em&gt; indexes (our on-the-fly queries we seen before).&lt;/p&gt;
 &lt;p&gt;The setup of such an expression index is trivial:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt; &lt;span class="n"&gt;phrasetable_exp_idx&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;USING&lt;/span&gt; &lt;span class="n"&gt;gin&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="s1"&gt;' '&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;INDEX&lt;/span&gt; &lt;span class="n"&gt;phrasetable_exp_idx&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;USING&lt;/span&gt; &lt;span class="n"&gt;gin&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="s1"&gt;' '&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="n"&gt;coalesce&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;''&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -582,7 +576,7 @@ This results in an index which is configuration aware and will &lt;em&gt;only&lt
 &lt;h4&gt;tsvector_update_trigger()&lt;/h4&gt;
 &lt;p&gt;The first, and most used one, is called &lt;em&gt;tsvector_update_trigger()&lt;/em&gt; and fires whenever a new row is inserted into your table (in our case &lt;em&gt;phraseTable&lt;/em&gt;).&lt;/p&gt;
 &lt;p&gt;To setup such a trigger, we could use the following SQL:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TRIGGER&lt;/span&gt; &lt;span class="n"&gt;tsvectorupdate&lt;/span&gt; &lt;span class="k"&gt;BEFORE&lt;/span&gt; &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;OR&lt;/span&gt; &lt;span class="k"&gt;UPDATE&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TRIGGER&lt;/span&gt; &lt;span class="n"&gt;tsvectorupdate&lt;/span&gt; &lt;span class="k"&gt;BEFORE&lt;/span&gt; &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;OR&lt;/span&gt; &lt;span class="k"&gt;UPDATE&lt;/span&gt;
     &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="k"&gt;EACH&lt;/span&gt; &lt;span class="k"&gt;ROW&lt;/span&gt; &lt;span class="k"&gt;EXECUTE&lt;/span&gt; &lt;span class="k"&gt;PROCEDURE&lt;/span&gt;
     &lt;span class="n"&gt;tsvector_update_trigger&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'pg_catalog.english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;article&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
@@ -627,51 +621,51 @@ As I always say at the end of such lengthy chapters: go out and explore.&lt;/p&g
 &lt;p&gt;Beware of localized packages of PostgreSQL though. As I noted in the previous chapter, there is a small possibility that the default configuration in your PostgreSQL installation is &lt;em&gt;not&lt;/em&gt; set to 'english'.
 If this is the case with your setup, be sure to include the 'english' configuration if not stated otherwise or &lt;em&gt;change&lt;/em&gt; it to be 'english'. We will see how to do that in a minute.&lt;/p&gt;
 &lt;p&gt;Taking the small database we created last time, the syntax to feed a configuration set to PostgreSQL during parsing was the following:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;The string '&lt;em&gt;english&lt;/em&gt;' represents the &lt;em&gt;name&lt;/em&gt; of the configuration which we would like to use. As you know by now, this string can be omitted which will make the database use the default configuration. PostgreSQL knows this default because it is set in the general &lt;em&gt;postgresql.conf&lt;/em&gt; configuration file. In that file you will find a variable called &lt;em&gt;default_text_search_config&lt;/em&gt; which, in most cases, is set to &lt;em&gt;pg_catalog.english&lt;/em&gt;. If you wish to have a own, custom configuration to be the default, that is the place to set it.&lt;/p&gt;
 &lt;p&gt;Before hacking away at your own configuration, it may be of interest to see what PostgreSQL has to offer. To see which shipped configuration files are available to you, use the &lt;em&gt;describe&lt;/em&gt; command (\d) together with the full text flag (F):&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;This will &lt;em&gt;describe&lt;/em&gt; the objects in the database that represent full text configurations. You see that by default you have quite a lot of language support. To see a different configuration in action, let us do a quick, fun test. &lt;/p&gt;
 &lt;p&gt;First, take the dutch string "Een blauwe olifant springt al dartelend over de kreupele dolfijn.", which is a rough translation of the "The blue elephant jumps over the crippled dolphin." example from the first chapter. If we would feed this to PostgreSQL, using the default (english) configuration:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'Een blauwe olifant springt al dartelend over de kreupele dolfijn'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'Een blauwe olifant springt al dartelend over de kreupele dolfijn'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;We would get back:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt; &lt;span class="s1"&gt;'al'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt; &lt;span class="s1"&gt;'blauw'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="s1"&gt;'dartelend'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt; &lt;span class="s1"&gt;'de'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="s1"&gt;'dolfijn'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt; &lt;span class="s1"&gt;'een'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="s1"&gt;'kreupel'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;9&lt;/span&gt; &lt;span class="s1"&gt;'olif'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="s1"&gt;'springt'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;
+&lt;pre class="code literal-block"&gt; &lt;span class="s1"&gt;'al'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt; &lt;span class="s1"&gt;'blauw'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="s1"&gt;'dartelend'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt; &lt;span class="s1"&gt;'de'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="s1"&gt;'dolfijn'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt; &lt;span class="s1"&gt;'een'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="s1"&gt;'kreupel'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;9&lt;/span&gt; &lt;span class="s1"&gt;'olif'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="s1"&gt;'springt'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;It attempted to guess some words as you can see from the lexeme 'olif', but, to a dutch reader, this is &lt;em&gt;not&lt;/em&gt; stemmed correctly. Neither are the stop words removed: 'de' and 'een' are articles which, in dutch, are considered of no value in a text search context. So let us try this again with the built-in &lt;em&gt;dutch&lt;/em&gt; configuration:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'dutch'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'Een blauwe olifant springt al dartelend over de kreupele dolfijn'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'dutch'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;'Een blauwe olifant springt al dartelend over de kreupele dolfijn'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And we get:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt; &lt;span class="s1"&gt;'blauw'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="s1"&gt;'dartel'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt; &lt;span class="s1"&gt;'dolfijn'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt; &lt;span class="s1"&gt;'kreupel'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;9&lt;/span&gt; &lt;span class="s1"&gt;'olifant'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="s1"&gt;'springt'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;
+&lt;pre class="code literal-block"&gt; &lt;span class="s1"&gt;'blauw'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="s1"&gt;'dartel'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;6&lt;/span&gt; &lt;span class="s1"&gt;'dolfijn'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt; &lt;span class="s1"&gt;'kreupel'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;9&lt;/span&gt; &lt;span class="s1"&gt;'olifant'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="s1"&gt;'springt'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Aha! That is much shorter then the previous result, and it is also more correct. As you can see, the words 'de' and 'een' are now removed and the stemming is done correctly on 'dartel', 'olifant' and 'kreupel'.
 The target of this series, however, is not to show you the dutch language (for it will make you weep...), but you see the effect a different configuration set can have. &lt;/p&gt;
 &lt;p&gt;But what is such a configuration set made of? To answer that, we can simply use the same describe, but ask for more detailed information with the &lt;em&gt;+&lt;/em&gt; flag:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;This will return a list of &lt;em&gt;all&lt;/em&gt; the configurations and their details, so let us filter that and look at only the english version:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;english&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;english&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;The following result will be returned:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt; asciihword      &lt;span class="p"&gt;|&lt;/span&gt; english_stem
+&lt;pre class="code literal-block"&gt; asciihword      &lt;span class="p"&gt;|&lt;/span&gt; english_stem
  asciiword       &lt;span class="p"&gt;|&lt;/span&gt; english_stem
  email           &lt;span class="p"&gt;|&lt;/span&gt; simple
  file            &lt;span class="p"&gt;|&lt;/span&gt; simple
@@ -697,29 +691,25 @@ The target of this series, however, is not to show you the dutch language (for i
  For each category there are one or more dictionaries defined which will receive the token and try to return a lexeme.
  We also call this overview a configuration map, for it maps a category to one or more dictionaries.&lt;/p&gt;
 &lt;p&gt;If the parser encounters a URL, for example, it will categorize it as a &lt;em&gt;url&lt;/em&gt; or &lt;em&gt;url_path&lt;/em&gt; token and as a result, PostgreSQL will consult the dictionaries &lt;em&gt;mapped&lt;/em&gt; to this category to try and create a single lexeme containing a URL pointing to the same path. Example:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;example.com&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;example.com&lt;/li&gt;
 &lt;li&gt;example.com/index.html&lt;/li&gt;
 &lt;li&gt;example.com/foo/../index.html&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;The URLs all result in the same document being served, so it makes sense to only save one variant as a lexeme in the resulting vector.
+&lt;/ul&gt;&lt;p&gt;The URLs all result in the same document being served, so it makes sense to only save one variant as a lexeme in the resulting vector.
 The same kind of &lt;em&gt;normalization&lt;/em&gt; is done for file paths, version numbers, host names, units of measure, ... . A lot more then normal, English words.&lt;/p&gt;
 &lt;p&gt;There are 23 categories in total that the parser can recognize, ones not included here, for example, are &lt;em&gt;tag&lt;/em&gt; for XML tags, &lt;em&gt;blank&lt;/em&gt; for whitespace or punctuation, etc.&lt;/p&gt;
 &lt;p&gt;To see a description of the different token categories supported, use the 'p' flag together with '+' for more information:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dFp&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dFp&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;When parsing, the chain of command goes as follows:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;A string is fed to PostgreSQL's full text&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;A string is fed to PostgreSQL's full text&lt;/li&gt;
 &lt;li&gt;The parser crawls over the string and chops it into tokens of a certain type&lt;/li&gt;
 &lt;li&gt;For each token category a list of dictionaries (or a single dictionary) is consulted&lt;/li&gt;
 &lt;li&gt;If a dictionary list is used, the dictionaries are (generally) ordered from most precise (narrow) to most generic (wide)&lt;/li&gt;
 &lt;li&gt;As soon as a dictionary returns a lexeme (single or in the form of an array), the flow for that token stops&lt;/li&gt;
 &lt;li&gt;If no lexeme is proposed (a dictionary returns &lt;em&gt;NULL&lt;/em&gt;) the token is given to the next dictionary in line or if a stop word list returns a match (returns &lt;em&gt;empty array&lt;/em&gt;), the token is discarded&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3&gt;Dictionary templates and dictionaries&lt;/h3&gt;
+&lt;/ul&gt;&lt;h3&gt;Dictionary templates and dictionaries&lt;/h3&gt;
 &lt;p&gt;In the list of token categories that were supported by the built-in 'english' configuration, you will find that only two &lt;em&gt;dictionaries&lt;/em&gt; are used: &lt;em&gt;simple&lt;/em&gt; and &lt;em&gt;english_stem&lt;/em&gt;, which in turn come from the &lt;em&gt;simple&lt;/em&gt; and &lt;em&gt;snowball&lt;/em&gt; dictionary &lt;em&gt;templates&lt;/em&gt; respectively.&lt;/p&gt;
 &lt;p&gt;So, what exactly is the difference between a &lt;em&gt;dictionary template&lt;/em&gt; and a &lt;em&gt;dictionary&lt;/em&gt;?&lt;/p&gt;
 &lt;p&gt;A &lt;em&gt;dictionary template&lt;/em&gt; is the skeleton (hence template) of a dictionary. It defines the actual &lt;em&gt;C&lt;/em&gt; functions that will do the heavy lifting.
@@ -728,7 +718,7 @@ A &lt;em&gt;dictionary&lt;/em&gt; is an instantiation of that template - providi
 &lt;p&gt;Take, for example, the &lt;em&gt;simple&lt;/em&gt; dictionary &lt;em&gt;template&lt;/em&gt;. It does two things: it first checks a token against a &lt;em&gt;stop word&lt;/em&gt; list. If it finds a match it returns an &lt;em&gt;empty array&lt;/em&gt;, which will result in the token being discarded. If no match is found in the stop word list, the process will return the same token, but with &lt;em&gt;casing removed&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;All the checking and case removing is done by functions, under the hood. The stop word file, however, is something that the &lt;em&gt;dictionary&lt;/em&gt; (the instantiation) provides.
 The instantiation of the &lt;em&gt;simple&lt;/em&gt; dictionary template, thus the &lt;em&gt;dictionary&lt;/em&gt; itself, would be defined as follows:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="k"&gt;simple&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="k"&gt;simple&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="k"&gt;template&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;simple&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
     &lt;span class="n"&gt;stopwords&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;english&lt;/span&gt;
 &lt;span class="p"&gt;);&lt;/span&gt;
@@ -751,7 +741,7 @@ However, if you do not provide a full path, PostgreSQL will search for it inside
 &lt;p&gt;Luckily for us, this is trivial. A stop word file is nothing more then a plain text file with one word on each line. Empty lines and trailing whitespace are ignored. We would then have to save this file with the &lt;em&gt;.stop&lt;/em&gt; extension. Let us try just that.&lt;/p&gt;
 &lt;p&gt;Open up your editor and punch in the words "dolphin" and "the", both on their own line. Write the file out as "shisaa_stop.stop", preferably in PostgreSQL's shared directory.&lt;/p&gt;
 &lt;p&gt;Next we need to setup our dictionary. Connect to the "phrases" database from chapter one and run the following SQL:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="k"&gt;template&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;simple&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
     &lt;span class="n"&gt;stopwords&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;shisaa_stop&lt;/span&gt;
 &lt;span class="p"&gt;);&lt;/span&gt;
@@ -762,19 +752,19 @@ However, if you do not provide a full path, PostgreSQL will search for it inside
 &lt;p&gt;Now, the dictionary by itself is not very helpful. As we have seen before, we need to map it to token categories before we can actually use it for parsing.
 This means that we need to make our own configuration.&lt;/p&gt;
 &lt;p&gt;Let us setup an empty configuration (not based on an existing one like 'english'):&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;parser&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'default'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;parser&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;'default'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;This statement will create a new configuration for us which is completely empty, it has no mappings. The argument we have to give here can be either &lt;em&gt;parser&lt;/em&gt; or &lt;em&gt;copy&lt;/em&gt;. With parser you define which parser to use and it will create an empty configuration. PostgreSQL has only one parser by default which is named...&lt;em&gt;default&lt;/em&gt;. If you choose &lt;em&gt;copy&lt;/em&gt; then you will have to provide an &lt;em&gt;existing&lt;/em&gt; configuration name (like english) from which you would like to make a copy.&lt;/p&gt;
 &lt;p&gt;To verify that the configuration is empty, run our describe on it:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And marvel at its emptiness.&lt;/p&gt;
 &lt;p&gt;Now, let us add the &lt;em&gt;shisaa_simple&lt;/em&gt; dictionary we created before:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
     &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;MAPPING&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;asciiword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;asciihword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_asciipart&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
                   &lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_part&lt;/span&gt;
     &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -785,19 +775,17 @@ This means that we need to make our own configuration.&lt;/p&gt;
 I need to note that all of these statements are &lt;em&gt;not&lt;/em&gt; SQL standard (for SQL has no full text standard) and thus cannot be easily ported to a different database.
 But then again...what is this folly...who would even need a different database!&lt;/p&gt;
 &lt;p&gt;The new statements introduced here (and in the previous SQL blocks) are:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;CREATE TEXT SEARCH DICTIONARY&lt;/em&gt;&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;&lt;em&gt;CREATE TEXT SEARCH DICTIONARY&lt;/em&gt;&lt;/li&gt;
 &lt;li&gt;&lt;em&gt;CREATE TEXT SEARCH CONFIGURATION&lt;/em&gt;&lt;/li&gt;
 &lt;li&gt;&lt;em&gt;ALTER TEXT SEARCH CONFIGURATION&lt;/em&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Just remember that these are not part of the SQL standard (something which PostgreSQL holds very dear, in high contrast with many other databases).&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;Just remember that these are not part of the SQL standard (something which PostgreSQL holds very dear, in high contrast with many other databases).&lt;/p&gt;
 &lt;p&gt;Did it work? Well, describe it:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And get back:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt; asciihword      &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple
+&lt;pre class="code literal-block"&gt; asciihword      &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple
  asciiword       &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple
  hword           &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple
  hword_asciipart &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple
@@ -809,12 +797,12 @@ But then again...what is this folly...who would even need a different database!&
 &lt;p&gt;Perfect!&lt;/p&gt;
 &lt;p&gt;Here we mapped our fresh dictionary to the token groups "asciihword", "asciiword", "hword", "hword_asciipart", "hword_part", "word", because these will target most of a normal, English sentence.&lt;/p&gt;
 &lt;p&gt;It is time to try out this new search configuration! Punch in the same on-the-fly SQL as we had in the previous chapter, but this time with &lt;em&gt;our own&lt;/em&gt; configuration:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And we get back:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9 &lt;span class="s1"&gt;'crippled'&lt;/span&gt;:8 &lt;span class="s1"&gt;'elephant'&lt;/span&gt;:4 &lt;span class="s1"&gt;'jumped'&lt;/span&gt;:5 &lt;span class="s1"&gt;'over'&lt;/span&gt;:6
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9 &lt;span class="s1"&gt;'crippled'&lt;/span&gt;:8 &lt;span class="s1"&gt;'elephant'&lt;/span&gt;:4 &lt;span class="s1"&gt;'jumped'&lt;/span&gt;:5 &lt;span class="s1"&gt;'over'&lt;/span&gt;:6
 &lt;/pre&gt;
 
 
@@ -825,7 +813,7 @@ But then again...what is this folly...who would even need a different database!&
 &lt;p&gt;What?&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Snowball&lt;/em&gt; is a &lt;em&gt;very proven&lt;/em&gt; string processing language specially designed for stemming purposes and supports a wide range of languages. It originated from the &lt;em&gt;Porter stemming algorithm&lt;/em&gt; and uses a natural syntax to define stemming rules. &lt;/p&gt;
 &lt;p&gt;And luckily for us, PostgreSQL has a &lt;em&gt;Snowball&lt;/em&gt; dictionary template ready to use. This template has the Snowball stemming rules embedded for a wide variety of languages. Let us create a &lt;em&gt;dictionary&lt;/em&gt; for our shisaa configuration, shall we?&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_snowball&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_snowball&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="k"&gt;template&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;snowball&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
     &lt;span class="k"&gt;language&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;english&lt;/span&gt;
 &lt;span class="p"&gt;);&lt;/span&gt;
@@ -840,7 +828,7 @@ If you would not tell the &lt;em&gt;snowball&lt;/em&gt; dictionary to remove sto
 &lt;p&gt;This stop word list can be the exact same list we fed the &lt;em&gt;simple&lt;/em&gt; dictionary.&lt;/p&gt;
 &lt;p&gt;Also, because a &lt;em&gt;snowball&lt;/em&gt; dictionary will try and parse &lt;em&gt;all&lt;/em&gt; the tokens it is being fed, it is consider to be a &lt;em&gt;wide&lt;/em&gt; dictionary. Therefor, as we have seen earlier, it is a good idea when chaining dictionaries together to put this dictionary at the end of your chain.&lt;/p&gt;
 &lt;p&gt;We now have our own version of the &lt;em&gt;snowball&lt;/em&gt; dictionary and need to extend our configuration and map this dictionary to the desired token categories:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
     &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;MAPPING&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;asciiword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;asciihword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_asciipart&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
                   &lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_part&lt;/span&gt;
     &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;shisaa_snowball&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -849,12 +837,12 @@ If you would not tell the &lt;em&gt;snowball&lt;/em&gt; dictionary to remove sto
 
 &lt;p&gt;Notice that in the &lt;em&gt;WITH&lt;/em&gt; clause we are now chaining the &lt;em&gt;simple&lt;/em&gt; and the &lt;em&gt;snowball&lt;/em&gt; dictionary together. The order is, of course, important.
 Describe our configuration once more:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;dF&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And get back:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;asciihword      &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple,shisaa_snowball
+&lt;pre class="code literal-block"&gt;asciihword      &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple,shisaa_snowball
 asciiword       &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple,shisaa_snowball
 hword           &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple,shisaa_snowball
 hword_asciipart &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple,shisaa_snowball
@@ -866,12 +854,12 @@ word            &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple,shisaa_snowba
 &lt;p&gt;Perfect, now the &lt;em&gt;simple&lt;/em&gt; dictionary will be consulted first followed by the &lt;em&gt;snowball&lt;/em&gt; dictionary.&lt;/p&gt;
 &lt;p&gt;Note that throughout this chapter I will chain together dictionaries in order. This will &lt;em&gt;not&lt;/em&gt; always be the most smart or desired order, just an order to demonstrate &lt;em&gt;how&lt;/em&gt; you can chain dictionaries.&lt;/p&gt;
 &lt;p&gt;To the test, throw a new query at it:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And get back:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9 &lt;span class="s1"&gt;'crippled'&lt;/span&gt;:8 &lt;span class="s1"&gt;'elephant'&lt;/span&gt;:4 &lt;span class="s1"&gt;'jumped'&lt;/span&gt;:5 &lt;span class="s1"&gt;'over'&lt;/span&gt;:6
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9 &lt;span class="s1"&gt;'crippled'&lt;/span&gt;:8 &lt;span class="s1"&gt;'elephant'&lt;/span&gt;:4 &lt;span class="s1"&gt;'jumped'&lt;/span&gt;:5 &lt;span class="s1"&gt;'over'&lt;/span&gt;:6
 &lt;/pre&gt;
 
 
@@ -879,12 +867,12 @@ word            &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple,shisaa_snowba
 &lt;p&gt;Well, the &lt;em&gt;simple&lt;/em&gt; dictionary, as we defined it earlier, is setup to be a bit greedy. In its current state it will return an unmatched token as a lexeme with casing removed.
 It does not return &lt;em&gt;NULL&lt;/em&gt;. And, as you know by now, &lt;em&gt;NULL&lt;/em&gt; is needed to give other dictionaries a chance to examine the token.&lt;/p&gt;
 &lt;p&gt;So, we need to alter the &lt;em&gt;simple&lt;/em&gt; dictionary's behavior. For this, we can use the &lt;em&gt;ALTER&lt;/em&gt; syntax provided to us. And as it turns out, the &lt;em&gt;simple&lt;/em&gt; dictionary &lt;em&gt;template&lt;/em&gt; can accept one more variable: the &lt;em&gt;accept&lt;/em&gt; variable. If this is set to false, then it will return &lt;em&gt;NULL&lt;/em&gt; for every unmatched token. Let us alter that dictionary:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;accept&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;accept&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;false&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Run the ts_vector query again, and look at the results:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:8 &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5 &lt;span class="s1"&gt;'over'&lt;/span&gt;:6
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:8 &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5 &lt;span class="s1"&gt;'over'&lt;/span&gt;:6
 &lt;/pre&gt;
 
 
@@ -894,18 +882,18 @@ It does not return &lt;em&gt;NULL&lt;/em&gt;. And, as you know by now, &lt;em&gt
 &lt;p&gt;Let us extend our favorite sentence and add a few synonyms to it: "The big blue elephant, joined by its enormous blue mammoth friend, jumped over the crippled blue dolphin while smiling at the orca."&lt;/p&gt;
 &lt;p&gt;Still perfectly possible.&lt;/p&gt;
 &lt;p&gt;In the light of (cue dark en deep Batman voice) "science" (end Batman voice), let us first see what we get when we run it through our current configuration:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'at'&lt;/span&gt;:20 &lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'by'&lt;/span&gt;:6 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:15 &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4 &lt;span class="s1"&gt;'enorm'&lt;/span&gt;:8 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'it'&lt;/span&gt;:7 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:22 &lt;span class="s1"&gt;'over'&lt;/span&gt;:13 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19 &lt;span class="s1"&gt;'while'&lt;/span&gt;:18
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'at'&lt;/span&gt;:20 &lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'by'&lt;/span&gt;:6 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:15 &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4 &lt;span class="s1"&gt;'enorm'&lt;/span&gt;:8 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'it'&lt;/span&gt;:7 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:22 &lt;span class="s1"&gt;'over'&lt;/span&gt;:13 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19 &lt;span class="s1"&gt;'while'&lt;/span&gt;:18
 &lt;/pre&gt;
 
 
 &lt;p&gt;That is one big result set. Maybe we should cut the blue dolphin a little bit of slack and feed a real stop word list to our &lt;em&gt;simple&lt;/em&gt; dictionary before continuing by altering our &lt;em&gt;dictionary&lt;/em&gt;:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;stopwords&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;english&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt; &lt;span class="n"&gt;stopwords&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;english&lt;/span&gt; &lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;As you see you can simply use the same &lt;em&gt;ALTER&lt;/em&gt; syntax as before. The "english" here refers to the shipped "english.stop" stop word list.&lt;/p&gt;
 &lt;p&gt;Querying again, we will get back a better, short list (including our Dolphin friend):&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:15 &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:17 &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4 &lt;span class="s1"&gt;'enorm'&lt;/span&gt;:8 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:22 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:15 &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:17 &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4 &lt;span class="s1"&gt;'enorm'&lt;/span&gt;:8 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:22 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19
 &lt;/pre&gt;
 
 
@@ -913,14 +901,14 @@ It does not return &lt;em&gt;NULL&lt;/em&gt;. And, as you know by now, &lt;em&gt
 &lt;p&gt;Enter the &lt;em&gt;synonym&lt;/em&gt; dictionary &lt;em&gt;template&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;This template requires you to have a so-called "synonym" file; A file containing lists of words with the same meaning. For the sake of learning, let us create our own synonym file. This file has to end with the &lt;em&gt;.syn&lt;/em&gt; extension.&lt;/p&gt;
 &lt;p&gt;Open up your editor again and write out a file called "shisaa_syn.syn" with the following contents:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;big enormous
+&lt;pre class="code literal-block"&gt;big enormous
 elephant mammoth
 dolphin orca
 &lt;/pre&gt;
 
 
 &lt;p&gt;And let us setup the &lt;em&gt;dictionary&lt;/em&gt;:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_synonym&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_synonym&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="k"&gt;template&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;synonym&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
     &lt;span class="n"&gt;synonyms&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;shisaa_syn&lt;/span&gt;
 &lt;span class="p"&gt;);&lt;/span&gt;
@@ -928,7 +916,7 @@ dolphin orca
 
 
 &lt;p&gt;And add the mapping for it:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
     &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;MAPPING&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;asciiword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;asciihword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_asciipart&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
                   &lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_part&lt;/span&gt;
     &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;shisaa_synonym&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;shisaa_snowball&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -936,7 +924,7 @@ dolphin orca
 
 
 &lt;p&gt;Okay, time to test our big string again and see the results:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:15 &lt;span class="s1"&gt;'enorm'&lt;/span&gt;:8 &lt;span class="s1"&gt;'enormous'&lt;/span&gt;:2 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:4,10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:17,22 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:15 &lt;span class="s1"&gt;'enorm'&lt;/span&gt;:8 &lt;span class="s1"&gt;'enormous'&lt;/span&gt;:2 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:4,10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:17,22 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19
 &lt;/pre&gt;
 
 
@@ -947,17 +935,17 @@ Also notice that both "mammoth" and "orca" have two pointers each, one for every
 The reason why this is happening is because our &lt;em&gt;synonym&lt;/em&gt; dictionary has priority over our &lt;em&gt;snowball&lt;/em&gt; one. The &lt;em&gt;synonym&lt;/em&gt; dictionary emits a lexeme as a synonym for &lt;em&gt;big&lt;/em&gt;, being &lt;em&gt;enormous&lt;/em&gt;, simply because we told it to do so in our &lt;em&gt;synonym file&lt;/em&gt;. Now, because it emits a lexeme, the original token, &lt;em&gt;big&lt;/em&gt;, is not available anymore for the rest of the dictionary chain.&lt;/p&gt;
 &lt;p&gt;The token &lt;em&gt;enormous&lt;/em&gt; itself has &lt;em&gt;no&lt;/em&gt; synonym because we did not define it in our synonym file. It is ignored by the &lt;em&gt;synonym&lt;/em&gt; dictionary and passed over to the &lt;em&gt;snowball&lt;/em&gt; dictionary which then stems the token into a lexeme resulting in &lt;em&gt;enorm&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;If you wish to prevent this from happening, you could add a self pointing line to your synonym list:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;enormous enormous
+&lt;pre class="code literal-block"&gt;enormous enormous
 &lt;/pre&gt;
 
 
 &lt;p&gt;Now load in the file on disk to pull the changes into PostgreSQL:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt; &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_synonym&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;synonyms&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;shisaa_syn&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt; &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_synonym&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;synonyms&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;shisaa_syn&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And run the query again, the result should now read:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:15 &lt;span class="s1"&gt;'enormous'&lt;/span&gt;:2,8 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:4,10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:17,22 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:15 &lt;span class="s1"&gt;'enormous'&lt;/span&gt;:2,8 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:4,10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:17,22 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19
 &lt;/pre&gt;
 
 
@@ -968,7 +956,7 @@ The reason why this is happening is because our &lt;em&gt;synonym&lt;/em&gt; dic
 &lt;p&gt;A &lt;em&gt;thesaurus&lt;/em&gt; dictionary is used to recognize phrases and convert them into lexemes with the same meaning. Again, this dictionary relies on a file containing the phrase conversions.
 This time, the file has the &lt;em&gt;.ths&lt;/em&gt; extension. &lt;/p&gt;
 &lt;p&gt;Open up your editor and write out a file called "shisaa_thesaurus.ths" with the following contents:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;big blue elephant : PostgreSQL
+&lt;pre class="code literal-block"&gt;big blue elephant : PostgreSQL
 crippled blue dolphin : MySQL
 &lt;/pre&gt;
 
@@ -976,7 +964,7 @@ crippled blue dolphin : MySQL
 &lt;p&gt;Before we can create the dictionary, there is one more required variable we have to set, the &lt;em&gt;subdictionary&lt;/em&gt; the &lt;em&gt;thesaurus&lt;/em&gt; dictionary can use.
 This subdictionary will be &lt;em&gt;another&lt;/em&gt; dictionary you have defined before. Most of the time a stemmer is fed to this variable to let the thesaurus stem the input before comparing it with its thesaurus file.&lt;/p&gt;
 &lt;p&gt;So let us feed it our &lt;em&gt;snowball&lt;/em&gt; dictionary and set it up:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_thesaurus&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_thesaurus&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="k"&gt;TEMPLATE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;thesaurus&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
     &lt;span class="n"&gt;DICTFILE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;shisaa_thesaurus&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
     &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;shisaa_snowball&lt;/span&gt;
@@ -985,7 +973,7 @@ This subdictionary will be &lt;em&gt;another&lt;/em&gt; dictionary you have defi
 
 
 &lt;p&gt;Map it:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
     &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;MAPPING&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;asciiword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;asciihword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_asciipart&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
                   &lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_part&lt;/span&gt;
     &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;shisaa_thesaurus&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;shisaa_snowball&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -994,7 +982,7 @@ This subdictionary will be &lt;em&gt;another&lt;/em&gt; dictionary you have defi
 
 &lt;p&gt;Notice that I took out the &lt;em&gt;synonym&lt;/em&gt; dictionary. If we chain up to many dictionaries, the results might turn out to be undesirable in our demonstration use case.&lt;/p&gt;
 &lt;p&gt;Querying will result in the following tsvector:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'blue'&lt;/span&gt;:7 &lt;span class="s1"&gt;'enorm'&lt;/span&gt;:6 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:9 &lt;span class="s1"&gt;'join'&lt;/span&gt;:3 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:10 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:8 &lt;span class="s1"&gt;'mysql'&lt;/span&gt;:13 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:18 &lt;span class="s1"&gt;'postgresql'&lt;/span&gt;:2 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:15
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'blue'&lt;/span&gt;:7 &lt;span class="s1"&gt;'enorm'&lt;/span&gt;:6 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:9 &lt;span class="s1"&gt;'join'&lt;/span&gt;:3 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:10 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:8 &lt;span class="s1"&gt;'mysql'&lt;/span&gt;:13 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:18 &lt;span class="s1"&gt;'postgresql'&lt;/span&gt;:2 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:15
 &lt;/pre&gt;
 
 
@@ -1011,7 +999,7 @@ Normally you would want to download these files from the official OpenOffice pag
 .
 Download the files for your desired language and place the &lt;em&gt;.dict&lt;/em&gt; and the &lt;em&gt;.affix&lt;/em&gt; files into the PostgreSQL shared directory.&lt;/p&gt;
 &lt;p&gt;For now, let us just take the basic &lt;em&gt;english&lt;/em&gt; dict and affix files (named both &lt;em&gt;en_us&lt;/em&gt; and already shipped with PostgreSQL) and feed them to the configuration:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_ispell&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="k"&gt;DICTIONARY&lt;/span&gt; &lt;span class="n"&gt;shisaa_ispell&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
     &lt;span class="k"&gt;template&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;ispell&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
     &lt;span class="n"&gt;DictFile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;en_us&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
     &lt;span class="n"&gt;AffFile&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;en_us&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
@@ -1021,7 +1009,7 @@ Download the files for your desired language and place the &lt;em&gt;.dict&lt;/e
 
 
 &lt;p&gt;And chain it:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;SEARCH&lt;/span&gt; &lt;span class="n"&gt;CONFIGURATION&lt;/span&gt; &lt;span class="n"&gt;shisaa&lt;/span&gt;
     &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="n"&gt;MAPPING&lt;/span&gt; &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="n"&gt;asciiword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;asciihword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_asciipart&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
                   &lt;span class="n"&gt;word&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;hword_part&lt;/span&gt;
     &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="n"&gt;shisaa_simple&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;shisaa_ispell&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;shisaa_snowball&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -1030,7 +1018,7 @@ Download the files for your desired language and place the &lt;em&gt;.dict&lt;/e
 
 &lt;p&gt;Notice again I took out the &lt;em&gt;thesaurus&lt;/em&gt; dictionary, not to pile up too many dictionaries at once.&lt;/p&gt;
 &lt;p&gt;Query it once more, and look at what we get back:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'cripple'&lt;/span&gt;:15 &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:17 &lt;span class="s1"&gt;'elephant'&lt;/span&gt;:4 &lt;span class="s1"&gt;'enormous'&lt;/span&gt;:8 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'joined'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:22 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19 &lt;span class="s1"&gt;'smiling'&lt;/span&gt;:19
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9,16 &lt;span class="s1"&gt;'cripple'&lt;/span&gt;:15 &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:17 &lt;span class="s1"&gt;'elephant'&lt;/span&gt;:4 &lt;span class="s1"&gt;'enormous'&lt;/span&gt;:8 &lt;span class="s1"&gt;'friend'&lt;/span&gt;:11 &lt;span class="s1"&gt;'join'&lt;/span&gt;:5 &lt;span class="s1"&gt;'joined'&lt;/span&gt;:5 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:12 &lt;span class="s1"&gt;'mammoth'&lt;/span&gt;:10 &lt;span class="s1"&gt;'orca'&lt;/span&gt;:22 &lt;span class="s1"&gt;'smile'&lt;/span&gt;:19 &lt;span class="s1"&gt;'smiling'&lt;/span&gt;:19
 &lt;/pre&gt;
 
 
@@ -1045,17 +1033,17 @@ One of the reasons why Ispell is such a powerful dictionary is because it can re
 &lt;p&gt;The first function I want show you is a &lt;em&gt;very&lt;/em&gt; handy one that is built to test your &lt;em&gt;whole&lt;/em&gt; full text configuration. It helps you keep your mental condition to just mildly insane, so to speak.&lt;/p&gt;
 &lt;p&gt;The function &lt;em&gt;ts_debug()&lt;/em&gt; accepts a configuration and a string of text you wish to test. As a result you will get back a set that contains an overview of how the parser chopped your string into tokens,  which category it picked for each token, which dictionary was consulted and which lexeme(s) where emitted. Oh boy, this is too much fun, let us just try it out! &lt;/p&gt;
 &lt;p&gt;Feed our original pun string and let us test the current &lt;em&gt;shisaa&lt;/em&gt; configuration:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_debug&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_debug&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Hmm, that may not be very readable, rather use the wildcard selector and a FROM clause to include column names into our result set (one of the few times you may use this selector without getting smacked):&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;ts_debug&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;ts_debug&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Which will result in the following, huge set:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;  &lt;span class="nb"&gt;alias&lt;/span&gt;   &lt;span class="p"&gt;|&lt;/span&gt;   description   &lt;span class="p"&gt;|&lt;/span&gt;  token   &lt;span class="p"&gt;|&lt;/span&gt;                 dictionaries                  &lt;span class="p"&gt;|&lt;/span&gt;  dictionary   &lt;span class="p"&gt;|&lt;/span&gt;  lexemes   
+&lt;pre class="code literal-block"&gt;  &lt;span class="nb"&gt;alias&lt;/span&gt;   &lt;span class="p"&gt;|&lt;/span&gt;   description   &lt;span class="p"&gt;|&lt;/span&gt;  token   &lt;span class="p"&gt;|&lt;/span&gt;                 dictionaries                  &lt;span class="p"&gt;|&lt;/span&gt;  dictionary   &lt;span class="p"&gt;|&lt;/span&gt;  lexemes   
 -----------+-----------------+----------+-----------------------------------------------+---------------+------------
 asciiword &lt;span class="p"&gt;|&lt;/span&gt; Word, all ASCII &lt;span class="p"&gt;|&lt;/span&gt; The      &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;shisaa_simple,shisaa_ispell,shisaa_snowball&lt;span class="o"&gt;}&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; shisaa_simple &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="o"&gt;{}&lt;/span&gt;
 blank     &lt;span class="p"&gt;|&lt;/span&gt; Space symbols   &lt;span class="p"&gt;|&lt;/span&gt;          &lt;span class="p"&gt;|&lt;/span&gt; &lt;span class="o"&gt;{}&lt;/span&gt;                                            &lt;span class="p"&gt;|&lt;/span&gt;               &lt;span class="p"&gt;|&lt;/span&gt; 
@@ -1087,12 +1075,12 @@ blank     &lt;span class="p"&gt;|&lt;/span&gt; Space symbols   &lt;span class="p
 &lt;h4&gt;ts_lexize()&lt;/h4&gt;
 &lt;p&gt;The second function is &lt;em&gt;ts_lexize()&lt;/em&gt;. This little helper lets you test different &lt;em&gt;parts&lt;/em&gt; of your whole setup. Take the unexpected result of our last dictionary, where we got back multiple lexemes. As it turned out it is normal behavior, but you may want to verify that the result is coming from the dictionary and not from a side effect of how you chained your dictionaries together.&lt;/p&gt;
 &lt;p&gt;To test our single, &lt;em&gt;shisaa_ispell&lt;/em&gt; dictionary, we could feed it to this new function, together with &lt;em&gt;one token&lt;/em&gt; we wish to test:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_lexize&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa_ispell'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'joined'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;ts_lexize&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'shisaa_ispell'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'joined'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;This will return:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;{&lt;/span&gt;joined,join&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="o"&gt;{&lt;/span&gt;joined,join&lt;span class="o"&gt;}&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -1101,13 +1089,11 @@ Notice that I stressed the fact that you can only feed this function &lt;em&gt;o
 &lt;p&gt;You can use this function to test all your dictionaries individually, one token at a time.&lt;/p&gt;
 &lt;p&gt;Phew, that was a lot to take in for we covered a lot of ground here today. You can turn the lights back high and go get some fresh air.
 In the next chapter, I will round up this introduction by introducing you to the following, new material:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Ranking search results&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;Ranking search results&lt;/li&gt;
 &lt;li&gt;Highlighting words inside search results&lt;/li&gt;
 &lt;li&gt;Creating special full text search indexes&lt;/li&gt;
 &lt;li&gt;Setting up update triggers for tsvector records&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;
 &lt;!--  LocalWords:  instantiation PostgreSQL
  --&gt;&lt;/div&gt;</description><category>full text search</category><category>postgresql</category><guid>http://shisaa.jp/postset/postgresql-full-text-search-part-2.html</guid><pubDate>Wed, 07 May 2014 13:00:00 GMT</pubDate></item><item><title>PostgreSQL: A full text search engine - Part 1</title><link>http://shisaa.jp/postset/postgresql-full-text-search-part-1.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Preface&lt;/h3&gt;
 &lt;p&gt;PostgreSQL, the database of miracles, the RDBMS of wonders.&lt;/p&gt;
@@ -1128,27 +1114,27 @@ Well, diddlydangeroo, then by all means, keep reading, because that is exactly w
 Now we would like to find the string &lt;em&gt;"An elephant a day keeps the dolphins at bay."&lt;/em&gt;.
 We do not fully remember the above string, but we do remember it had the word "elephant" in it.
 With regular SQL you could use the "LIKE" operator to try and find a matching substring. The resulting query would look something like this:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;LIKE&lt;/span&gt; &lt;span class="s1"&gt;'%elephant%'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;LIKE&lt;/span&gt; &lt;span class="s1"&gt;'%elephant%'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;It would work, you render any index on the table mute when using front &lt;em&gt;and&lt;/em&gt; back wildcards, but it would work.
 Now imagine a humble user would like to find the same string but their memory is bad, they thought the word elephant was capitalized, because it may refer to PostgreSQL, of course.
 The query would become this:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;LIKE&lt;/span&gt; &lt;span class="s1"&gt;'%Elephant%'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;LIKE&lt;/span&gt; &lt;span class="s1"&gt;'%Elephant%'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And as a result, you get back zero records.&lt;/p&gt;
 &lt;p&gt;"But wait!", you shout, "I am a smart ass, there is a solution to this!". And you are correct: the ILIKE operator.
 The "I" stands for Insensitive...as in &lt;em&gt;Case Insensitive&lt;/em&gt;. So you change the query:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;ILIKE&lt;/span&gt; &lt;span class="s1"&gt;'%Elephant%'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;ILIKE&lt;/span&gt; &lt;span class="s1"&gt;'%Elephant%'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And now you will get back a result. Good for you.&lt;/p&gt;
 &lt;p&gt;A day goes by and the same user comes back and wishes to find this string again. But, his memory still being bad and all, he thought there where multiple elephants keeping the dolphins at bay, because, you know, pun. So the query, you altered yesterday, now reads:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;ILIKE&lt;/span&gt; &lt;span class="s1"&gt;'%Elephants%'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;ILIKE&lt;/span&gt; &lt;span class="s1"&gt;'%Elephants%'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -1170,12 +1156,10 @@ Next, you pick up the latest edition and you start &lt;em&gt;searching&lt;/em&gt
 You are happy with yourself, call up your friend and tell him that you will be over right away to show him that specific article.&lt;/p&gt;
 &lt;p&gt;One thing you forgot to notice was that the sentence in your head, and the sentence that was actually printed where &lt;em&gt;different&lt;/em&gt;, but your brain (which is trained in this natural stuff), sees them as the same.
 How did that work? Well, your brain used its internal &lt;em&gt;synonym&lt;/em&gt; list and &lt;em&gt;thesaurus&lt;/em&gt; to link the different words together, making them the same thing, just written differently:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;"elephants" is the same as "Elephants"&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;"elephants" is the same as "Elephants"&lt;/li&gt;
 &lt;li&gt;"have" is the same as "bear"&lt;/li&gt;
 &lt;li&gt;"skin color" is the same "skin tone"&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Without noticing it, you have just completed a full text search using natural language algorithms, your magazine as the database, your brain as the engine.&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;Without noticing it, you have just completed a full text search using natural language algorithms, your magazine as the database, your brain as the engine.&lt;/p&gt;
 &lt;h3&gt;But how does such a natural language lookup work...on an unnatural computer?&lt;/h3&gt;
 &lt;p&gt;What a perfectly timed question, I was just getting to that.&lt;/p&gt;
 &lt;p&gt;Now that you have a basic understanding of what natural language searching is, how does one port this idea to a stupid, binary ticking tin box?
@@ -1201,11 +1185,9 @@ The user will many times not care (or not know) about casing in a full text sear
 Synonym lookups are used for removing &lt;em&gt;words&lt;/em&gt; of the same meaning where as thesaurus lookups are used to compact whole &lt;em&gt;phrases&lt;/em&gt; with similar meaning.&lt;/p&gt;
 &lt;p&gt;Only one instance of all the synonyms, thesaurus phrases and case eliminations is stored, the surviving word is referred to as a &lt;em&gt;lexeme&lt;/em&gt;, the smallest, meaningful word.
 The lexemes that are stored usually (depending on the engine you use) get an accompanying list of (alpha)numeric values stored alongside. Two types of (alpha)numeric values can be stored in case of PostgreSQL:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;The first type are pure numerical and represent pointer(s) to where the word occurs in the original document.&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;The first type are pure numerical and represent pointer(s) to where the word occurs in the original document.&lt;/li&gt;
 &lt;li&gt;The second type is pure alphabetical (actually only capital A,B,C,D) and represent the weight a certain lexeme has. &lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Do not worry to much about these two (alpha)numerical values for now, we will get to that later.&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;Do not worry to much about these two (alpha)numerical values for now, we will get to that later.&lt;/p&gt;
 &lt;p&gt;Next, let us get practical and start to actually use PostgreSQL to see how all of this works. &lt;/p&gt;
 &lt;h3&gt;The tsvector&lt;/h3&gt;
 &lt;p&gt;As PostgreSQL is an &lt;em&gt;extendable&lt;/em&gt; database engine, two new data types where added to make full text search possible, as you have seen in the beginning.
@@ -1215,17 +1197,15 @@ It is the container in which the result of the parsing is eventually stored.&lt;
 Imagine a document with the following string of text inside: &lt;em&gt;"The big blue elephant jumped over the crippled blue dolphin."&lt;/em&gt;.
 A perfectly normal sentence, elephants jump over dolphins all the time.&lt;/p&gt;
 &lt;p&gt;Without bothering about how to do it, if we let PostgreSQL parse this string, we will get the following tsvector stored in our record:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="s1"&gt;'blue'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;9&lt;/span&gt; &lt;span class="s1"&gt;'crippl'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt; &lt;span class="s1"&gt;'eleph'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt; &lt;span class="s1"&gt;'jump'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="s1"&gt;'blue'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;3&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mi"&gt;9&lt;/span&gt; &lt;span class="s1"&gt;'crippl'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt; &lt;span class="s1"&gt;'eleph'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;4&lt;/span&gt; &lt;span class="s1"&gt;'jump'&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;5&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;You will notice a few things about this vector, let me go over them one by one.&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;First, you recognize the structure of a vector-ish data type. Hence the name "tsvector".&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;First, you recognize the structure of a vector-ish data type. Hence the name "tsvector".&lt;/li&gt;
 &lt;li&gt;Next, the numbers behind the lexemes themselves, like I said before, represent the pointer(s) to that word. Notice the word "blue" in particular, it has two pointers for the two occurrences in the string.&lt;/li&gt;
 &lt;li&gt;And last, notice how some lexemes do not even look like English words at all. The lexeme "crippl" or "eleph" do not mean anything, to us humans anyway. These are the surviving lexemes of "cripple" and "elephant". PostgreSQL has stemmed and reduced the words to match all possible variants. The lexeme "crippl", for example, matches "cripple", "crippled", "crippling", "cripples", ... .&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Note that the above example is the simplest of full text search parsing results, we did not add any weights nor did we employ a thesaurus (or an advanced dictionary) to get back a more efficient compressing.&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;Note that the above example is the simplest of full text search parsing results, we did not add any weights nor did we employ a thesaurus (or an advanced dictionary) to get back a more efficient compressing.&lt;/p&gt;
 &lt;p&gt;Now that we are dwelling inside of PostgreSQL, I can elaborate a bit more about how the parsing works exactly.
 As we have seen above, it happens in roughly three steps. But I intentionally neglected to say that with PostgreSQL, there is an intermediate state between the word and the resulting lexeme.&lt;/p&gt;
 &lt;p&gt;When PostgreSQL parses the string of text it goes over them and first &lt;em&gt;categorizes&lt;/em&gt; each word into sections like "word", "url", "int", "hword", "asciiword", ... .
@@ -1237,18 +1217,18 @@ If a match is found, the dictionary will propose a lexeme. This lexeme is the on
 But instead of a varchar column, this table will contain a tsvector type for we will unleash to power of Full Text Search!&lt;/p&gt;
 &lt;p&gt;Note: I am assuming you have at least PostgreSQL 9.1 or higher. This post was written with PostgreSQL 9.3 in mind.&lt;/p&gt;
 &lt;p&gt;So connect to your PostgreSQL install and create the database:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;DATABASE&lt;/span&gt; &lt;span class="n"&gt;phrases&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;DATABASE&lt;/span&gt; &lt;span class="n"&gt;phrases&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Do not worry to much about the ownership of this database nor the ownership of its tables, you can discard it whole later.
 Now, switch over to the database:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="k"&gt;c&lt;/span&gt; &lt;span class="n"&gt;phrases&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="k"&gt;c&lt;/span&gt; &lt;span class="n"&gt;phrases&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And create the phraseTable table:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="n"&gt;tsvector&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="n"&gt;tsvector&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -1256,7 +1236,7 @@ Now, switch over to the database:&lt;/p&gt;
 &lt;p&gt;Let us insert a parsed vector into the table.
 Again, without employing a thesaurus or any other tools, we only use the built-in, default configuration to parse a string and save it as a vector.&lt;/p&gt;
 &lt;p&gt;Let us insert the vector, shall we?&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'The big blue elephant jumped over the crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -1268,12 +1248,12 @@ PostgreSQL has some default settings, which many times are good enough. The 'eng
 &lt;p&gt;&lt;em&gt;Note:&lt;/em&gt; As was pointed out by one of my observant readers, depending on how your PostgreSQL is packaged, it could be &lt;em&gt;localized&lt;/em&gt;. This means that the default 'english' configuration could be changed to reflect the language of the localized package. If this is the case with your install, be sure to &lt;em&gt;not omit&lt;/em&gt; the optional parameter and keep its value set to 'english' for all the tsvector and tsquery work we will do in this chapter. Otherwise your full text parsing will produce different, unpredictable results which will make this chapter difficult to follow.&lt;/p&gt;
 &lt;p&gt;In the next chapter we will delve &lt;em&gt;deep&lt;/em&gt; into creating our own configuration, for now just take it for granted.&lt;/p&gt;
 &lt;p&gt;If we query the result, with a simple select, it will return our newly created vector:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;from&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Will return:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:8 &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:10 &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2 &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3,9 &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:8 &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:10 &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4 &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5
 &lt;/pre&gt;
 
 
@@ -1284,7 +1264,7 @@ You may wish to put a higher weight on lexemes that come from a title element an
 &lt;p&gt;PostgreSQL knows four weight labels &lt;em&gt;A&lt;/em&gt;, &lt;em&gt;B&lt;/em&gt;, &lt;em&gt;C&lt;/em&gt;, &lt;em&gt;D&lt;/em&gt;. The lowest in rank being &lt;em&gt;D&lt;/em&gt;. In fact, if you do not define any weights to the lexemes inside a tsvector, all of them will implicitly get a &lt;em&gt;D&lt;/em&gt; assigned.
 If all the lexemes in a tsvector carry a &lt;em&gt;D&lt;/em&gt;, it is omitted from display when printing the tsvector, simply for readability.
 The above query result could thus also be written as:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2D &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3D,9D &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:8D &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:10D &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4D &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5D
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2D &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3D,9D &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:8D &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:10D &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4D &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5D
 &lt;/pre&gt;
 
 
@@ -1299,12 +1279,12 @@ If you wish to reflect your original document structure by using weights, you wi
 The process of weight assignment is trivial. PostgreSQL gives you the appropriately named &lt;em&gt;setweight&lt;/em&gt; function for this.
 This function accepts a tsvector as the first argument and a weight label as the second.&lt;/p&gt;
 &lt;p&gt;To demonstrate, let me update our record and give all the lexemes in our famous sentence a &lt;em&gt;A&lt;/em&gt; weight label:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;setweight&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'A'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;setweight&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'A'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;If we now query this table, the result will be this:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2A &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3A,9A &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:8A &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:10A &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4A &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5A
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2A &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3A,9A &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:8A &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:10A &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4A &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5A
 &lt;/pre&gt;
 
 
@@ -1312,7 +1292,7 @@ This function accepts a tsvector as the first argument and a weight label as the
 &lt;p&gt;One more for fun. What if you wanted to assign different weights to the lexemes?
 For this, you have to concatenate several &lt;em&gt;setweight&lt;/em&gt; functions together.
 An example query would look something like this:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;update&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;set&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;update&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;set&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
 &lt;span class="n"&gt;setweight&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'the big blue elephant'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s1"&gt;'A'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt;
 &lt;span class="n"&gt;setweight&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'jumped over the'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s1"&gt;'B'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt;
 &lt;span class="n"&gt;setweight&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'crippled blue dolphin.'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="s1"&gt;'C'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
@@ -1320,7 +1300,7 @@ An example query would look something like this:&lt;/p&gt;
 
 
 &lt;p&gt;The result:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2A &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3A,7C &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:6C &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:8C &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4A &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5B
+&lt;pre class="code literal-block"&gt;&lt;span class="s1"&gt;'big'&lt;/span&gt;:2A &lt;span class="s1"&gt;'blue'&lt;/span&gt;:3A,7C &lt;span class="s1"&gt;'crippl'&lt;/span&gt;:6C &lt;span class="s1"&gt;'dolphin'&lt;/span&gt;:8C &lt;span class="s1"&gt;'eleph'&lt;/span&gt;:4A &lt;span class="s1"&gt;'jump'&lt;/span&gt;:5B
 &lt;/pre&gt;
 
 
@@ -1338,7 +1318,7 @@ When you parse the document and construct the query, you could assign all lexeme
 &lt;p&gt;Pay attention to the fact that we do not call &lt;em&gt;tsquery&lt;/em&gt; a set of extra &lt;em&gt;operators&lt;/em&gt; but we call it a &lt;em&gt;data type&lt;/em&gt;. This is very important to understand.
 With &lt;em&gt;tsquery&lt;/em&gt; we can construct search &lt;em&gt;predicates&lt;/em&gt;, which can search through a &lt;em&gt;tsvector&lt;/em&gt; type and can employ specially designed indexes to speed up the process. &lt;/p&gt;
 &lt;p&gt;Let me throw a query at you that will try to find the word "elephants" in our favorite string using &lt;em&gt;tsquery&lt;/em&gt;:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'elephants'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'elephants'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -1348,7 +1328,7 @@ The function &lt;em&gt;to_tsquery&lt;/em&gt; takes one argument, a string contai
 The first argument I give in this example, 'english', is again the full text configuration and is optional.&lt;/p&gt;
 &lt;p&gt;Let us first look a bit more at this one. Say, for instance, you wish to find two tokens of the sentence inside your database.
 Your first instinct would be to query this the following way:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -1356,7 +1336,7 @@ Your first instinct would be to query this the following way:&lt;/p&gt;
 The &lt;em&gt;to_tsquery&lt;/em&gt; helper function does not accept a simple string of text, it needs a string of tokens &lt;em&gt;separated by operators&lt;/em&gt;.
 The operators at your disposal are the regular &lt;em&gt;&amp;amp;&lt;/em&gt; (AND), &lt;em&gt;|&lt;/em&gt; (OR) and &lt;em&gt;!&lt;/em&gt; (NOT). Note that the &lt;em&gt;!&lt;/em&gt; operator &lt;em&gt;needs&lt;/em&gt; the &lt;em&gt;&amp;amp;&lt;/em&gt; or the &lt;em&gt;|&lt;/em&gt; operator.&lt;/p&gt;
 &lt;p&gt;It then goes and creates a true &lt;em&gt;tsquery&lt;/em&gt; to retrieve the results. Let us try this query again, but with correct syntax this time:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -1365,7 +1345,7 @@ Like I said before, what this helper function does is translate its input (the t
 &lt;p&gt;We still have a problem if we would let a user type her or his search string into an interface search box and feed it to &lt;em&gt;to_tsquery&lt;/em&gt;, for a user does not know about the operators they need to use.
 Luckily for us, there is another help function, the &lt;em&gt;plainto_tsquery&lt;/em&gt; which takes care of exactly that problem: convert an arbitrary string of text into lexemes.&lt;/p&gt;
 &lt;p&gt;Let me demonstrate:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;plainto_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;phraseTable&lt;/span&gt; &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;phrase&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;plainto_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -1380,29 +1360,29 @@ If you wish to have something other then the &lt;em&gt;&amp;amp;&lt;/em&gt; oper
 &lt;p&gt;So, one way or the other, you will have to write your own parser if you want a non-database user to work with your application. This parser looks at the options your present on your search form and will crawl over the user entered string to interpret certain characters not as words to search but as operators or grouping tokens to build your final query.&lt;/p&gt;
 &lt;p&gt;But enough about web applications, that is not our focus now. Let us continue.&lt;/p&gt;
 &lt;p&gt;The next, new item you will see in the last few queries is the &lt;em&gt;@@&lt;/em&gt; operator. This operator (also referred to as text-search-matching operator) is also specific to a full text search context. It allows you to &lt;em&gt;match&lt;/em&gt; a &lt;em&gt;ts_vector&lt;/em&gt; against the results of a &lt;em&gt;ts_query&lt;/em&gt;. In our queries we matched the result of a &lt;em&gt;ts_query&lt;/em&gt; against a column, but you could also match against a &lt;em&gt;ts_vector&lt;/em&gt; on the fly:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'The blue elephant.'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'blue &amp;amp; the'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsvector&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'The blue elephant.'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'blue &amp;amp; the'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;A nice little detail about the &lt;em&gt;@@&lt;/em&gt; operator is that it can also match against a &lt;em&gt;TEXT&lt;/em&gt; or &lt;em&gt;VARCHAR&lt;/em&gt; data type, giving you a poor-mans full text capability. Let me demonstrate:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="s1"&gt;'The blue elephant.'&lt;/span&gt; &lt;span class="p"&gt;::&lt;/span&gt; &lt;span class="nb"&gt;VARCHAR&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'blue &amp;amp; the'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="s1"&gt;'The blue elephant.'&lt;/span&gt; &lt;span class="p"&gt;::&lt;/span&gt; &lt;span class="nb"&gt;VARCHAR&lt;/span&gt; &lt;span class="o"&gt;@@&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'blue &amp;amp; the'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;This 'on-the-fly' query will generate a &lt;em&gt;VARCHAR&lt;/em&gt; string (by using the &lt;em&gt;::&lt;/em&gt; or &lt;em&gt;cast&lt;/em&gt; operator) and try to match the tokens &lt;em&gt;blue&lt;/em&gt; and &lt;em&gt;the&lt;/em&gt;. The result will be &lt;em&gt;t&lt;/em&gt;, meaning that a match is found.&lt;/p&gt;
 &lt;p&gt;Before I continue, it is nice to know that you can always test the result of a &lt;em&gt;ts_query&lt;/em&gt;, meaning, test the output of what it will use to find lexemes in the &lt;em&gt;ts_vector&lt;/em&gt;.
 To see that output, you simply call it with the helper function, the same way we called the &lt;em&gt;to_tsvector&lt;/em&gt; a while ago:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;This will result in:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt; &lt;span class="s1"&gt;'eleph'&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="s1"&gt;'blue'&lt;/span&gt;
+&lt;pre class="code literal-block"&gt; &lt;span class="s1"&gt;'eleph'&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="s1"&gt;'blue'&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;It is also important to note that &lt;em&gt;to_tsquery&lt;/em&gt; (and &lt;em&gt;plainto_tsquery&lt;/em&gt;) too uses a configuration of the same kind &lt;em&gt;to_tsvector&lt;/em&gt; uses, for it too has to do the same parsing to find the lexemes of the string or tokens you feed it. So the first, optional argument to &lt;em&gt;to_tsquery&lt;/em&gt; is the configuration, this also defaults to "english". This means we could rewrite the query as such:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;to_tsquery&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'english'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="s1"&gt;'elephants &amp;amp; blue'&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
@@ -1410,20 +1390,16 @@ To see that output, you simply call it with the helper function, the same way we
 &lt;p&gt;Okay, I think this is enough to take in for now. You have got a basic understanding of what full text search means, you know how to construct a vector containing lexemes, pointers and weights. You also know how to build a query data type and perform basic matching to retrieve the text you desire.&lt;/p&gt;
 &lt;p&gt;In part 2 we will look at how we can dig deeper and setup our own full text search configuration.
 We will cover fun stuff like:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Looking deeper into PostgreSQL's guts&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;Looking deeper into PostgreSQL's guts&lt;/li&gt;
 &lt;li&gt;Defining dictionaries&lt;/li&gt;
 &lt;li&gt;Building Stop word lists&lt;/li&gt;
 &lt;li&gt;Mapping token categories to our dictionaries&lt;/li&gt;
 &lt;li&gt;Defining our own, super awesome full text configuration&lt;/li&gt;
 &lt;li&gt;And, of course, more dolphin pun...&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;In the last part we will break open yet another can of full text search goodness and look at:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Creating special, full text search indexes&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;In the last part we will break open yet another can of full text search goodness and look at:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Creating special, full text search indexes&lt;/li&gt;
 &lt;li&gt;Ranking search results&lt;/li&gt;
 &lt;li&gt;Highlighting word inside search results&lt;/li&gt;
 &lt;li&gt;Setting up update triggers for ts_vector records&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Hang in there!&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;Hang in there!&lt;/p&gt;
 &lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>full text search</category><category>postgresql</category><guid>http://shisaa.jp/postset/postgresql-full-text-search-part-1.html</guid><pubDate>Wed, 30 Apr 2014 14:00:00 GMT</pubDate></item></channel></rss>

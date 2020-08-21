@@ -1,0 +1,713 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.jp (web)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/ja/categories/web.xml" type="application/rss+xml" rel="self"></atom:link><language>ja</language><lastBuildDate>Mon, 05 Jan 2015 12:42:48 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Nikola: the static blog engine A.K.A. How I build Shisaa.jp</title><link>http://shisaa.jp/ja/postset/nikola-web.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Preface&lt;/h3&gt;
+&lt;p&gt;First, a big thank you to Roberto Alsina, creator of Nikola, for giving this post &lt;a href="http://nikola.ralsina.com.ar/blog/new-nikola-tutorial.html" title="Blog post about shisaa.jp on Nikola's blog"&gt;a warm welcome&lt;/a&gt; and embedding it in the Nikola documentation!&lt;/p&gt;
+&lt;p&gt;When I designed Shisaa.jp I spend quit some time thinking about the "backend" to use. What system would generate the website for me...which CMS to use?
+As I have quite some experience with Drupal, that would be a possible candidate...but being familiar with Drupal, is also knowing some hard-to-ignore facts:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Drupal is written in PHP which is not a language I aspire much to program in.&lt;/li&gt;
+&lt;li&gt;Drupal, besides being a powerful tool, is slow-as-hell, which is a typical burden of most all-purpose-cms-so-large-it-almost-becomes-framework systems out there.&lt;/li&gt;
+&lt;li&gt;Drupal 8, the soon to be launched new and shiny version, is now build on top of another framework (symfony), so its a framework on top of a framework...which in most sane cases means it will become even slower.&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;So not Drupal then, what else is out there? Wordpress, Joomla, ...? Not likely to happen...ever...and they still are all hacked up in PHP.&lt;/p&gt;
+&lt;p&gt;Okay, no PHP driven systems...I seem to like Python more, so maybe Plone, Pylons, Pyramid, ...?&lt;/p&gt;
+&lt;p&gt;Maybe...&lt;/p&gt;
+&lt;p&gt;But there was still a nagging voice in the back of my head..."Do I really need a CMS"?&lt;/p&gt;
+&lt;p&gt;I mean, think about it, I'm the only author of this website, there are no external users who need to login and use fancy interfaces to put the word out there.
+And...think of security...every single dynamic system on the internet is prone to all kinds of scary attacks...simply because their dynamic.
+Oh, and performance, serving up a few plain old HTML files is light-years faster then dynamically throwing together a page per request (even with cache!).&lt;/p&gt;
+&lt;p&gt;So I decided to setup this whole site...wait for it...&lt;strong&gt;statically&lt;/strong&gt;. But how?&lt;/p&gt;
+&lt;p&gt;When you decide to build your website statically you basically have two options:&lt;/p&gt;
+&lt;ol&gt;&lt;li&gt;Write each HTML document by hand&lt;/li&gt;
+&lt;li&gt;Use a static generator&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;If you choose option one, you have to consider the amount of work you are putting on your own shoulders. If your website or blog only consists of a few pages and gets updated two times a year, then good old handcrafted pages are the way to go. But if you tend to update the site frequently, writing each page from the ground up and maintaining all the menu and deep links can become a hell of a job...which would suck all the fun out of authoring your website.&lt;/p&gt;
+&lt;p&gt;That's where static generators jump in to help you. Once setup, these things will do the heavy lifting for you so you can concentrate on writing your blog, maintaining your company's website, putting pictures of your latest event online, etc...&lt;/p&gt;
+&lt;p&gt;"But I will need a lot of technical knowledge if I use these kind of systems", you ask. No, you will not.
+While it is true that these systems always need a minimal of configuration (which system doesn't?), a good amount of eagerness can get you well underway!&lt;/p&gt;
+&lt;h3&gt;Step in Nikola&lt;/h3&gt;
+&lt;p&gt;Besides the fact that I am a huge fan of Nikola Tesla, I quickly felt that &lt;a href="http://nikola.ralsina.com" title="Nikola homepage"&gt;this&lt;/a&gt; Nikola would be my weapon of choice, its quite a fast and elegant system with a nice feature set...and its extensible. It also contains a balanced toolset at your service when building or authoring your site. It even is multilingual!&lt;/p&gt;
+&lt;p&gt;Go and read &lt;a href="http://nikola.ralsina.com.ar/handbook.html" title="Nikola handbook"&gt;Roberto Alsina's&lt;/a&gt; handbook on Nikola to find out more about the reasoning behind this project and the beautiful features and tools available. On that site you will also find some pretty detailed guides on how to start building your site. Despite Roberto's best efforts of guiding you throughout Nikola's process, I sometimes ran aground, especially when theming, and had to go explore by myself.&lt;/p&gt;
+&lt;p&gt;So now I would like to take you on a short trip and show you how I used Nikola to setup, deploy and author this very website, mainly the basic setup and building your custom theme for the above stated reasons.&lt;/p&gt;
+&lt;h3&gt;The environment&lt;/h3&gt;
+&lt;p&gt;Before we can dive in, we first have to setup Nikola itself...and to setup Nikola, we have to setup our Python environment.
+Because many programs on Unix install various versions of python on your system, it is sometimes difficult to setup a clean workspace for you to run your projects in.
+You really need a development sandbox where you can mess things up, install specific dependencies and use a specific versions of Python. For this sandboxing, I use the popular &lt;a href="http://www.virtualenv.org/" title="Virtualenv project page"&gt;Virtualenv&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;With Virtualenv you can do all of the above...you deploy a new virtual environment in a directory of your choice, point your shell to there and you can start building. First, install Virtualenv:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;pip install virtualenv
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now we can setup our virtual environment:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;virtualenv --python&lt;span class="o"&gt;=&lt;/span&gt;python2.7 yourdir
+&lt;/pre&gt;
+
+
+&lt;p&gt;Noticed that I told Virtualenv to use Python version 2.7, Nikola 5.3 &lt;em&gt;is&lt;/em&gt; Python 3 compatible, but if you want to deliver a nice Google sitemap XML, you will have to stick with Python 2.x.
+After Virtualenv is done setting up your sandbox, &lt;strong&gt;go to that directory&lt;/strong&gt; and load this sandbox environment up into your current shell:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;&lt;span class="nb"&gt;source &lt;/span&gt;bin/activate
+&lt;/pre&gt;
+
+
+&lt;p&gt;Voila, you will notice the current directory name in parenthesis in front of your shell, this means that all is well. Now...lets install Nikola!&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;pip install nikola
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will give you Nikola 5.3 (on the time of writing) and install all the necessary dependencies for you. We can now initialize our site.&lt;/p&gt;
+&lt;h3&gt;The basics&lt;/h3&gt;
+&lt;p&gt;To setup a new site, you can simply run:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;nikola init shisaa.jp
+&lt;/pre&gt;
+
+
+&lt;p&gt;Since Nikola 5.2 this creates a &lt;em&gt;really&lt;/em&gt; empty site containing only the basic directory structure and an example configuration file.
+You could go ahead and build this site, it works out of the box. Prior to 5.2 the init command would generate an empty site and fill it with demonstration data.
+If you would like this behavior just set the "--demo" flag after the init command. &lt;/p&gt;
+&lt;p&gt;When you enter your freshly created site directory you will notice the following structure:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;files
+galleries
+listings
+posts
+stories
+&lt;/pre&gt;
+
+
+&lt;p&gt;Lets take a quick peek a what each directory means (and see some of Nikola's features along the way):&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;files&lt;/em&gt; directory contains static assets that you want to have available regardless of the theme you use.
+&lt;em&gt;Galleries&lt;/em&gt; reveal the photo gallery feature of Nikola. Inside this directory you can create as many directories as you like, each being a separate gallery.
+Next up is &lt;em&gt;listings&lt;/em&gt;, this directory will contain source code listings. Here you can put your raw source code files and Nikola will create a listings page and syntax highlighted HTML files for each code file you put in there.
+&lt;em&gt;Posts&lt;/em&gt; get more to the heart of Nikola. This directory will keep all your post files in a chosen markup language.
+The last directory is &lt;em&gt;stories&lt;/em&gt;, it contains all the "static" pages (non-post pages) you wish to serve. Things like an &lt;em&gt;about&lt;/em&gt; or &lt;em&gt;contact&lt;/em&gt; page would fit nicely there.&lt;/p&gt;
+&lt;p&gt;But before we can understand how Nikola will treat all these directories we have to take a look at the configuration file...the controlling hub of your Nikola site.&lt;/p&gt;
+&lt;h3&gt;Create the basic configuration&lt;/h3&gt;
+&lt;p&gt;Like we seen above, the basic site initialization gives you a fully packed &lt;em&gt;conf.py&lt;/em&gt; file.
+For the sake of learning...I would suggest you backup this conf.py and create an empty one.&lt;/p&gt;
+&lt;p&gt;Fire up your favorite editor and lets start building a fresh Nikola site configuration file.
+Since Nikola is a Python application, the configuration file is also written in the Python language.
+So the first thing we have to do is to load in some Python modules so Nikola can successfully parse the file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;__future__&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;unicode_literals&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;time&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Next we can setup some basic information about our site, variables that we can use later in our templates:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="n"&gt;BLOG_AUTHOR&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"Tim van der Linden"&lt;/span&gt;
+&lt;span class="n"&gt;BLOG_TITLE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"Shisaa.jp"&lt;/span&gt;
+&lt;span class="n"&gt;BLOG_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"http://Shisaa.jp"&lt;/span&gt;
+&lt;span class="n"&gt;BLOG_EMAIL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"tim@Shisaa.jp"&lt;/span&gt;
+&lt;span class="n"&gt;BLOG_DESCRIPTION&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"A blog about Programming, Japan and Photography"&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Simple enough right? Now is a good time to save the file. It &lt;em&gt;has&lt;/em&gt; to be named conf.py and &lt;em&gt;has&lt;/em&gt; to be saved in the root of your Nikola site directory.&lt;/p&gt;
+&lt;p&gt;The next thing to do is to tell Nikola about the different content we would like to have processed. Because at heart Nikola is a blog engine, we will start there.&lt;/p&gt;
+&lt;p&gt;Static website generators follow roughly the same principle: You write your posts or pages in a markup language, define templates for these markup files and put in some static files like CSS or Javascript, then you let the generator do all the magic and output a directory with everything rendered in HTML. So first we define a place to put our blog posts markup files. In Nikola, this directory, by default, is called &lt;em&gt;posts&lt;/em&gt;. You can actually call it anything you like, as long as your tell Nikola where to find it. &lt;/p&gt;
+&lt;p&gt;So the next thing we have to enter in our configuration file is a hash table doing exactly that:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="n"&gt;post_pages&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;"posts/*.md"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"posts"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;"post.tmpl"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="bp"&gt;True&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This hash table is called &lt;em&gt;post_pages&lt;/em&gt; and follows a certain syntax. First we define the directory where we will put our posts in and which files to look for (files with the &lt;em&gt;md&lt;/em&gt; syntax in this case). Then we define the type of content Nikola will find there, in this case posts (you can also define pages here, but well see that later), The third entry is the template file to use when rendering. The last entry is a Boolean you can set telling Nikola wether to include these files in the sites RSS feed or not.&lt;/p&gt;
+&lt;p&gt;Next Nikola needs to know in which language we wrote down our static files. You can simply write down the &lt;em&gt;HTML&lt;/em&gt; or use one of the many available markup languages that Nikola supports like &lt;em&gt;Markdown&lt;/em&gt; or &lt;em&gt;reStructuredText&lt;/em&gt;. For this we define another hash table called &lt;em&gt;post_compilers&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="n"&gt;post_compilers&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="s"&gt;"markdown"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;'.md'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;'.mdown'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;'.markdown'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;In my case I only use Markdown so that's the only one I define here. You can define more then one language here and based on the extension Nikola will use the correct compiler when translating it into HTML.&lt;/p&gt;
+&lt;p&gt;Quite fancy, right?&lt;/p&gt;
+&lt;h3&gt;Writing your post&lt;/h3&gt;
+&lt;p&gt;Nikola has a command to start a new post:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;nikola new_post -f markdown
+&lt;/pre&gt;
+
+
+&lt;p&gt;It will ask you some of the necessary meta data and the post text itself. Notice the &lt;em&gt;-f&lt;/em&gt; flag, if you use multiple markup languages you will have to specifiy which language you want this new post to be written in.&lt;/p&gt;
+&lt;p&gt;A different way, and for me a more convenient one, is to create your post file manually and save it in your posts directory.&lt;/p&gt;
+&lt;p&gt;To start a post manually just open your favorite editor and save the file with a decent name under your posts directory.
+The first thing we have to do in such a file is to declare some meta data Nikola will use to generate the HTML page, inner links and tags with.
+Each line can contain one meta data attribute using a syntax that starts with two dots and a space. A default post or page would start with this:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;.. title: Your blog post title&lt;/span&gt;
+&lt;span class="cp"&gt;.. slug: any-unique-slug-you-like&lt;/span&gt;
+&lt;span class="cp"&gt;.. date: 2013/02/27 18:52:05&lt;/span&gt;
+&lt;span class="cp"&gt;.. tags: web, blog&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;After that you can start writing your post at your hearts content...in the markup language you defined in your &lt;em&gt;conf.py&lt;/em&gt;.&lt;/p&gt;
+&lt;h3&gt;Building for the first time&lt;/h3&gt;
+&lt;p&gt;Okay, a little bit early in the process, but we could already do a test build to see the effect of what we have done so far.&lt;/p&gt;
+&lt;p&gt;Just punch in the command and watch the process roll out:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;nikola build
+&lt;/pre&gt;
+
+
+&lt;p&gt;Nikola will now create a directory called "output" where it will put your whole site structure.
+A nice detail about the build process it also that it only builds the changes and everything related to that change.
+Say you updated a blog post, then only that blog post will be re-rendered, including the files that have links pointing to that post....but nothing more then that.
+This means that your initial build can take a few seconds, but after that is lighting fast!&lt;/p&gt;
+&lt;p&gt;If all went well, you can now take a peak at what was actually build.
+To do this you could setup a web server and point it to the "output" directory...or you could use Nikola's build-in server.
+From the same site root directory, start Nikola's build in server:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;nikola serve
+&lt;/pre&gt;
+
+
+&lt;p&gt;Et voila...you can now point your browser to "http://localhost:8000" (the port is configurable in the config.py of your site) and watch the beauty unfold!
+I usually open up a new terminal and have it run the Nikola server as long as I'm building so that in my main terminal I can punch in "nikola build" as much as I want to.
+Remember that for each new terminal that you start you will have to set the source to your virtual environment again.&lt;/p&gt;
+&lt;p&gt;"But the website looks like Nikola's homepage!", you say. And that's correct.
+What you see is the default theme that comes shipped with Nikola.
+We want to make the site totally our own, so this also means a custom build theme.&lt;/p&gt;
+&lt;p&gt;So guess what...next thing up: &lt;em&gt;creating your theme!&lt;/em&gt;&lt;/p&gt;
+&lt;h3&gt;Create a theme&lt;/h3&gt;
+&lt;p&gt;As we have seen above, you can tell Nikola which template file (a file that has the &lt;em&gt;tmpl&lt;/em&gt; extension) to use for each type of content you define in your &lt;em&gt;post_pages&lt;/em&gt; hash table.
+But where are these template files located? Well...In a theme.&lt;/p&gt;
+&lt;p&gt;Nikola will always search themes in the &lt;em&gt;themes&lt;/em&gt; directory and load up the theme you defined in your &lt;em&gt;conf.py&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="n"&gt;THEME&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;'shisaa'&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now Nikola will search for a directory called &lt;em&gt;shisaa&lt;/em&gt; inside the &lt;em&gt;themes&lt;/em&gt; directory.&lt;/p&gt;
+&lt;p&gt;"But wait!", you ask swiftly, "Before I did not declare a theme, but still there was the default one...what magic is happening here?"&lt;/p&gt;
+&lt;p&gt;Ah, glad you asked.&lt;/p&gt;
+&lt;p&gt;When you installed Nikola, you secretly also installed a few themes that come shipped with Nikola.&lt;/p&gt;
+&lt;p&gt;These themes reside in Nikola's sources. To get to them, you simply have to go to the &lt;em&gt;lib&lt;/em&gt; directory where your Python is installed.
+Remember, if you installed Python via a Virtualenv, then you have to open up that environment's &lt;em&gt;lib&lt;/em&gt; directory.&lt;/p&gt;
+&lt;p&gt;In your &lt;em&gt;lib&lt;/em&gt; you will find your Python version, open that one up and you will find a place called &lt;em&gt;site-packages&lt;/em&gt;.
+There you'll find the Nikola directory, and in there the &lt;em&gt;data&lt;/em&gt; directory.
+In that &lt;em&gt;data&lt;/em&gt; directory sits a &lt;em&gt;themes&lt;/em&gt; directory which holds all of the basic themes.
+If you don't define any theme in your conf.py, it will use the one called &lt;em&gt;default&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;There, mystery solved!&lt;/p&gt;
+&lt;p&gt;Also nice to know: among the themes you'll find in there is a theme called &lt;em&gt;Orphan&lt;/em&gt;. This is actually a stripped down theme that you can use to build upon.
+So if you're tired of reading, just copy that to your themes directory, rename it and start tweaking.
+Or just keep reading...and have some more fun with me!&lt;/p&gt;
+&lt;p&gt;You're still here? Good! Lets continue theming!&lt;/p&gt;
+&lt;p&gt;Theming in Nikola is done by the &lt;em&gt;Mako&lt;/em&gt; or the &lt;em&gt;Jinja&lt;/em&gt; theming engine, I chose &lt;em&gt;Mako&lt;/em&gt; for the shisaa theme.
+Mako needs a few directories inside your theme directory where you can store different type of files. You basically need three of them:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;assets&lt;/li&gt;
+&lt;li&gt;templates&lt;/li&gt;
+&lt;li&gt;messages&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;The &lt;em&gt;assets&lt;/em&gt; directory will contain all the static files like CSS, Javascript, images, ... that are specific to your theme.
+&lt;em&gt;Templates&lt;/em&gt; is where you will put the actual &lt;em&gt;.tmpl&lt;/em&gt; files.
+And finally &lt;em&gt;messages&lt;/em&gt; will contain the strings levering Nikola's multilingual capabilities. For now, we will only focus on English.&lt;/p&gt;
+&lt;p&gt;Lets start with the most exciting one...the &lt;em&gt;templates&lt;/em&gt; directory.&lt;/p&gt;
+&lt;p&gt;Nikola uses a set of hardcoded template names it expects to find in that directory.
+As explained in &lt;a href="http://nikola.ralsina.com.ar/theming.html" title="Basic theming documentation"&gt;the basic theming documentation&lt;/a&gt; that comes with Nikola these are:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;base.tmpl&lt;/li&gt;
+&lt;li&gt;index.tmpl&lt;/li&gt;
+&lt;li&gt;post.tmpl&lt;/li&gt;
+&lt;li&gt;listing.tmpl&lt;/li&gt;
+&lt;li&gt;list.tmpl&lt;/li&gt;
+&lt;li&gt;list_post.tmpl&lt;/li&gt;
+&lt;li&gt;tags.tmpl&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;There are a few others (namely &lt;em&gt;gallery.tmpl&lt;/em&gt;, &lt;em&gt;story.tmpl&lt;/em&gt;) but that's for a little bit further up the road.&lt;/p&gt;
+&lt;p&gt;But before we start building each of these files, lets have a lightspeed glance at Mako:&lt;/p&gt;
+&lt;p&gt;Mako is a templating engine written in Python &lt;em&gt;for&lt;/em&gt; Python. It uses a language that ties in very close with Python. A Mako template file can inherit from other Mako template files easily giving you the ability to separate certain parts of templating logic to keep everything tidy. You can inherit a file using the following syntax:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;inherit&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base.tmpl"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;The next neat thing you will be using when inheriting are template blocks to include pieces of template code you want to use in your main template:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"footer"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;div id="footer"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;p&amp;gt;This is a footer, just static html!&amp;lt;/p&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now in your inheriting template file you can call this block like so:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;footer&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Besides inheriting you can use Python code almost seamlessly inside your template file.
+To use Python code, start with &lt;em&gt;&amp;lt;%&lt;/em&gt; and end with &lt;em&gt;%&amp;gt;&lt;/em&gt; when your code block is finished:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%!&lt;/span&gt;
+    &lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"foobar"&lt;/span&gt;
+&lt;span class="cp"&gt;%&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;And, of course, you also can use control structures to build loops or make simple decisions, caught exceptions, ...
+I suggest you go and read the &lt;a href="http://docs.makotemplates.org/en/latest/" title="Mako documentation"&gt;Mako documentation&lt;/a&gt; to find out everything about this very powerful template language.
+For now, lets get our hands dirty by creating a theme and start writing some Mako!&lt;/p&gt;
+&lt;p&gt;If you haven't already done so, create your themes directory in your Nikola site root and under that create a directory named after the theme your declared in &lt;em&gt;conf.py&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;The very first thing a theme needs are the translatable messages, even if your site is going to be in only one language, you still need to set the correct translation strings.
+The message translations are stored in a directory called "messages" under you theme. So go ahead and create that directory.&lt;/p&gt;
+&lt;p&gt;Each language that you wish to support has its own translation file in the following syntax: &lt;strong&gt;language-code&lt;/strong&gt;&lt;em&gt;_messages.py&lt;/em&gt;.
+For the default English translation, create a file called &lt;em&gt;en_messages.py&lt;/em&gt;.
+This file &lt;em&gt;has&lt;/em&gt; to be filled with a module import and a dictionary called &lt;em&gt;MESSAGES&lt;/em&gt; containing a fixed number of items:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;__future__&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;unicode_literals&lt;/span&gt;
+
+&lt;span class="n"&gt;MESSAGES&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="s"&gt;"LANGUAGE"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"English"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Posts for year &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Posts for year &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Archive"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Archive"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Posts about &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Posts about &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Tags"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Tags"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Also available in"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Also available in"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"More posts about"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"More posts about"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Posted"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Posted"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Original site"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Original site"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Read in English"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Read in English"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Newer posts"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Newer posts"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Older posts"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Older posts"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Previous post"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Previous post"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Next post"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Next post"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"old posts page &lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"old posts page &lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s"&gt;"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Read more"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Read more"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s"&gt;"Source"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s"&gt;"Source"&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Even if you don't use all of these translations, you still need to declare them.&lt;/p&gt;
+&lt;p&gt;Next we can build our actual template files used for rendering out the final HTML.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Warning: I altered each tmpl file more of less to fit my needs for Shisaa.jp. I do not make use of comments or multilingual features. Please review the tmpl files from the Orphan theme if you would like to see the original theme code!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Because we need quite some HTML and a lot of Mako structures in our template files it can get very unreadable, very quickly.
+To prevent this, it is a good practice to make use of Mako's &lt;em&gt;definition blocks&lt;/em&gt;.
+As we have seen a little bit earlier, Mako's gives you the ability to define blocks of "code" that you later can call by means of a simple function call.&lt;/p&gt;
+&lt;p&gt;"How do I go about doing that?", you ask me.&lt;/p&gt;
+&lt;p&gt;Well, lets just put our preaching to practice and create two files under your &lt;em&gt;templates&lt;/em&gt; directory.
+One is called &lt;em&gt;base.tmpl&lt;/em&gt;, the other one is called &lt;em&gt;base_helper.tmpl&lt;/em&gt;.
+The &lt;em&gt;base.tmpl&lt;/em&gt; is the main template file that will hold the skeleton of our HTML markup. This means the &lt;em&gt;head&lt;/em&gt;, &lt;em&gt;html&lt;/em&gt; and &lt;em&gt;body&lt;/em&gt; tags.
+The &lt;em&gt;base_helper.tmpl&lt;/em&gt; is something that Nikola doesn't care for, but what you can use to store reusable definition blocks so you can keep your &lt;em&gt;base.tmpl&lt;/em&gt; clean.
+Actually, you can call this "helper" file anything you like (or create as many helper files as you like for that matter), but for clarity &lt;em&gt;base_helper.tmpl&lt;/em&gt; is not such a bad choice.&lt;/p&gt;
+&lt;p&gt;Now lets uses these files together, shall we?&lt;/p&gt;
+&lt;p&gt;First, to be able to use the definition blocks you declare in your helper file inside &lt;em&gt;base.tmpl&lt;/em&gt;, you first have to tell &lt;em&gt;base.tmpl&lt;/em&gt; about it.
+You can simply import the definition blocks by using Mako's "namespacing" attribute:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;namespace&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base_helper.tmpl import="&lt;/span&gt;&lt;span class="err"&gt;*"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This line simply tells Mako to import all the definition blocks from the &lt;em&gt;base_helper.tmpl&lt;/em&gt; file.
+If you only want to import certain blocks from that helper file, simply remove the wildcard (*), sum them up, separated by a comma, in the &lt;em&gt;import=""&lt;/em&gt; attribute.
+Put this line at the top of your &lt;em&gt;base.tmpl&lt;/em&gt; file.&lt;/p&gt;
+&lt;p&gt;Before we start defining the blocks, lets create our skeleton in &lt;em&gt;base.tmpl&lt;/em&gt;.
+The shisaa skeleton looks somewhat like this:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;!DOCTYPE HTML&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;html&lt;/span&gt; &lt;span class="na"&gt;lang=&lt;/span&gt;&lt;span class="s"&gt;"${lang}"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;But this would result in beautiful yet totally white pages. We need to display actual content.&lt;/p&gt;
+&lt;p&gt;First, the &lt;em&gt;head&lt;/em&gt;, it looks quite empty don't you think? It misses a title, some CSS, a favicon, ...
+We could all just put it in the &lt;em&gt;base.tmpl&lt;/em&gt; file, but we wanted it to be as uncluttered as possible.
+So now may be a good time to edit our &lt;em&gt;base_helpers.tmpl&lt;/em&gt; file and lets define our header block:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"html_head()"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;meta charset="utf-8"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;meta name="title" content="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt; | &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;blog_title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;" &amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;meta name="description" content="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;description&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;" &amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;meta name="author" content="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;blog_author&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;title&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt; | &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;blog_title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;link type="image/x-icon" href="/assets/img/favicon.ico" rel="icon" /&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;link type="image/x-icon" href="/assets/img/favicon.ico" rel="shortcut icon" /&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;link href="/assets/css/reset.css" rel="stylesheet" type="text/css"/&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;link href="/assets/css/theme.css" rel="stylesheet" type="text/css"/&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!-- Le HTML5 shim, for IE6-8 support of HTML5 elements --&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!--[if lt IE 9]&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;script src="/assets/js/html5shiv.js" type="text/javascript"&amp;gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;script src="/assets/js/html5shiv-print.js" type="text/javascript"&amp;gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;![endif]--&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;rss_link&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;rss_link&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;That looks a little bit more like what you would expect in a &lt;em&gt;head&lt;/em&gt; tag, right?&lt;/p&gt;
+&lt;p&gt;As you can see we can use the variables we stored in the &lt;em&gt;conf.py&lt;/em&gt; right here in the theme.
+To use a variable you can just call it with the &lt;em&gt;${}&lt;/em&gt; syntax. As you could also see with the &lt;em&gt;${lang}&lt;/em&gt; variable for setting the correct locale HTML setting in &lt;em&gt;base.tmpl&lt;/em&gt;.
+Notice that some variables where not declare in your configuration (like &lt;em&gt;title&lt;/em&gt;) but instead are fetched from the meta data inside your posts or pages markup files.&lt;/p&gt;
+&lt;p&gt;So now we have a neat header, but how to tell our &lt;em&gt;base.tmpl&lt;/em&gt; to put this in the correct spot?
+Simply by using the same syntax you used to render out variables, the only difference is that definition blocks should be called as if they where functions instead of simple variables.
+This  means that instead of &lt;em&gt;${foo}&lt;/em&gt; you have to call it with &lt;em&gt;${foo()}&lt;/em&gt;.
+So call this definition block in your &lt;em&gt;head&lt;/em&gt; section:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;!DOCTYPE HTML&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;html&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;html&lt;/span&gt; &lt;span class="na"&gt;lang=&lt;/span&gt;&lt;span class="s"&gt;"${lang}"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;head&amp;gt;&lt;/span&gt;
+        ${html_head()}
+    &lt;span class="nt"&gt;&amp;lt;/head&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;body&amp;gt;&lt;/span&gt;
+    &lt;span class="nt"&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now, what about the &lt;em&gt;body&lt;/em&gt; section? Here needs to come the actual content from our posts, pages, etc...
+We always want to display a side-wide title on screen, so lets add a nice and semantic &lt;em&gt;h1&lt;/em&gt; tag containing the title and make it clickable to always go back to the homepage:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nt"&gt;&amp;lt;h1&lt;/span&gt; &lt;span class="na"&gt;id=&lt;/span&gt;&lt;span class="s"&gt;"blog-title"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class="nt"&gt;&amp;lt;a&lt;/span&gt; &lt;span class="na"&gt;href=&lt;/span&gt;&lt;span class="s"&gt;"${abs_link('/')}"&lt;/span&gt; &lt;span class="na"&gt;title=&lt;/span&gt;&lt;span class="s"&gt;"${blog_title}"&lt;/span&gt;&lt;span class="nt"&gt;&amp;gt;&lt;/span&gt;${blog_title}&lt;span class="nt"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;span class="nt"&gt;&amp;lt;/h1&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Next we need a placeholder so Nikola knows where to put all of the content we want to be rendered inside our skeleton.
+Here we can introduce Mako's concept of &lt;em&gt;inheritance&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;The only thing we have to do is define a &lt;em&gt;block&lt;/em&gt; where all of the other template files will refer to.
+Under you page title, put in the following block:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;All of the other templates will refer to this block and they will render their output right at that spot.
+These templates will start by inheriting from &lt;em&gt;base.tmpl&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;inherit&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base.tmpl"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;And they will include the same block with the same name, but with their specific templating markup:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    ...&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Simple enough, right?&lt;/p&gt;
+&lt;p&gt;If its not totally clear yet, don't worry, we will come back to this later, first lets finish our &lt;em&gt;base.tmpl&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;The thing we typically want next after our content is a footer:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;content_footer&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now where does this &lt;em&gt;content_footer&lt;/em&gt; variable come from? From your conf.py:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="n"&gt;CONTENT_FOOTER&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;'Contents &amp;amp;copy; {date} &amp;lt;a href="mailto:{email}"&amp;gt;{author}&amp;lt;/a&amp;gt; - Powered by &amp;lt;a href="http://nikola.ralsina.com.ar"&amp;gt;Nikola&amp;lt;/a&amp;gt;'&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Put the above line in your configuration file and tweak as desired!&lt;/p&gt;
+&lt;p&gt;The only thing missing now is a menu.&lt;/p&gt;
+&lt;p&gt;On shisaa you will notice that I have a sidebar-style menu.
+The links generated in the menu are also defined in the conf.py in a dictionary called...well...&lt;em&gt;SIDEBAR_LINKS&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="n"&gt;SIDEBAR_LINKS&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;DEFAULT_LANG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;'/'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;'Home'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;'/archive.html'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;'Blog),&lt;/span&gt;
+        &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;'/stories/about.html'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s"&gt;'About),&lt;/span&gt;
+    &lt;span class="p"&gt;),&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;You'll notice that the menu is also multilingual, but since I only use one language, declaring the &lt;em&gt;DEFAULT_LANG&lt;/em&gt; dictionary is enough.
+In the dictionary you first declare the path and then the name you wish to have displayed in the menu.
+The markup is build in our &lt;em&gt;base_helper.tmpl&lt;/em&gt; file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"html_sidebar_links()"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;sidebar_links&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;rel_link&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;permalink&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s"&gt;"#"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li class="active"&amp;gt;&amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li&amp;gt;&amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endfor&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;"Whats all this?", you might wonder.&lt;/p&gt;
+&lt;p&gt;As we have seen in our small Mako introduction, you have the ability to use control structures and loops inside your templates.
+Both are on stage in this little definition block.&lt;/p&gt;
+&lt;p&gt;First we loop over our current (or default) language in the &lt;em&gt;SIDEBAR_LINKS&lt;/em&gt; dictionary.
+For each item we find in the dictionary we check whether the link to be rendered is the current page, if so then set the "&lt;em&gt;active&lt;/em&gt;" class. 
+That's it, that's how our sidebar menu gets rendered.&lt;/p&gt;
+&lt;p&gt;When we put all of this together, the shisaa &lt;em&gt;base.tmpl&lt;/em&gt; looks something like this:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;namespace&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base_helper.tmpl"&lt;/span&gt; &lt;span class="na"&gt;import=&lt;/span&gt;&lt;span class="s"&gt;"*"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;&amp;lt;html lang="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;head&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;html_head&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;/head&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;body&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;h1 id="blog-title"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;abs_link&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;'/'&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;" title="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;blog_title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;blog_title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;/h1&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;ul id="sidebar"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;html_sidebar_links&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;/ul&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;div id="content"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &lt;/span&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;div id="footer"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;content_footer&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;And our &lt;em&gt;base_helper.tmpl&lt;/em&gt; looks like this:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"html_head()"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;meta charset="utf-8"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;meta name="title" content="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt; | &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;blog_title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;" &amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;meta name="description" content="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;description&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;" &amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;meta name="author" content="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;blog_author&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;title&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt; | &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;blog_title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/title&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;link type="image/x-icon" href="/assets/img/favicon.ico" rel="icon" /&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;link type="image/x-icon" href="/assets/img/favicon.ico" rel="shortcut icon" /&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;link href="/assets/css/reset.css" rel="stylesheet" type="text/css"/&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;link href="/assets/css/theme.css" rel="stylesheet" type="text/css"/&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!-- Le HTML5 shim, for IE6-8 support of HTML5 elements --&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!--[if lt IE 9]&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;script src="http://html5shim.googlecode.com/svn/trunk/html5.js" type="text/javascript"&amp;gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;![endif]--&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;rss_link&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;rss_link&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"html_sidebar_links()"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;sidebar_links&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;rel_link&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;permalink&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="s"&gt;"#"&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li class="active"&amp;gt;&amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li&amp;gt;&amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endfor&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Congratulations, we have setup the skeleton of our template!&lt;/p&gt;
+&lt;p&gt;Next we have to look into the different parts that will be rendered in our &lt;em&gt;content&lt;/em&gt; block.
+In the beginning of our templating adventure we saw that Nikola needs a minimal list of template files to successfully build your site.
+We just covered &lt;em&gt;base.tmpl&lt;/em&gt;, so whats still left?&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;s&gt;base.tmpl&lt;s&gt;&lt;/s&gt;&lt;/s&gt;&lt;/li&gt;
+&lt;li&gt;index.tmpl&lt;/li&gt;
+&lt;li&gt;post.tmpl&lt;/li&gt;
+&lt;li&gt;listing.tmp&lt;/li&gt;
+&lt;li&gt;list.tmpl&lt;/li&gt;
+&lt;li&gt;list_post.tmpl&lt;/li&gt;
+&lt;li&gt;tags.tmpl&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;The &lt;em&gt;index.tmpl&lt;/em&gt; file will render out content of the corresponding &lt;em&gt;index.html&lt;/em&gt;.
+On most blogs the index page contains a stream of the latest X posts that you wrote, or just contains the latest post with a pager to flip trough older posts.
+I choose the latter, having a 20-scroll-page long index just doesn't look pleasing to me.&lt;/p&gt;
+&lt;p&gt;So this is my &lt;em&gt;index.tmpl&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;inherit&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base.tmpl"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;namespace&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"helper"&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"index_helper.tmpl"&lt;/span&gt; &lt;span class="na"&gt;import=&lt;/span&gt;&lt;span class="s"&gt;"*"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;posts&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;loop&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;first&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;div class="index-post"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;h2&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/h2&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;p class="post-date"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strftime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;date_format&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt; - &amp;lt;/p&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html_tags&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;div class="index-post-text"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                    &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html_pager&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;/div&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endfor&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;At the top we setup the inheritance relation to our base.tmpl file. Next we load up the helper file. This helper will contain the logic for the tags and the pager rendering.
+Finally we render out our basic markup. Because I only want the first post (most newest post) displayed, I use Mako's &lt;a href="http://docs.makotemplates.org/en/latest/runtime.html#loop-context" title="More information about Loop Context in Mako"&gt;loop context&lt;/a&gt; to only show the first iteration of the loop.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;index_helper.tmpl&lt;/em&gt; looks like this:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"html_tags(post)"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tags&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;ul class="tags"&amp;gt;&lt;/span&gt;
+            &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;tag&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tags&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;li class="tag"&amp;gt;&amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;_link&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;'tag'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tag&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;tag&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;          &lt;/span&gt;
+            &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endfor&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;/ul&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt; endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"html_pager(post)"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;ul class="pager"&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;prev_post&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li class="previous"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;prev_post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;permalink&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&amp;amp;larr; &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;messages&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s"&gt;"Previous post"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;/li&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;next_post&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li class="next"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;next_post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;permalink&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;messages&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s"&gt;"Next post"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt; &amp;amp;rarr;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;/li&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;/ul&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Good, that's all for the index, one more off the list:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;s&gt;base.tmpl&lt;/s&gt;&lt;/li&gt;
+&lt;li&gt;&lt;s&gt;index.tmpl&lt;/s&gt;&lt;/li&gt;
+&lt;li&gt;post.tmpl&lt;/li&gt;
+&lt;li&gt;listing.tmp&lt;/li&gt;
+&lt;li&gt;list.tmpl&lt;/li&gt;
+&lt;li&gt;list_post.tmpl&lt;/li&gt;
+&lt;li&gt;tags.tmpl&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Next logical step, our posts itself, the dedicated, individual post pages. These are handled by &lt;em&gt;post.tmpl&lt;/em&gt;.
+For every file we see on this list we can find the same pattern: they will all inherit from the &lt;em&gt;content&lt;/em&gt; block declared in &lt;em&gt;base.tmpl&lt;/em&gt;.
+So lets pick up the pace a little bit. &lt;/p&gt;
+&lt;p&gt;Below is my template for rendering a post:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;inherit&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base.tmpl"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;namespace&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"helper"&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"post_helper.tmpl"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;div class="postbox"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html_title&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;small&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;messages&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s"&gt;"Posted"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;: &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strftime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;date_format&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html_tags&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;/small&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;helper&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;html_pager&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;And the helper file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"html_title()"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;h1&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/h1&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt; &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;link&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;p&amp;gt;&amp;lt;a href='&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;link&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;'&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;messages&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s"&gt;"Original site"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&amp;lt;/p&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt; endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"html_tags(post)"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tags&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;messages&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s"&gt;"More posts about"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;tag&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tags&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;a class="tag" href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;_link&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s"&gt;'tag'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;tag&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&amp;lt;span class="badge badge-info"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;tag&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/span&amp;gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endfor&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+    &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"html_pager(post)"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;ul class="pager"&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;prev_post&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li class="previous"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;prev_post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;permalink&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&amp;amp;larr; &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;messages&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s"&gt;"Previous post"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;/li&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;next_post&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li class="next"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;next_post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;permalink&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;messages&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s"&gt;"Next post"&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt; &amp;amp;rarr;&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;/li&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt;endif&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;/ul&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;def&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;By now, this all should look quite straightforward. We define three blocks in the helper file, where the last two are identical to what we used in the &lt;em&gt;index_helper.tmpl&lt;/em&gt;:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;One to render the title&lt;/li&gt;
+&lt;li&gt;One to render the tags and create a link to a page showing all other posts that contain this tag&lt;/li&gt;
+&lt;li&gt;And a pager that can flip trough older and newer&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Quite simple, right? 
+Another one to cross off:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;s&gt;base.tmpl&lt;/s&gt;&lt;/li&gt;
+&lt;li&gt;&lt;s&gt;index.tmpl&lt;/s&gt;&lt;/li&gt;
+&lt;li&gt;&lt;s&gt;post.tmpl&lt;/s&gt; &lt;/li&gt;
+&lt;li&gt;listing.tmp&lt;/li&gt;
+&lt;li&gt;list.tmpl&lt;/li&gt;
+&lt;li&gt;list_post.tmpl&lt;/li&gt;
+&lt;li&gt;tags.tmpl&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;This next one is used to render the code listings feature we seen in the beginning of this post and looks like this:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;inherit&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base.tmpl"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;ul class="breadcrumb"&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;link&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;crumb&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;crumbs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li&amp;gt;&amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;link&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;/ &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;crumb&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&amp;lt;/li&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt; endfor&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;/ul&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;code&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;We first render out a breadcrumb that resembles the path of the file in a hierarchical directory structure and after that we simply render the code. That's it!&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;s&gt;base.tmpl&lt;/s&gt;&lt;/li&gt;
+&lt;li&gt;&lt;s&gt;index.tmpl&lt;/s&gt;&lt;/li&gt;
+&lt;li&gt;&lt;s&gt;post.tmpl&lt;/s&gt;&lt;/li&gt;
+&lt;li&gt;&lt;s&gt;listing.tmp&lt;/s&gt;&lt;/li&gt;
+&lt;li&gt;list.tmpl&lt;/li&gt;
+&lt;li&gt;list_post.tmpl&lt;/li&gt;
+&lt;li&gt;tags.tmpl&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Finally we have three, almost identical templates: &lt;em&gt;list.tmpl&lt;/em&gt;, &lt;em&gt;list_post.tmpl&lt;/em&gt; and &lt;em&gt;tags.tmpl&lt;/em&gt;. 
+The main difference between them is the data that they have available.
+&lt;em&gt;List.tmpl&lt;/em&gt; has an &lt;em&gt;items&lt;/em&gt; dictionary available containing general links, &lt;em&gt;list_post.tmpl&lt;/em&gt; gets a &lt;em&gt;posts&lt;/em&gt; dictionary containing all the posts and &lt;em&gt;tags.tmpl&lt;/em&gt;, well, gets a dictionary with tag information.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;list_post.tmpl&lt;/em&gt; is used to render out the actual posts overview that belongs to a certain year (when browsing trough the archive). The template looks like this:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;inherit&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base.tmpl"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!--Body content--&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;div class="postbox"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;h1&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/h1&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;ul class="unstyled"&amp;gt;&lt;/span&gt;
+            &lt;span class="cp"&gt;%&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;post&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;posts&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;li&amp;gt;&amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;permalink&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;[&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strftime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;date_format&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;] &lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;post&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;lang&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+            &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt; endfor&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;/ul&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!--End of body content--&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;It is not needed to use a helper file because this template doesn't have so much functionality. It will just render out an unordered list of post titles.
+You are, of course, free to pull anything from the &lt;em&gt;posts&lt;/em&gt; you have available here and render it.&lt;/p&gt;
+&lt;p&gt;When you look at its counterpart, &lt;em&gt;list.tmpl&lt;/em&gt;, you will find exactly the same code, but with &lt;em&gt;items&lt;/em&gt; instead of &lt;em&gt;posts&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;inherit&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base.tmpl"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!--Body content--&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;div class="postbox"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;h1&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/h1&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;ul class="unstyled"&amp;gt;&lt;/span&gt;
+            &lt;span class="cp"&gt;%&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;link&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;                &amp;lt;li&amp;gt;&amp;lt;a href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;link&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+            &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt; endfor&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;/ul&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!--End of body content--&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This one if used to render the list of different years you have available.&lt;/p&gt;
+&lt;p&gt;Also &lt;em&gt;tags.tmpl&lt;/em&gt; file uses &lt;em&gt;items&lt;/em&gt; to contain all the information:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;inherit&lt;/span&gt; &lt;span class="na"&gt;file=&lt;/span&gt;&lt;span class="s"&gt;"base.tmpl"&lt;/span&gt;&lt;span class="cp"&gt;/&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt; &lt;span class="na"&gt;name=&lt;/span&gt;&lt;span class="s"&gt;"content"&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;div class="postbox"&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!--Body content--&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;h1&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;title&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/h1&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;ul class="unstyled"&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;link&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;            &amp;lt;li&amp;gt;&amp;lt;a class="tag" href="&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;link&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;"&amp;gt;&amp;lt;span class="badge badge-info"&amp;gt;&lt;/span&gt;&lt;span class="cp"&gt;${&lt;/span&gt;&lt;span class="n"&gt;text&lt;/span&gt;&lt;span class="cp"&gt;}&lt;/span&gt;&lt;span class="x"&gt;&amp;lt;/span&amp;gt;&amp;lt;/a&amp;gt;&lt;/span&gt;
+        &lt;span class="cp"&gt;%&lt;/span&gt;&lt;span class="k"&gt; endfor&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;span class="x"&gt;        &amp;lt;/ul&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;    &amp;lt;!--End of body content--&amp;gt;&lt;/span&gt;
+&lt;span class="x"&gt;&amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class="cp"&gt;&amp;lt;/%&lt;/span&gt;&lt;span class="nb"&gt;block&lt;/span&gt;&lt;span class="cp"&gt;&amp;gt;&lt;/span&gt;&lt;span class="x"&gt;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Phew, we have written out all the necessary template files.
+This means Nikola now has enough information to actually render out each individual HTML page.&lt;/p&gt;
+&lt;h3&gt;Make a test run&lt;/h3&gt;
+&lt;p&gt;So, are you ready for our second build? With your own theme this time? Punch it in!&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;nikola build
+&lt;/pre&gt;
+
+
+&lt;p&gt;If you still have a Nikola server running in another terminal, you can just refresh your page and see your new template in action.
+Of course, we did not make any CSS, so everything will look quite like &lt;a href="https://duckduckgo.com/?q=css+naked+day" title="Duck Duck Go search for CSS Naked Day"&gt;CSS Naked Day&lt;/a&gt; (which by itself is a good test).&lt;/p&gt;
+&lt;p&gt;In the beginning of this post we constructed the header and included some CSS files as I have used them on Shisaa.jp. Now go ahead and style your theme, correctly link up the files, and build again.&lt;/p&gt;
+&lt;p&gt;Now there you have it, a Nikola site up and running!&lt;/p&gt;
+&lt;p&gt;I hope I could make you feel the power you have at your fingertips when making your site with Nikola.
+Its now ready to be tinkered with more and I encourage you to go and explore more features such as the gallery, multilingual, disqus integration, try a different markup language, ...&lt;/p&gt;
+&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><guid>http://shisaa.jp/ja/postset/nikola-web.html</guid><pubDate>Fri, 01 Feb 2013 18:52:05 GMT</pubDate></item></channel></rss>

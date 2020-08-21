@@ -1,9 +1,75 @@
 <!DOCTYPE html>
-<html><body><div class="postbox">
- PostgreSQL: A full text search engine - Part 3
- <p class="post-date">14/05/2014 <span>-</span> </p>
- <div class="post">
-  <div>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="PostgreSQL: A full text search engine - Part 3 | shisaa.jp">
+<meta name="description" content="">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>PostgreSQL: A full text search engine - Part 3 | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="shortcut icon">
+<link href="../assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-en">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest">web / unix / photography / japan</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="current-lang first"><span>English</span></li>
+        
+          
+            <li class="not-first"><a href="../ja/index.html" rel="alternate" hreflang="ja">日本語</a></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href="../">home</a>
+            </li>
+<li>
+<a href="../stories/about.html">about</a>
+            </li>
+<li>
+<a href="../stories/services.html">services</a>
+            </li>
+<li>
+<a href="../archive.html">blog</a>
+            </li>
+<li>
+<a href="../photography/index.html">photography</a>
+            </li>
+<li>
+<a href="../stories/3d.html">3D</a>
+
+	  
+    </li>
+<li id="flattr">
+<small>Like my material?</small><small>Feel free to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a></small><small id="final-small">She thanks you!</small>
+</li>
+
+      </ul>
+<div id="content">
+	
+    <div class="postbox">
+    
+    <h2><a href="#">PostgreSQL: A full text search engine - Part 3</a></h2>
+
+    <p class="post-date">14/05/2014 <span>-</span> </p>
+    
+    <ul class="tags">
+<li class="tag"><a href="../categories/full-text-search.html">full text search</a></li>          
+         <li class="tag"><a href="../categories/postgresql.html">postgresql</a></li>          
+    </ul>
+<div class="post">
+      <div>
 <p>And so we arrive at the last part of the series.</p>
 <p>If you have not done so, please read <a href="http://shisaa.jp/postset/postgresql-full-text-search-part-1.html" title="First chapter introducing the full text search capabilities of PostgreSQL.">part one</a> and <a href="http://shisaa.jp/postset/postgresql-full-text-search-part-2.html" title="Second chapter introducing the full text search capabilities of PostgreSQL.">part two</a> before embarking.</p>
 <p>Today we will close up the introduction into PostgreSQL's full text capabilities by showing you a few aspects I have intentionally neglected in the previous parts. The most important ones being ranking and indexing.</p>
@@ -15,35 +81,35 @@
 <h4>Normal ranking</h4>
 <p>The first case, ranking based on how many times certain words occur, has a accompanying function ready to be used: <em>ts_rank()</em>. It accepts a mandatory <em>tsvector</em> and a <em>tsquery</em> as its arguments and returns a float which represents how high the given document ranks. The function also accepts a <em>weights array</em> and <em>normalization integer</em>, but that is for later down the road.</p>
 <p>Let us test out the basic functionality:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Elephants and dolphins do not live in the same habitat.'</span><span class="p">),</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Elephants and dolphins do not live in the same habitat.'</span><span class="p">),</span>
                <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants'</span><span class="p">));</span>
 </pre>
 
 
 <p>This is an regular old 'on the fly' query where we feed a string which we convert to a tsvector and a <em>token</em> which is converted to a tsquery. The ranking result of this is:</p>
-<pre class="code literal-block"><span></span><span class="m">0</span>.0607927
+<pre class="code literal-block">0.0607927
 </pre>
 
 
 <p>This does not say much, does it? Okay, let us throw a few more tokens in the mix:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Elephants and dolphins do not live in the same habitat.'</span><span class="p">),</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Elephants and dolphins do not live in the same habitat.'</span><span class="p">),</span>
                <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants &amp; dolphins'</span><span class="p">));</span>
 </pre>
 
 
 <p>Now we want to query the two tokens <em>elephants</em> and <em>dolphins</em>. We chain them together in an AND (<em>&amp;</em>) formation. The ranking:</p>
-<pre class="code literal-block"><span></span><span class="m">0</span>.0985009
+<pre class="code literal-block">0.0985009
 </pre>
 
 
 <p>Hmm, getting higher, good. More tokens please:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Elephants and dolphins do not live in the same habitat.'</span><span class="p">),</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Elephants and dolphins do not live in the same habitat.'</span><span class="p">),</span>
                <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants &amp; dolphins &amp; habitat &amp; living'</span><span class="p">));</span>
 </pre>
 
 
 <p>Results in:</p>
-<pre class="code literal-block"><span></span><span class="m">0</span>.414037
+<pre class="code literal-block">0.414037
 </pre>
 
 
@@ -54,19 +120,19 @@
 <p>Do you remember the weights we saw in chapter one? A quick rundown: You can optionally give weights to lexemes in a tsvector to group them together. This is, most of the time, used to reflect the original document structure within a tsvector. We also saw that, actually, all lexemes contain a standard weight of '<em>D</em>' unless specified otherwise.</p>
 <p>Weights, when ranking, define importance of words. The <em>ts_rank()</em> function will automatically take these weights into account and use a <em>weights array</em> to influence the ranking float. Remember that there are only four possible weights: <em>A</em>, <em>B</em>, <em>C</em> and <em>D</em>. </p>
 <p>The weights array has a default value of:</p>
-<pre class="code literal-block"><span></span><span class="o">{</span><span class="m">0</span>.1, <span class="m">0</span>.2, <span class="m">0</span>.4, <span class="m">1</span>.0<span class="o">}</span>
+<pre class="code literal-block"><span class="o">{</span>0.1, 0.2, 0.4, 1.0<span class="o">}</span>
 </pre>
 
 
 <p>These values correspond to the weight letters you can assign. Note that these are in reverse order, the array represents: {D,C,B,A}.</p>
 <p>Let us test that out. We take the same query as before, but now using the <em>setweight()</em> function, we will apply a weight of <em>C</em> to all lexemes:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">setweight</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Elephants and dolphins do not live in the same habitat.'</span><span class="p">),</span><span class="s1">'C'</span><span class="p">),</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">setweight</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Elephants and dolphins do not live in the same habitat.'</span><span class="p">),</span><span class="s1">'C'</span><span class="p">),</span>
                <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants &amp; dolphins &amp; habitat &amp; live'</span><span class="p">));</span>
 </pre>
 
 
 <p>The result:</p>
-<pre class="code literal-block"><span></span><span class="m">0</span>.674972
+<pre class="code literal-block">0.674972
 </pre>
 
 
@@ -74,14 +140,14 @@
 The reason for this is that the floats in the weights array <em>influence</em> the ranking calculation.
 Just for fun, you can override the default weights array, simply by passing it in as a first argument.
 Let us put the weights all equal to the default of <em>D</em> being <em>0.1</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="nb">array</span><span class="p">[</span><span class="mi">0</span><span class="p">.</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">1</span><span class="p">],</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="nb">array</span><span class="p">[</span><span class="mi">0</span><span class="p">.</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">1</span><span class="p">],</span>
                <span class="n">setweight</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Elephants and dolphins do not live in the same habitat.'</span><span class="p">),</span><span class="s1">'C'</span><span class="p">),</span>
                <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants &amp; dolphins &amp; habitat &amp; live'</span><span class="p">));</span>
 </pre>
 
 
 <p>And we get back:</p>
-<pre class="code literal-block"><span></span><span class="m">0</span>.414037
+<pre class="code literal-block">0.414037
 </pre>
 
 
@@ -103,7 +169,7 @@ Let us put the weights all equal to the default of <em>D</em> being <em>0.1</em>
 <p>Take, for example, <em>1</em> and <em>2</em>. These calculate document length by taking into account the amount of <em>words</em> present in the document.
 The <em>words</em> here reference the amount of <em>pointers</em> that are present in the tsvector.</p>
 <p>To illustrate, we will convert the sentence "These token are repeating on purpose. Bad tokens!" into a tsvector, resulting in:</p>
-<pre class="code literal-block"><span></span><span class="s1">'bad'</span>:7 <span class="s1">'purpos'</span>:6 <span class="s1">'repeat'</span>:4 <span class="s1">'token'</span>:2,8
+<pre class="code literal-block"><span class="s1">'bad'</span>:7 <span class="s1">'purpos'</span>:6 <span class="s1">'repeat'</span>:4 <span class="s1">'token'</span>:2,8
 </pre>
 
 
@@ -118,7 +184,7 @@ As I said in the beginning, it is a gray area, left open for interpretation.</p>
 <p>First we need to create a few documents (tsvectors) inside our famous phraseTable (from the previous chapters) that we will use throughout this chapter.
 Connect to your phrase database, add a "title" column, truncate whatever we have stored there and insert a few variable length documents based on Edgar Allan Poe's "The Raven".
 I have prepared the whole syntax below, this time you may copy-and-paste:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">phraseTable</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">title</span> <span class="nb">VARCHAR</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">phraseTable</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">title</span> <span class="nb">VARCHAR</span><span class="p">;</span>
 <span class="k">TRUNCATE</span> <span class="n">phraseTable</span><span class="p">;</span>
 <span class="k">INSERT</span> <span class="k">into</span> <span class="n">phraseTable</span> <span class="k">VALUES</span> <span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more."'</span><span class="p">),</span> <span class="s1">'Tiny Allan'</span><span class="p">);</span>
 <span class="k">INSERT</span> <span class="k">into</span> <span class="n">phraseTable</span> <span class="k">VALUES</span> <span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more." Ah, distinctly I remember it was in the bleak December, And each separate dying ember wrought its ghost upon the floor. Eagerly I wished the morrow - vainly I had sought to borrow From my books surcease of sorrow - sorrow for the lost Lenore - For the rare and radiant maiden whom the angels name Lenore - Nameless here for evermore.'</span><span class="p">),</span> <span class="s1">'Small Allan'</span><span class="p">);</span>
@@ -136,7 +202,7 @@ I have prepared the whole syntax below, this time you may copy-and-paste:</p>
 <li>Big Allan: "door" 6, "gently" 2</li>
 </ul>
 <p>First, let us simply rank the result with the default normalization of <em>0</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">keywords</span> <span class="o">@@</span> <span class="n">phrase</span><span class="p">;</span>
 </pre>
@@ -145,34 +211,34 @@ I have prepared the whole syntax below, this time you may copy-and-paste:</p>
 <p>Before we go over the results, a little bit about this query for people who are not so familiar with this SQL syntax.
 We do a simple <em>SELECT</em> from a data set using <em>FROM</em> filtering it with a <em>WHERE</em> clause.
 Going over it line by line:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
 </pre>
 
 
 <p>We <em>SELECT</em> on the <em>title</em> column we just made and on a "on-the-fly" column we create for the result set named <em>rank</em> which contains the result of the <em>ts_rank()</em> function.</p>
-<pre class="code literal-block"><span></span><span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="n">keywords</span>
+<pre class="code literal-block"><span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="n">keywords</span>
 </pre>
 
 
 <p>In the <em>FROM</em> clause you can put a series of statements that will deliver the data for the query. In this case we take our normal database <em>table</em> and the result of the <em>to_tsquery()</em> function which we name <em>keywords</em> so we can use it throughout the query itself.</p>
-<pre class="code literal-block"><span></span><span class="k">WHERE</span> <span class="n">keywords</span> <span class="o">@@</span> <span class="n">phrase</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">WHERE</span> <span class="n">keywords</span> <span class="o">@@</span> <span class="n">phrase</span><span class="p">;</span>
 </pre>
 
 
 <p>Here we filter the result set using the <em>WHERE</em> clause and the <em>matching</em> operator (@@). The @@ is a Boolean operator, meaning it will simply return <em>true</em> or <em>false</em>.
 So in this case, we check if the result of the <em>to_tsquery()</em> function (named keywords and which will return lexemes) <em>match</em> the results of the phrase <em>column</em> from our table (which contains <em>tsvectors</em> and thus lexemes). We want to rank only those phrases that actually contain our keywords.</p>
 <p>Now, back to our ranking. The result of this query will be:</p>
-<pre class="code literal-block"><span></span>   title     <span class="p">|</span>   rank    
+<pre class="code literal-block">   title     <span class="p">|</span>   rank    
 --------------+-----------
-Tiny Allan   <span class="p">|</span> <span class="m">0</span>.0906565
-Small Allan  <span class="p">|</span> <span class="m">0</span>.0906565
-Medium Allan <span class="p">|</span> <span class="m">0</span>.0906565
-Big Allan    <span class="p">|</span>   <span class="m">0</span>.10109
+Tiny Allan   <span class="p">|</span> 0.0906565
+Small Allan  <span class="p">|</span> 0.0906565
+Medium Allan <span class="p">|</span> 0.0906565
+Big Allan    <span class="p">|</span>   0.10109
 </pre>
 
 
 <p>Let us order the results first, so the most relevant document is always on top:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">keywords</span> <span class="o">@@</span> <span class="n">phrase</span>
     <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">rank</span> <span class="k">DESC</span><span class="p">;</span>
@@ -180,19 +246,19 @@ Big Allan    <span class="p">|</span>   <span class="m">0</span>.10109
 
 
 <p>Result:</p>
-<pre class="code literal-block"><span></span>   title     <span class="p">|</span>   rank    
+<pre class="code literal-block">   title     <span class="p">|</span>   rank    
 --------------+-----------
-Big Allan    <span class="p">|</span>   <span class="m">0</span>.10109
-Tiny Allan   <span class="p">|</span> <span class="m">0</span>.0906565
-Small Allan  <span class="p">|</span> <span class="m">0</span>.0906565
-Medium Allan <span class="p">|</span> <span class="m">0</span>.0906565
+Big Allan    <span class="p">|</span>   0.10109
+Tiny Allan   <span class="p">|</span> 0.0906565
+Small Allan  <span class="p">|</span> 0.0906565
+Medium Allan <span class="p">|</span> 0.0906565
 </pre>
 
 
 <p>"Big Allen" is on top, for it has more occurrences of the keywords "door" and "gently".
 But to be fair, in ratio "Tiny Allan" has almost the same amount of occurrences of both keywords. Three times less, but it also is three times as small.</p>
 <p>So let us take document length (based on <em>word count</em>) into account, setting our <em>normalization</em> to <em>1</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">keywords</span> <span class="o">@@</span> <span class="n">phrase</span>
     <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">rank</span> <span class="k">DESC</span><span class="p">;</span>
@@ -200,18 +266,18 @@ But to be fair, in ratio "Tiny Allan" has almost the same amount of occurrences 
 
 
 <p>You will get:</p>
-<pre class="code literal-block"><span></span>   title     <span class="p">|</span>   rank    
+<pre class="code literal-block">   title     <span class="p">|</span>   rank    
 --------------+-----------
-Tiny Allan   <span class="p">|</span> <span class="m">0</span>.0181313
-Small Allan  <span class="p">|</span> <span class="m">0</span>.0151094
-Big Allan    <span class="p">|</span> <span class="m">0</span>.0145124
-Medium Allan <span class="p">|</span>  <span class="m">0</span>.013831
+Tiny Allan   <span class="p">|</span> 0.0181313
+Small Allan  <span class="p">|</span> 0.0151094
+Big Allan    <span class="p">|</span> 0.0145124
+Medium Allan <span class="p">|</span>  0.013831
 </pre>
 
 
 <p>This could be seen as a more fair ranking, "Tiny Allan" is now on top because, considering its <em>ratio</em>, it is the most relevant. "Medium Allan" falls all the way down because it is almost as big as "Big Allan", but contains lesser occurrences of the keywords. In total five keywords in contrast to "Big Allan" who has eight but is only slightly bigger.</p>
 <p>Let us do the same, but count the document length based on the <em>unique</em> occurrences using integer <em>8</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">keywords</span> <span class="o">@@</span> <span class="n">phrase</span>
     <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">rank</span> <span class="k">DESC</span><span class="p">;</span>
@@ -219,10 +285,10 @@ Medium Allan <span class="p">|</span>  <span class="m">0</span>.013831
 
 
 <p>The result:</p>
-<pre class="code literal-block"><span></span>Tiny Allan   <span class="p">|</span> <span class="m">0</span>.00335765
-Small Allan  <span class="p">|</span> <span class="m">0</span>.00161887
-Medium Allan <span class="p">|</span> <span class="m">0</span>.00119285
-Big Allan    <span class="p">|</span> <span class="m">0</span>.00105303
+<pre class="code literal-block">Tiny Allan   <span class="p">|</span> 0.00335765
+Small Allan  <span class="p">|</span> 0.00161887
+Medium Allan <span class="p">|</span> 0.00119285
+Big Allan    <span class="p">|</span> 0.00105303
 </pre>
 
 
@@ -242,7 +308,7 @@ It makes sense that this ranking function only works on multiple tokens, on sing
 <p>In our "Raven" examples this might be a little bit hard to see, so let me demonstrate this with a couple of new, on-the-fly queries.</p>
 <p>We wish to search for the tokens <em>'token'</em> and <em>'count'</em>.</p>
 <p>First, a sentence in which the searched for tokens are wide apart: "These tokens are very wide apart and therefor do not count as much.":</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
     <span class="k">FROM</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'These tokens are very wide apart and do not count as much.'</span><span class="p">)</span> <span class="n">phrase</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'token &amp; count'</span><span class="p">)</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">keywords</span> <span class="o">@@</span> <span class="n">phrase</span>
     <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">rank</span> <span class="k">DESC</span><span class="p">;</span>
@@ -250,17 +316,17 @@ It makes sense that this ranking function only works on multiple tokens, on sing
 
 
 <p>Will have this tsvector:</p>
-<pre class="code literal-block"><span></span><span class="s1">'apart'</span>:6 <span class="s1">'count'</span>:10 <span class="s1">'much'</span>:12 <span class="s1">'token'</span>:2 <span class="s1">'wide'</span>:5
+<pre class="code literal-block"><span class="s1">'apart'</span>:6 <span class="s1">'count'</span>:10 <span class="s1">'much'</span>:12 <span class="s1">'token'</span>:2 <span class="s1">'wide'</span>:5
 </pre>
 
 
 <p>And this result:</p>
-<pre class="code literal-block"><span></span> <span class="m">0</span>.008624
+<pre class="code literal-block"> 0.008624
 </pre>
 
 
 <p>Let us put these tokens closer together now: "These tokens count for much now that they are not so wide apart!":</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
     <span class="k">FROM</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'These tokens count for much now that they are not so wide apart!'</span><span class="p">)</span> <span class="n">phrase</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'token &amp; count'</span><span class="p">)</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">keywords</span> <span class="o">@@</span> <span class="n">phrase</span>
     <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">rank</span> <span class="k">DESC</span><span class="p">;</span>
@@ -268,12 +334,12 @@ It makes sense that this ranking function only works on multiple tokens, on sing
 
 
 <p>The vector:</p>
-<pre class="code literal-block"><span></span><span class="s1">'apart'</span>:13 <span class="s1">'count'</span>:3 <span class="s1">'much'</span>:5 <span class="s1">'token'</span>:2 <span class="s1">'wide'</span>:12
+<pre class="code literal-block"><span class="s1">'apart'</span>:13 <span class="s1">'count'</span>:3 <span class="s1">'much'</span>:5 <span class="s1">'token'</span>:2 <span class="s1">'wide'</span>:12
 </pre>
 
 
 <p>The result:</p>
-<pre class="code literal-block"><span></span><span class="m">0</span>.0198206
+<pre class="code literal-block">0.0198206
 </pre>
 
 
@@ -291,7 +357,7 @@ But this is considered beyond the scope of this series (and maybe also beyond th
 For this PostgreSQL delivers us yet another function: <em>ts_headline()</em>.</p>
 <p>To demonstrate its use, we first have to make our small database a little bit bigger by inserting the original text of the "Raven" next to our tsvectors.
 So, again, copy and past this new set of queries (yes you may...):</p>
-<pre class="code literal-block"><span></span><span class="k">TRUNCATE</span> <span class="n">phraseTable</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">TRUNCATE</span> <span class="n">phraseTable</span><span class="p">;</span>
 <span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">phraseTable</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">article</span> <span class="nb">TEXT</span><span class="p">;</span>
 <span class="k">INSERT</span> <span class="k">into</span> <span class="n">phraseTable</span> <span class="k">VALUES</span> <span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more."'</span><span class="p">),</span> <span class="s1">'Tiny Allan'</span><span class="p">,</span> <span class="s1">'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more."'</span><span class="p">);</span>
 <span class="k">INSERT</span> <span class="k">into</span> <span class="n">phraseTable</span> <span class="k">VALUES</span> <span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more." Ah, distinctly I remember it was in the bleak December, And each separate dying ember wrought its ghost upon the floor. Eagerly I wished the morrow - vainly I had sought to borrow From my books surcease of sorrow - sorrow for the lost Lenore - For the rare and radiant maiden whom the angels name Lenore - Nameless here for evermore.'</span><span class="p">),</span> <span class="s1">'Small Allan'</span><span class="p">,</span> <span class="s1">'Once upon a midnight dreary, while I pondered, weak and weary, Over many a quaint and curious volume of forgotten lore, While I nodded, nearly napping, suddenly there came a tapping, As of some one gently rapping, rapping at my chamber door. "Tis some visitor," I muttered, "tapping at my chamber door - Only this, and nothing more." Ah, distinctly I remember it was in the bleak December, And each separate dying ember wrought its ghost upon the floor. Eagerly I wished the morrow - vainly I had sought to borrow From my books surcease of sorrow - sorrow for the lost Lenore - For the rare and radiant maiden whom the angels name Lenore - Nameless here for evermore.'</span><span class="p">);</span>
@@ -304,14 +370,14 @@ So, again, copy and past this new set of queries (yes you may...):</p>
 <p>The reason for this being that this <em>ts_headline()</em> function searches in the original documents (being our <em>article</em> column) rather that in your ts_vector column.
 Two arguments are mandatory: the original article and the ts_query. The optional arguments are the full text configuration you wish to use and a string of additional, comma separated options.</p>
 <p>But first, let us take a look at its most basic usage:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="k">as</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">keywords</span><span class="p">;</span>
 </pre>
 
 
 <p>Will give you:</p>
-<pre class="code literal-block"><span></span>   title     |                                                      result                                                      
+<pre class="code literal-block">   title     |                                                      result                                                      
 --------------+------------------------------------------------------------------------------------------------------------------
 Tiny Allan   | &lt;b&gt;gently&lt;/b&gt; rapping, rapping at my chamber &lt;b&gt;door&lt;/b&gt;. "Tis some visitor," I muttered, "tapping at my chamber
 Small Allan  | &lt;b&gt;gently&lt;/b&gt; rapping, rapping at my chamber &lt;b&gt;door&lt;/b&gt;. "Tis some visitor," I muttered, "tapping at my chamber
@@ -325,28 +391,28 @@ That is actual all there is to this function, it return the results with the tok
 <p>However, there are some nice options you can set to alter this basic behavior.</p>
 <p>The first one up is the HTML tag you wish to put around you highlighted words. For this you have two variables <em>StartSel</em> and <em>StopSel</em>.
 If we wanted this to be a "&lt;em&gt;" tag instead, we could tell the function to change as follows:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'StartSel=&lt;em&gt;,StopSel=&lt;/em&gt;'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'StartSel=&lt;em&gt;,StopSel=&lt;/em&gt;'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="k">as</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">keywords</span><span class="p">;</span>
 </pre>
 
 
 <p>And now we will get back an &lt;em&gt; instead of a &lt;b&gt; (including just one row this time):</p>
-<pre class="code literal-block"><span></span>   title     |                                                        result                                                        
+<pre class="code literal-block">   title     |                                                        result                                                        
 --------------+----------------------------------------------------------------------------------------------------------------------
 Tiny Allan   | &lt;em&gt;gently&lt;/em&gt; rapping, rapping at my chamber &lt;em&gt;door&lt;/em&gt;. "Tis some visitor," I muttered, "tapping at my chamber
 </pre>
 
 
 <p>In fact, it does not need to be HTML at all, you can put (almost) any string there:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'StartSel=foobar&gt;&gt;,StopSel=&lt;&lt;barfoo '</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'StartSel=foobar&gt;&gt;,StopSel=&lt;&lt;barfoo '</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="k">as</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">keywords</span><span class="p">;</span>
 </pre>
 
 
 <p>Result:</p>
-<pre class="code literal-block"><span></span>   title     |                                                               result                                                               
+<pre class="code literal-block">   title     |                                                               result                                                               
 --------------+------------------------------------------------------------------------------------------------------------------------------------
 Tiny Allan   | foobar&gt;&gt;gently&lt;&lt;barfoo rapping, rapping at my chamber foobar&gt;&gt;door&lt;&lt;barfoo. "Tis some visitor," I muttered, "tapping at my chamber
 </pre>
@@ -354,28 +420,28 @@ Tiny Allan   | foobar&gt;&gt;gently&lt;&lt;barfoo rapping, rapping at my chamber
 
 <p>Quite awesome!</p>
 <p>Another attribute you can tamper with is how many words should be included in the result set by using the <em>MaxWords</em> and <em>MinWords</em>: </p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'MaxWords=4,MinWords=1'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'MaxWords=4,MinWords=1'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="k">as</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">keywords</span><span class="p">;</span>
 </pre>
 
 
 <p>Which gives you:</p>
-<pre class="code literal-block"><span></span>   title     |             result             
+<pre class="code literal-block">   title     |             result             
 --------------+--------------------------------
 Tiny Allan   | &lt;b&gt;gently&lt;/b&gt; rapping, rapping
 </pre>
 
 
 <p>To make the resulting headline a little bit more readable there is an attribute in this options string called <em>ShortWord</em> which tells the function which is the shortest word that may appear at the start or end of the headline. </p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'ShortWord=8'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'ShortWord=8'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="k">as</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">keywords</span><span class="p">;</span>
 </pre>
 
 
 <p>Will give you:</p>
-<pre class="code literal-block"><span></span>   title     |                                                                                   result                                                                                    
+<pre class="code literal-block">   title     |                                                                                   result                                                                                    
 --------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Tiny Allan   | &lt;b&gt;gently&lt;/b&gt; rapping, rapping at my chamber &lt;b&gt;door&lt;/b&gt;. "Tis some visitor," I muttered, "tapping at my chamber &lt;b&gt;door&lt;/b&gt; - Only this, and nothing more."
 Small Allan  | &lt;b&gt;gently&lt;/b&gt; rapping, rapping at my chamber &lt;b&gt;door&lt;/b&gt;. "Tis some visitor," I muttered, "tapping at my chamber &lt;b&gt;door&lt;/b&gt; - Only this, and nothing more." Ah, distinctly
@@ -384,14 +450,14 @@ Small Allan  | &lt;b&gt;gently&lt;/b&gt; rapping, rapping at my chamber &lt;b&gt
 
 <p>Now it will try and set word boundaries to words of minimal 8 letters. This time I included the second line of the result set. As you can see the engine could not find an 8 letter word at the remainder of the document, so it simply prints it until the end. The second row, "Small Allan" is a bit bigger and the word "distinctly" has more then 8 letters, so is set as the boundary,</p>
 <p>So far the headline function has given us almost full sentences and not really fragments of text. This is because the optional <em>MaxFragments</em> defaults to 0. If we up this variable, it will start to include fragments and not sentences. Let us try it out:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'MaxFragments=2,MaxWords=8,MinWords=1'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'MaxFragments=2,MaxWords=8,MinWords=1'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="k">as</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">keywords</span><span class="p">;</span>
 </pre>
 
 
 <p>Gives you</p>
-<pre class="code literal-block"><span></span>   title     |                                                     result                                                      
+<pre class="code literal-block">   title     |                                                     result                                                      
 --------------+-----------------------------------------------------------------------------------------------------------------
 Tiny Allan   | &lt;b&gt;gently&lt;/b&gt; rapping, rapping at my chamber &lt;b&gt;door&lt;/b&gt;
 ...
@@ -402,14 +468,14 @@ Big Allan    | &lt;b&gt;gently&lt;/b&gt; rapping, rapping at my chamber &lt;b&gt
 <p>I include only the first and last line of this result set. As you can see on the last line, the result is now fragmented, and we get back different pieces of our result.
 If, for instance, four or five tokens match in our document, setting the <em>MaxFragments</em> to a higher value will show more of these matches glued together.</p>
 <p>Accompanying this <em>MaxFragments</em> option is the <em>FragmentDelimiter</em> variable which is used to define, well, the delimiter between the fragments. Short demo:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'MaxFragments=2,FragmentDelimiter=;,MaxWords=8,MinWords=1'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'MaxFragments=2,FragmentDelimiter=;,MaxWords=8,MinWords=1'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="k">as</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">keywords</span><span class="p">;</span>
 </pre>
 
 
 <p>You will get:</p>
-<pre class="code literal-block"><span></span>   title     |                                                   result                                                    
+<pre class="code literal-block">   title     |                                                   result                                                    
 --------------+-------------------------------------------------------------------------------------------------------------
 Big Allan    | &lt;b&gt;gently&lt;/b&gt; rapping, rapping at my chamber &lt;b&gt;door&lt;/b&gt;;chamber &lt;b&gt;door&lt;/b&gt; - This it is, and nothing more
 </pre>
@@ -418,7 +484,7 @@ Big Allan    | &lt;b&gt;gently&lt;/b&gt; rapping, rapping at my chamber &lt;b&gt
 <p>Including only the last line, you will see we now have a semicolon (;) instead of a ellipses (...). Neat.</p>
 <p>A final, less common option for the <em>ts_headline()</em> function is to ignore all the word boundaries we set before and simply return the <em>whole</em> document and highlight all the words of relevance.
 This variable is called <em>HighlightAll</em> and is a Boolean set to <em>false</em> by default:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'HighlightAll=true'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">,</span> <span class="s1">'HighlightAll=true'</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span>
     <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="k">as</span> <span class="n">keywords</span>
     <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">keywords</span><span class="p">;</span>
 </pre>
@@ -433,7 +499,7 @@ This variable is called <em>HighlightAll</em> and is a Boolean set to <em>false<
 <p>This does not mean that you have to avoid this function, if so I would have told you from the start and skipped this whole part. No, it is there to be used. But use it in a correct way.</p>
 <p>A correct way often seen is to use the highlighting only on the top results you are interested in - the top results the user has on their screen at the moment.
 This could be achieved in SQL with a so called <em>subquery</em>.</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span><span class="p">,</span> <span class="n">rank</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">title</span><span class="p">,</span> <span class="n">ts_headline</span><span class="p">(</span><span class="n">article</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">as</span> <span class="k">result</span><span class="p">,</span> <span class="n">rank</span>
     <span class="k">FROM</span> <span class="p">(</span><span class="k">SELECT</span> <span class="n">keywords</span><span class="p">,</span> <span class="n">article</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">phrase</span><span class="p">,</span> <span class="n">ts_rank</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span> <span class="k">AS</span> <span class="n">rank</span>
           <span class="k">FROM</span> <span class="n">phraseTable</span><span class="p">,</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'door &amp; gently'</span><span class="p">)</span> <span class="k">AS</span> <span class="n">keywords</span>
           <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">keywords</span>
@@ -466,7 +532,7 @@ I seriously suggest you read that stuff, it is golden knowledge for every seriou
 The data that is within your table rows will be ordered and chopped up to fit within the tree.</p>
 <p>It is called <em>Balanced</em>, meaning that each level of the tree has the same amount of nodes.</p>
 <p>Take this picture for example:</p>
-<pre class="code literal-block"><span></span>            <span class="p">|</span>root<span class="p">|</span>
+<pre class="code literal-block">            <span class="p">|</span>root<span class="p">|</span>
               <span class="p">|</span>
        ----------------
        <span class="p">|</span>               <span class="p">|</span>
@@ -528,7 +594,7 @@ If your data does not get read much, but is updated frequently, maybe a <em>GiST
 <p>We have (very roughly) seen what an index is and what we have available for full text, but how do you actually build such an index?</p>
 <p>Luckily for us, this too has been neatly abstracted and is very simple to do.</p>
 <p>If we wanted our phraseTable to contain an index, we simply could go about and create it with the following syntax:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">phrasetable_idx</span> <span class="k">ON</span> <span class="n">phraseTable</span> <span class="k">USING</span> <span class="n">gin</span><span class="p">(</span><span class="n">phrase</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">phrasetable_idx</span> <span class="k">ON</span> <span class="n">phraseTable</span> <span class="k">USING</span> <span class="n">gin</span><span class="p">(</span><span class="n">phrase</span><span class="p">);</span>
 </pre>
 
 
@@ -536,21 +602,21 @@ If your data does not get read much, but is updated frequently, maybe a <em>GiST
 <p>Just like we did before, we will now re-populate our <em>phrase</em> column, but this time we will fill it with the data we want to have indexed: article and title.
 Let me show you what I mean.</p>
 <p>First, empty the four <em>phrase</em> columns in our tiny database:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">phraseTable</span> <span class="k">ALTER</span> <span class="n">phrase</span> <span class="k">DROP</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">phraseTable</span> <span class="k">ALTER</span> <span class="n">phrase</span> <span class="k">DROP</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">;</span>
 <span class="k">UPDATE</span> <span class="n">phraseTable</span> <span class="k">set</span> <span class="n">phrase</span> <span class="o">=</span> <span class="k">NULL</span><span class="p">;</span>
 </pre>
 
 
 <p>Notice that I removed the <em>NOT NULL</em> constraint.
 Next we can populate it containing a tsvector of both the <em>title</em> and the <em>article</em> columns:</p>
-<pre class="code literal-block"><span></span><span class="k">UPDATE</span> <span class="n">phraseTable</span> <span class="k">SET</span> <span class="n">phrase</span> <span class="o">=</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span> <span class="n">coalesce</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="s1">''</span><span class="p">)</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span> <span class="n">coalesce</span><span class="p">(</span><span class="n">article</span><span class="p">,</span><span class="s1">''</span><span class="p">));</span>
+<pre class="code literal-block"><span class="k">UPDATE</span> <span class="n">phraseTable</span> <span class="k">SET</span> <span class="n">phrase</span> <span class="o">=</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span> <span class="n">coalesce</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="s1">''</span><span class="p">)</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span> <span class="n">coalesce</span><span class="p">(</span><span class="n">article</span><span class="p">,</span><span class="s1">''</span><span class="p">));</span>
 </pre>
 
 
 <p>The <em>coalesce</em> function may be something that you are unfamiliar with.
 This functions simply returns the first argument which is <em>not</em> NULL.
 In this case we use:</p>
-<pre class="code literal-block"><span></span><span class="n">coalesce</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="s1">''</span><span class="p">)</span>
+<pre class="code literal-block"><span class="n">coalesce</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="s1">''</span><span class="p">)</span>
 </pre>
 
 
@@ -558,20 +624,20 @@ In this case we use:</p>
 We use <em>coalesce</em> here to substitute a value for NULL, being the empty string.</p>
 <p>If we would not substitute NULL then our <em>tsvector</em> generation would fail if either the title or article column would be NULL.</p>
 <p>Next we can create an index on that newly filled column:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">phrasetable_idx</span> <span class="k">ON</span> <span class="n">phraseTable</span> <span class="k">USING</span> <span class="n">gin</span><span class="p">(</span><span class="n">phrase</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">phrasetable_idx</span> <span class="k">ON</span> <span class="n">phraseTable</span> <span class="k">USING</span> <span class="n">gin</span><span class="p">(</span><span class="n">phrase</span><span class="p">);</span>
 </pre>
 
 
 <p>And we have magic, there now is a <em>GiN</em> index on that column which will be used during full text search.</p>
 <p>To create a <em>GiST</em> index we could use exactly the same syntax:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">phrasetable_idx</span> <span class="k">ON</span> <span class="n">phraseTable</span> <span class="k">USING</span> <span class="n">gist</span><span class="p">(</span><span class="n">phrase</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">phrasetable_idx</span> <span class="k">ON</span> <span class="n">phraseTable</span> <span class="k">USING</span> <span class="n">gist</span><span class="p">(</span><span class="n">phrase</span><span class="p">);</span>
 </pre>
 
 
 <p>Now, the disk-space savvy readers will have noticed that our "phrase" column now contains some redundant information as we store the tsvector of the article and title column that was already in the database.
 If you do not wish to have this extra column, you could created <em>expression</em> indexes (our on-the-fly queries we seen before).</p>
 <p>The setup of such an expression index is trivial:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">phrasetable_exp_idx</span> <span class="k">ON</span> <span class="n">phraseTable</span> <span class="k">USING</span> <span class="n">gin</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span> <span class="n">coalesce</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="s1">''</span><span class="p">)</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span> <span class="n">coalesce</span><span class="p">(</span><span class="n">article</span><span class="p">,</span><span class="s1">''</span><span class="p">)));</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">phrasetable_exp_idx</span> <span class="k">ON</span> <span class="n">phraseTable</span> <span class="k">USING</span> <span class="n">gin</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span> <span class="n">coalesce</span><span class="p">(</span><span class="n">title</span><span class="p">,</span><span class="s1">''</span><span class="p">)</span> <span class="o">||</span> <span class="s1">' '</span> <span class="o">||</span> <span class="n">coalesce</span><span class="p">(</span><span class="n">article</span><span class="p">,</span><span class="s1">''</span><span class="p">)));</span>
 </pre>
 
 
@@ -588,7 +654,7 @@ This results in an index which is configuration aware and will <em>only</em> wor
 <h4>tsvector_update_trigger()</h4>
 <p>The first, and most used one, is called <em>tsvector_update_trigger()</em> and fires whenever a new row is inserted into your table (in our case <em>phraseTable</em>).</p>
 <p>To setup such a trigger, we could use the following SQL:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">TRIGGER</span> <span class="n">tsvectorupdate</span> <span class="k">BEFORE</span> <span class="k">INSERT</span> <span class="k">OR</span> <span class="k">UPDATE</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">TRIGGER</span> <span class="n">tsvectorupdate</span> <span class="k">BEFORE</span> <span class="k">INSERT</span> <span class="k">OR</span> <span class="k">UPDATE</span>
     <span class="k">ON</span> <span class="n">phraseTable</span> <span class="k">FOR</span> <span class="k">EACH</span> <span class="k">ROW</span> <span class="k">EXECUTE</span> <span class="k">PROCEDURE</span>
     <span class="n">tsvector_update_trigger</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span> <span class="s1">'pg_catalog.english'</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">article</span><span class="p">);</span>
 </pre>
@@ -618,5 +684,22 @@ As I always say at the end of such lengthy chapters: go out and explore.</p>
 <!--  LocalWords:  PostgreSQL lexeme
  -->
 </div>
- </div>
-</div></body></html>
+    </div>
+    
+    <ul class="pager">
+<li class="previous">
+            <a href="postgresql-full-text-search-part-2.html">← Previous post</a>
+        </li>
+        <li class="next">
+            <a href="postgis-postgresqls-spatial-partner-part-1.html">Next post →</a>
+        </li>
+    </ul>
+</div>
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+    </div>
+    
+        <script src="../assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>

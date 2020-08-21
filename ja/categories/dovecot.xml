@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.jp (dovecot)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/ja/categories/dovecot.xml" type="application/rss+xml" rel="self"></atom:link><language>ja</language><lastBuildDate>Mon, 05 Jan 2015 12:42:48 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5</title><link>http://shisaa.jp/ja/postset/mailserver-5.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 5 - Dovecot continued: our frontdesk in more detail&lt;/h3&gt;
+&lt;p&gt;Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.jp mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.&lt;/p&gt;
+&lt;p&gt;Which ever being the case, lets see Dovecot in a little bit more detail.&lt;/p&gt;
+&lt;h4&gt;Time moved backwards&lt;/h4&gt;
+&lt;p&gt;First, lets mingle with time. Or to be more precise, lets &lt;em&gt;fix&lt;/em&gt; time....the time on our server that is. What does this have to do with Dovecot?
+Well, if you are using Dovecot and you never got &lt;em&gt;"Time moved backwards"&lt;/em&gt; as an error in your maillog, then good for you!
+It either means that you have configured the time correctly on your server, or that you just are one lucky falla (or gal).
+If you &lt;em&gt;do&lt;/em&gt; have experienced this, you will know that this little error kills the Dovecot daemon and that you are left without a frontdesk to ask for your mail.&lt;/p&gt;
+&lt;p&gt;So what does this error mean and why does Dovecot crash?&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;"Time moved backwards"&lt;/em&gt; means literally what it says: The time on your server suddenly moved back in time.&lt;/p&gt;
+&lt;p&gt;How?&lt;/p&gt;
+&lt;p&gt;This comes down to time synchronization and how you set this up. 
+If you have no time sync whats so ever, then your are fine. And with fine I mean fine for this error, actually your servers time is probably behind the actual time, you just don't know it.&lt;/p&gt;
+&lt;p&gt;But if you are getting this error, it means you &lt;em&gt;have&lt;/em&gt; setup time synchronization (yeah!), but you did it the wrong way (oh...).
+You have most probably setup time to sync itself with &lt;em&gt;ntpd&lt;/em&gt; using a periodical cronjob that calls &lt;em&gt;ntpdate&lt;/em&gt;.
+This will check the time against a NTP server every time the cronjob runs and immediately adjusts your servers system clock to match.
+Because this adjusting is done instantly, the clock will skip time (forwards or backwards). This may only be a matter of a few seconds, but the time will shift harshly non the less.
+This "jumping" of the time is what will crash Dovecot.&lt;/p&gt;
+&lt;p&gt;Before we go into the simple solution to this problem, we have to ask if this is a bug in Dovecot or if this is desired behavior.
+To answer that we have to look at the implications that can come when time moves suddenly.&lt;/p&gt;
+&lt;p&gt;For one, the files that are created in your maildir(s) rely on a timestamp for their uniqueness. If two timestamps would overlap, this could resolve in data loss.&lt;/p&gt;
+&lt;p&gt;Second, timestamps in Unix are used in memory constantly, not only by Dovecot. Shifting in time could resolve in a possible unstable system.&lt;/p&gt;
+&lt;p&gt;Is crashing desired behavior then?
+Well, not really, that's why as of version 2.x, Dovecot doesn't crash but it still stops the SMTP and POP3 daemon.
+This will prevent nasty things happening to your maildir files. It won't, however, save you from other potential instabilities that could happen in your system.&lt;/p&gt;
+&lt;p&gt;The solution to this sudden jump in time is quite simple: Don't jump, stretch. If your clock is behind, speed up the time until it reaches the correct time. If time is in the future, slow it down.&lt;/p&gt;
+&lt;p&gt;Makes sense, right?&lt;/p&gt;
+&lt;p&gt;To setup this stretching is even simpler. You still use NTP, but the correct way.
+First make sure that you have NTP installed:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;yum install ntp
+&lt;/pre&gt;
+
+
+&lt;p&gt;Next make it run on boot:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;chkconfig ntpd on
+&lt;/pre&gt;
+
+
+&lt;p&gt;Before starting the daemon we have to setup which timeserver we want to synchronize with.
+Open the &lt;em&gt;ntp&lt;/em&gt; configuration file located at &lt;em&gt;/etc/ntp.conf&lt;/em&gt;.
+In here, setup the timezone server you which to use. To get a list of servers visit the &lt;a href="http://www.pool.ntp.org/zone/@" title="NTP Pool Project website"&gt;NTP Pool Project&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;server 0.your-favorite-timezone-server.org
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now save the file and simply start the daemon:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;/etc/init.d/ntpd start
+&lt;/pre&gt;
+
+
+&lt;p&gt;That's it, now your server time will be updated gracefully.&lt;/p&gt;
+&lt;h4&gt;Filtering mail&lt;/h4&gt;
+&lt;p&gt;Maybe you want to put mail from specific addresses in specific mailfolders, you want to put messages marked as spam in its own container or you want to split work and private related email from the same address, which ever being the case, you need filtering.&lt;/p&gt;
+&lt;p&gt;And whats more important, you want to filter server side.&lt;/p&gt;
+&lt;p&gt;Why?&lt;/p&gt;
+&lt;p&gt;If you check your mail on multiple devices, you don't want to setup the filter rules on each client. You want to manage your filtering on the server and watch the magic happen automatically on each machine you use.&lt;/p&gt;
+&lt;p&gt;The combination of Postfix and Dovecot is ideal for this task.&lt;/p&gt;
+&lt;p&gt;If you have followed &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;my&lt;/a&gt; &lt;a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;previous&lt;/a&gt; &lt;a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;four&lt;/a&gt; &lt;a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapters&lt;/a&gt; and setup your own mailserver, then currently Dovecot is only used to check mail and authenticate, all through the IMAP protocol.
+The actual delivery is done by Postfix itself using the Postfix LMTP delivery mechanism. This is a simple mechanism that, well, just delivers mail and does nothing else.
+To setup server side filtering we have to plugin Dovecot's &lt;em&gt;Local Delivery Agent&lt;/em&gt; or &lt;em&gt;LDA&lt;/em&gt; into our workflow. Substituting Postfix LMTP for Dovecot LDA gives us two main advantages:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;By letting Dovecot deliver the mail to the users mailfolder the filtering is done at the correct timing in the delivery workflow, while the mail is in transit, before it is delivered.&lt;/li&gt;
+&lt;li&gt;By using this LDA we can directly tap into Dovecot's powerful filtering plugin language and setup some fancy rules with ease.&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;So lets get our hands dirty and introduce a new workstation in our factory!&lt;/p&gt;
+&lt;p&gt;First we start with setting up the Dovecot LDA. To do this we have to introduce a new protocol in the Dovecot configuration file. Add the LDA protocol to &lt;em&gt;dovecot.conf&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;protocol lda &lt;span class="o"&gt;{&lt;/span&gt;
+  &lt;span class="nv"&gt;mail_plugins&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$mail_plugins&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will initiate the LDA mechanism and load in any plugins we define. We will need this later down the road.
+Next we need to define 2 important variables for Dovecot to be able to act as a delivery agent. Add these to the same file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;postmaster_address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; tim@shisaa.jp
+&lt;span class="nv"&gt;hostname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; mail.shisaa.jp
+&lt;/pre&gt;
+
+
+&lt;p&gt;Since Dovecot will do the delivery, it will now also do the rejection handling if something is wrong (instead of Postfix). When it rejects mail it needs to know where to sent a notification to.
+The hostname is used for including in the message headers.&lt;/p&gt;
+&lt;p&gt;Now we have to input some familiar settings we used to make Dovecot communicate with Postfix. But this time, we need them for the user lookups that the LDA will have to do.
+To be more specific, we need to redeclare the &lt;em&gt;userdb&lt;/em&gt; and the &lt;em&gt;auth-userdb&lt;/em&gt; declarations.
+First the &lt;em&gt;userdb&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;userdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; sql
+    &lt;span class="nv"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /etc/dovecot/dovecot-sql.conf
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;&lt;strong&gt;Caution&lt;/strong&gt;: leave your original &lt;em&gt;userdb&lt;/em&gt; declaration intact. For Postfix we have setup the user lookup to &lt;em&gt;driver=prefetch&lt;/em&gt; because we had enough information from the &lt;em&gt;passdb&lt;/em&gt; query and we did not want to travel to the database twice. For the LDA, however, this is different. The lookup cannot work with the driver set to &lt;em&gt;prefetch&lt;/em&gt;, we will have to do a separate query. So now you should have two &lt;em&gt;userdb&lt;/em&gt; entries like so:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;userdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; prefetch
+&lt;span class="o"&gt;}&lt;/span&gt;
+userdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; sql
+    &lt;span class="nv"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /etc/dovecot/dovecot-sql.conf
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Postfix will take the &lt;em&gt;prefetch&lt;/em&gt; usersb and the LDA will take the second, because it fails using the first.
+The next thing is to declare a user lookup query in our &lt;em&gt;dovecot-sql.conf&lt;/em&gt;. Open this file and add the following query:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;user_query&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; SELECT &lt;span class="s1"&gt;'/home/mail/'&lt;/span&gt;&lt;span class="o"&gt;||&lt;/span&gt;maildir as home, uid, gid, email FROM users WHERE &lt;span class="nv"&gt;email&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'%u'&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This looks quite similar to the &lt;em&gt;password_query&lt;/em&gt; we defined in chapter 4, and it is actually a bit redundant, but Dovecot LDA does simply not accept prefetch.
+There is one pitfall you have to look out for: the &lt;em&gt;maildir&lt;/em&gt; or &lt;em&gt;home&lt;/em&gt; if you will. As you can see we do the same concatenation as we did in the last chapter, but this time I have added an extra slash.
+So &lt;em&gt;'/home/mail'&lt;/em&gt; becomes &lt;em&gt;'/home/mail/'&lt;/em&gt;. I contrast to the Postfix LMTP, the LDA needs the extra slash at the end. So you could put an extra slash in your database entries, or just put it one time in the lookup queries and be done with it.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Don't forget to also put this extra slash in your password_query as well!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Another thing you may notice is that the concatenated &lt;em&gt;home&lt;/em&gt; in the &lt;em&gt;user_query&lt;/em&gt; does &lt;strong&gt;not&lt;/strong&gt; start with &lt;em&gt;maildir:&lt;/em&gt;. If you do so, Dovecot will complain about not supporting relative home directories.
+But if you don't put it their, the LDA will start complaining that it does not know in which format the mail directory is laid out. To fix this we have to return to our &lt;em&gt;dovecot.conf&lt;/em&gt; and add the following line:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;mail_location&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Maildir:~/
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will tell Dovecot that our mail directories are in &lt;em&gt;Maildir&lt;/em&gt; format. The lookup should succeed now.&lt;/p&gt;
+&lt;p&gt;The last thing we have to edit in our &lt;em&gt;dovecot.conf&lt;/em&gt; is the unix listener for the auth_userdb socket.
+Again, you already did this one chapter ago, but this was for the Postfix SMTP daemon.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;You also need to keep the original entry!&lt;/strong&gt;. Add the following entry:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;service auth &lt;span class="o"&gt;{&lt;/span&gt;
+    unix_listener auth-userdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0600
+    &lt;span class="nv"&gt;user&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; mailreader
+    &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will add another auth-userdb socket, besides the Postfix one, that the LDA will use to do the user lookups.
+If you keep the mode set to 600, you don't need to add a group, only our famous &lt;em&gt;mailreader&lt;/em&gt; user is okay.&lt;/p&gt;
+&lt;p&gt;Save the file and close it up. We are finished here.&lt;/p&gt;
+&lt;p&gt;What's next?&lt;/p&gt;
+&lt;p&gt;We need to tell Postfix about the new player in town, so crack open your master.cf and add the following service:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;dovecot   unix   -   n   n   -   -   pipe
+  &lt;span class="nv"&gt;flags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;DRhu &lt;span class="nv"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mailreader:mail &lt;span class="nv"&gt;argv&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/usr/libexec/dovecot/deliver -f &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;sender&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; -d &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;recipient&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will enable the LDA service and use Postfix &lt;em&gt;pipe&lt;/em&gt; mechanism to pass mails that are ready to be delivered to the Dovecot LDA.&lt;/p&gt;
+&lt;p&gt;Whats a &lt;em&gt;pipe&lt;/em&gt; mechanism?&lt;/p&gt;
+&lt;p&gt;In Postfix, the &lt;em&gt;pipe&lt;/em&gt; mechanism or &lt;em&gt;pipe&lt;/em&gt; daemon is a way for postfix to deliver mail to a command line program.
+In our case, we pipe the mail to an external program called &lt;em&gt;deliver&lt;/em&gt;, which you can also run from the prompt.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;pipe&lt;/em&gt; mechanism comes with a few attributes you can set. To begin, we have the &lt;em&gt;flags&lt;/em&gt;. With &lt;em&gt;flags&lt;/em&gt; you can modify messages before they are handed over to the piped program.
+In our case we say &lt;em&gt;DRhu&lt;/em&gt;:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;D: Will include a &lt;em&gt;Deliver-To&lt;/em&gt; in the message header&lt;/li&gt;
+&lt;li&gt;R: Will include a &lt;em&gt;Return-Path&lt;/em&gt; in the message header&lt;/li&gt;
+&lt;li&gt;h: Will lowercase everything right of the @ sign (or right of the most right @ sign)&lt;/li&gt;
+&lt;li&gt;u: Will lowercase everything left of the @ sign (or left of the most right @ sign)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;So basically we include some extra information and make sure the addresses are all lower cased.&lt;/p&gt;
+&lt;p&gt;Next we specify as which user:group that the &lt;em&gt;deliver&lt;/em&gt; command has to be run.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;argv=&lt;/em&gt; part tells Postfix which program we actually want to call, being the Dovecot LDA.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;-f&lt;/em&gt; and &lt;em&gt;-d&lt;/em&gt; flags at the end are flags belonging to the &lt;em&gt;deliver&lt;/em&gt; program itself.
+With &lt;em&gt;-f&lt;/em&gt; you can define the &lt;em&gt;Envelope sender&lt;/em&gt;, with &lt;em&gt;-d&lt;/em&gt; you define the username.
+After each flag you can find a placeholder, these are placeholders defined by the Postfix pipe.&lt;/p&gt;
+&lt;p&gt;Are we done?&lt;/p&gt;
+&lt;p&gt;Almost! The only thing you have to do now is tell Postfix to actually &lt;em&gt;use&lt;/em&gt; the LDA service. To do that we have to alter our &lt;em&gt;virtual&lt;/em&gt; transport (which is the standard Postfix LMTP) and set that to the name of the service, in this case &lt;em&gt;dovecot&lt;/em&gt;. Since we are using a fancy database lookup system, we will have to alter the entry in the &lt;em&gt;transport&lt;/em&gt; table of our mail database. Change the transport from &lt;em&gt;virtual&lt;/em&gt; to &lt;em&gt;dovecot&lt;/em&gt; in the record that accompanies your domain (in most cases you will have just one entry in that table).&lt;/p&gt;
+&lt;p&gt;Just restart both &lt;em&gt;Postfix&lt;/em&gt; and &lt;em&gt;Dovecot&lt;/em&gt; and you are done!&lt;/p&gt;
+&lt;p&gt;If all is well, your mail should still be working and nothing should have changed (that's a good thing).
+But if you check your famous &lt;em&gt;maillog&lt;/em&gt; file, you will see entries about &lt;em&gt;dovecot: lda&lt;/em&gt; putting stuff in your mail directory.&lt;/p&gt;
+&lt;p&gt;And now...the actual filtering.&lt;/p&gt;
+&lt;p&gt;For filtering, Dovecot has a nice plugin called &lt;em&gt;Sieve&lt;/em&gt; which uses the (surprise) &lt;em&gt;Sieve Language&lt;/em&gt; for scripting together filtering rules.
+To get up and running, we need to install the Sieve interpreter and Dovecot plugin:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;yum install dovecot-pigeonhole
+&lt;/pre&gt;
+
+
+&lt;p&gt;Yes...its name is Pigeonhole, I cannot help it.
+Now we have to load the plugin for our LDA. Open the &lt;em&gt;dovecot.conf&lt;/em&gt; and go to the freshly inserted &lt;em&gt;protocol lda&lt;/em&gt; block and append the &lt;em&gt;sieve&lt;/em&gt; plugin:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;protocol lda &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;mail_plugins&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$mail_plugins&lt;/span&gt; sieve
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;And restart Dovecot.&lt;/p&gt;
+&lt;p&gt;Next you need to go the &lt;em&gt;plugin&lt;/em&gt; declaration block where you defined your different &lt;em&gt;autocreate&lt;/em&gt; and &lt;em&gt;autosubscribed&lt;/em&gt; behaviors in chapter 4.
+Here we can do the basic configuration for the &lt;em&gt;sieve&lt;/em&gt; plugin. Many hosted mail providers that run of a Dovecot service provide the ability for users to upload their own custom sieve scripts.
+If you want to do so, you can declair the &lt;em&gt;sieve=&lt;/em&gt; variable, which most of the time would be set like so:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;sieve&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;~/
+&lt;/pre&gt;
+
+
+&lt;p&gt;This tells &lt;em&gt;sieve&lt;/em&gt; that user script can be found in the users home directory.
+For the scope of this post I'm only interested in setting up a global script for all users. The &lt;em&gt;global_script_path&lt;/em&gt; does this for us:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;global_script_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /home/mail/default.sieve
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now for the fun part, make your &lt;em&gt;default.sieve&lt;/em&gt; file and lets start making a rule!
+In the beginning of your Sieve script you have to define which modules you want to load in.
+I first want to file messages that are marked &lt;em&gt;spam&lt;/em&gt; by Amavis into a spam mail folder. So I only need the &lt;em&gt;fileinto&lt;/em&gt; plugin which handles moving messages around.
+Start your script:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;require "fileinto";
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then for the rule:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;if header :contains "X-Spam-Flag" "YES" {
+    fileinto "Spam";
+}
+&lt;/pre&gt;
+
+
+&lt;p&gt;Bam! That's quite readable and simple, won't you say? If the header has it spam flag set to "YES" file it into spam!
+Save this file into the defined location and make sure it is readable by Dovecot, so in our setup that would be:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;chown mailreader:mail /home/mail/default.sieve
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now remember, the &lt;em&gt;"Spam"&lt;/em&gt; in this script corresponds to a folder that you made with Dovecot. If you have not made a &lt;em&gt;Spam&lt;/em&gt; folder, go and make one now, checkout &lt;a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapter four&lt;/a&gt; for details on how to do this.&lt;/p&gt;
+&lt;p&gt;Next you want to put messages from a specific someone into its own folder? Lets do that then!
+For this we need "fileinto" and also a plugin to read out the message envelope.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;require ["fileinto","envelope"];
+if envelope "from" "tim@shisaa.jp" {
+    fileinto "Shisaa";
+}
+&lt;/pre&gt;
+
+
+&lt;p&gt;And what about that vacation responder? Also, piece of cake:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;require "vacation";
+:days 1
+:subject "I'm on vacation!"
+:addresses ["tim@shisaa.jp,postmaster@shisaa.jp"]
+"I'm on vacation, you can join me or wait until I'm back.
+Cheers
+Tim";
+&lt;/pre&gt;
+
+
+&lt;p&gt;A little bit more explenation may be in place. &lt;em&gt;days 1&lt;/em&gt; simply tells Sieve to only send the same person the out-of-office reply once every day.
+The rest is pretty straight forward. You input the subject, the addresses and the message itself.
+And of course you can put everything together in one big Sieve script:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;require &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"fileinto"&lt;/span&gt;,&lt;span class="s2"&gt;"envelope"&lt;/span&gt;,&lt;span class="s2"&gt;"vacation"&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; header :contains &lt;span class="s2"&gt;"X-Spam-Flag"&lt;/span&gt; &lt;span class="s2"&gt;"YES"&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    fileinto &lt;span class="s2"&gt;"Spam"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; envelope &lt;span class="s2"&gt;"from"&lt;/span&gt; &lt;span class="s2"&gt;"tim@shisaa.jp"&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    fileinto &lt;span class="s2"&gt;"Shisaa"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+:days 1
+:subject &lt;span class="s2"&gt;"I'm on vacation!"&lt;/span&gt;
+:addresses &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"tim@shisaa.jp,postmaster@shisaa.jp"&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="s2"&gt;"I'm on vacation, you can join me or wait until I'm back.&lt;/span&gt;
+&lt;span class="s2"&gt;Cheers&lt;/span&gt;
+&lt;span class="s2"&gt;Tim"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;You don't need to restart Dovecot after altering a Sieve script.&lt;/p&gt;
+&lt;p&gt;Okay, we have gone out and had a little deeper chat with our frontdesk Dovecot. Quite a nice and capable person don't you think?&lt;/p&gt;
+&lt;p&gt;If you run into any trouble, be sure to always check your maillog , for it will tell you quite clear (most of the time) whats going on.&lt;/p&gt;
+&lt;p&gt;Maybe a small tip for debugging: If you want more verbose output from the whole LDA process (including Sieve) you can put this in the &lt;em&gt;protocol lda&lt;/em&gt; block:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;mail_debug&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now go out and learn more about what you can do with Sieve and harvest that knowledge!&lt;/p&gt;
+&lt;p&gt;And as always, thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><guid>http://shisaa.jp/ja/postset/mailserver-5.html</guid><pubDate>Sat, 08 Jun 2013 20:30:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 4</title><link>http://shisaa.jp/ja/postset/mailserver-4.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 4 - Dovecot, the friendly front desk&lt;/h3&gt;
+&lt;p&gt;And so we arrive at the final big stop of our mailserver series.&lt;/p&gt;
+&lt;p&gt;If you've missed &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;chapter 1&lt;/a&gt;, &lt;a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;chapter 2&lt;/a&gt; or &lt;a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;chapter 3&lt;/a&gt; I recommend reading them first.&lt;/p&gt;
+&lt;p&gt;First, the outline:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Small introduction to Dovecot&lt;/li&gt;
+&lt;li&gt;Introduction to IMAP and POP3&lt;/li&gt;
+&lt;li&gt;Configure Dovecot to use IMAP&lt;/li&gt;
+&lt;li&gt;Setup SSL/TLS inside Dovecot&lt;/li&gt;
+&lt;li&gt;Hashing our users passwords with doveadm&lt;/li&gt;
+&lt;li&gt;Setting up extra mail folder&lt;/li&gt;
+&lt;li&gt;Connecting with an email client&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;So far we have talked about the heart of our mailserver, Postfix, we then saw how we can use a solid database as our back-end instead of using Unix user accounts and in the last chapter we saw how we could protect ourselves from viruses and spam. So far we have a smoothly running factory, receiving mail, checking it and if necessary storing it. But there is still one important part missing, it is all happening behind the closed doors of our factory floor and there is still no way for our customers, the owners of the various mailboxes, to actually receive and send their mail. Our factory does not have a front desk yet. So lets make one, shall we?&lt;/p&gt;
+&lt;p&gt;This front-desk is called, as you might have guessed, &lt;em&gt;Dovecot&lt;/em&gt;. It calls itself an IMAP and POP3 mail server.
+It takes care of the communication between the actual mail files stored on the hard disk drive and the email client the end-user will be using.
+Dovecot of course also supports our database back-end we used to store the sensitive information about the user.&lt;/p&gt;
+&lt;p&gt;Now what is this &lt;em&gt;IMAP&lt;/em&gt; and &lt;em&gt;POP3&lt;/em&gt; that Dovecot supports, you might ask.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;IMAP&lt;/em&gt; stands for &lt;em&gt;Internet Message Access Protocol&lt;/em&gt;. The IMAP protocol makes it possible to have multiple users connect to the same mailbox and see the same messages. The mail stays on the server.
+&lt;em&gt;POP3&lt;/em&gt; on the other hand is a protocol that has to copy the mail to the users computer before it can be displayed.
+When you want to see your mail on your computer and on your mobile device for instance, this can be confusing when using &lt;em&gt;POP3&lt;/em&gt;, many &lt;em&gt;POP3&lt;/em&gt; clients even delete the mail on the server when it is downloaded.
+&lt;em&gt;IMAP&lt;/em&gt; syncs between the server and the various clients that connect to the mailbox and it will only download a message and its attachments when asked for.
+&lt;em&gt;POP3&lt;/em&gt; has to download all the messages, including the attachments, before it can be display in your mail client.
+Another big difference between the two is that &lt;em&gt;outgoing&lt;/em&gt; mail, when using &lt;em&gt;IMAP&lt;/em&gt;, is stored on the server and thus available on multiple devices. With POP3, its only stored on the local computer from which you sent it.&lt;/p&gt;
+&lt;p&gt;Knowing the main differences between the two protocols, I always prefer &lt;em&gt;IMAP&lt;/em&gt;.
+So lets go ahead and configure Dovecot the be able to read your mail using the &lt;em&gt;IMAP&lt;/em&gt; protocol!&lt;/p&gt;
+&lt;p&gt;As always, we first have to install the Dovecot package. The CentALT version is quite recent, so you can just go ahead and install it.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;yum install dovecot
+&lt;/pre&gt;
+
+
+&lt;p&gt;Dovecots main configuration exists in only one file located at &lt;em&gt;/etc/dovecot/dovecot.conf&lt;/em&gt;. Open it right up and lets dive in!
+The first thing you want to set are the different protocols you want to support, since we decided on &lt;em&gt;IMAP&lt;/em&gt; you can add a line at the end of the file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ protocols&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; imap
+&lt;/pre&gt;
+
+
+&lt;p&gt;I like to add everything at the bottom to keep it all together. I start with a comment line reading something like "#Added lines by me" and put my own configuration lines under that..
+Then add the &lt;em&gt;base_dir&lt;/em&gt;, the &lt;em&gt;instance_name&lt;/em&gt; and the &lt;em&gt;login_greeting&lt;/em&gt; variable. You find these variables commented out in the &lt;em&gt;dovecot.conf&lt;/em&gt; file. Just copy them to the bottom and remove the hash.&lt;/p&gt;
+&lt;p&gt;Save the file and lets see what else we need to configure.&lt;/p&gt;
+&lt;p&gt;In chapter 1 we talked about being secure when it comes to data traveling between the server and the client computer.
+We have to continue this work in Dovecot because not only will be exchanging passwords, we will also be syncing mail between the server and the client computer.
+So lets first setup SSL/TLS inside dovecot. All the extra configuration files are made available in the &lt;em&gt;/etc/dovecot/conf.d&lt;/em&gt; directory.
+Files starting with a two digit number and end with ".conf" are automatically loaded by the &lt;em&gt;dovecot.conf&lt;/em&gt; file.
+The other files are indented as a demonstration of what else you can do in the main &lt;em&gt;dovecot.conf&lt;/em&gt; file and should not be altered.&lt;/p&gt;
+&lt;p&gt;I usually disable the automatic include of these files and just copy the needed variables to my main configuration. So in the &lt;em&gt;dovecot.conf&lt;/em&gt; file, put a hash before the bottom two "!include" statements.
+In this conf.d directory you will also find a file called "10-ssl.conf&lt;em&gt;. Open this one up and lets start moving some variables to our &lt;/em&gt;dovecot.conf* file. First the enable SSL:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ ssl&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; yes
+&lt;/pre&gt;
+
+
+&lt;p&gt;Next we see two very important lines, the &lt;em&gt;ssl_cert&lt;/em&gt; en the &lt;em&gt;ssl_key&lt;/em&gt; file. Dovecot already prepared a certificate and a private key for you to use.
+Also copy these lines to the &lt;em&gt;dovecot.conf&lt;/em&gt; file.
+The only thing you must be sure of is that both files are only readable by root. So do a &lt;em&gt;ls -la&lt;/em&gt; to check if this is so.
+Now before we do anything else, fire up dovecot and lets try connecting:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;/etc/init.d/dovecot start
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then lets try to connect to localhost and ask for imaps:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;openssl s_client -connect 127.0.0.1:imaps
+&lt;/pre&gt;
+
+
+&lt;p&gt;If you get an output containing a SSL key, the connection is successful.&lt;/p&gt;
+&lt;p&gt;When we connect with our mail client further up this chapter, you will notice it will complain about a self-signed certificate and that's correct.
+We ARE using a self-signed certificate. As discussed in chapter 1 that is perfectly save, as long as the mail server only serves a handful of users and these user are educated in the risk of a MITM attack.
+You could always go out and buy a certificate with the certificate mafia and you should if you are planning to setup a large, public mailserver. But for now, self-signed is the way to go.&lt;/p&gt;
+&lt;p&gt;In chapter 2 we enabled Postfix to work with PostgreSQL to retrieve the necessary mailbox data so Postfix could deliver the mail. This same data Dovecot will need to authenticate the users.
+So we need to enable PostgreSQL support in Dovecot.&lt;/p&gt;
+&lt;p&gt;In the &lt;em&gt;conf.d&lt;/em&gt; directory you will find a &lt;em&gt;auth-sql.conf.ext&lt;/em&gt; file, this is an example file of how we can setup our database connection.
+So we have to setup our PostgreSQL connection and make a new file with the correct lookup query. Setup the connection in the &lt;em&gt;dovecot.conf&lt;/em&gt; file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;passdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; sql
+    &lt;span class="nv"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /etc/dovecot/dovecot-sql.conf
+ &lt;span class="o"&gt;}&lt;/span&gt;
+ userdb &lt;span class="o"&gt;{&lt;/span&gt;
+     &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; prefetch
+ &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;You will notice a couple of things here, first we have two variables we setup: &lt;em&gt;passdb{}&lt;/em&gt; and &lt;em&gt;userdb{}&lt;/em&gt;.
+The &lt;em&gt;passdb{}&lt;/em&gt; is used for the authentication when the user logs in and the &lt;em&gt;userdb{}&lt;/em&gt; is used to retrieve additional information about the connected user.&lt;/p&gt;
+&lt;p&gt;But since the only extra information we need in our setup is the location of the users mailbox, we can also use the "&lt;em&gt;passdb{}&lt;/em&gt; for that and save a query every time a users connects.
+To use &lt;em&gt;passdb{}&lt;/em&gt; for this we have to tell Dovecot that the &lt;em&gt;userdb{}&lt;/em&gt; uses the &lt;em&gt;prefetch&lt;/em&gt; driver, meaning it will use the &lt;em&gt;passdb{}&lt;/em&gt; query for its extra user data.
+The driver is set to &lt;em&gt;sql&lt;/em&gt; instead of &lt;em&gt;pgsql&lt;/em&gt;, Dovecot only expects to see which kind of main driver it will be using. In the &lt;em&gt;dovecot-sql.conf&lt;/em&gt; we will define it is PostgreSQL.&lt;/p&gt;
+&lt;p&gt;The actually connection string and the lookup query are stored in an separate file as described above.
+So create a new file called &lt;em&gt;dovecot-sql.conf&lt;/em&gt; in &lt;em&gt;/etc/dovecot/&lt;/em&gt; and put in your database details like so:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; pgsql
+  &lt;span class="nv"&gt;connect&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;localhost &lt;span class="nv"&gt;dbname&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mail &lt;span class="nv"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mailreader &lt;span class="nv"&gt;password&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;some-password
+  &lt;span class="nv"&gt;default_pass_scheme&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; SHA512
+  &lt;span class="nv"&gt;password_query&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; SELECT email as user, password, &lt;span class="s1"&gt;'maildir:/home/mail'&lt;/span&gt;&lt;span class="o"&gt;||&lt;/span&gt;maildir as userdb_mail FROM users WHERE &lt;span class="nv"&gt;email&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'%u'&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;First we define which subtype of the sql driver we will be using, in our case &lt;em&gt;pgsql&lt;/em&gt; for PostgreSQL.
+Then we have the connection string for, well, actually connecting to the database.
+The third parameter sets the type of password encryption scheme that we used to store our password in the users table.
+And finally we have the query itself, Dovecot recognizes &lt;em&gt;user&lt;/em&gt; as the actual user, &lt;em&gt;password&lt;/em&gt; as the column containing the hashed password and &lt;em&gt;userdb_mail&lt;/em&gt; as the maildir.&lt;/p&gt;
+&lt;p&gt;Since our column names don't fully correspond with what Dovecot expects, we have to rewrite them as you can see in the query.
+You can see that I prefix the maildir with &lt;em&gt;maildir:/home/mail&lt;/em&gt;, this way I can tell Dovecot two things, the mailbox is in &lt;em&gt;Maildir&lt;/em&gt; format and make the paths absolute so Dovecot can find them. At the time of writing Dovecot does not support relative maildir locations. There is also one placeholder in here, the &lt;em&gt;%u&lt;/em&gt;. In the Dovecot SQL driver &lt;em&gt;%u&lt;/em&gt; means the full username: username@tld.com. Since we stored our users with their full email, we can safely use this placeholder.&lt;/p&gt;
+&lt;p&gt;One more important thing to tell Dovecot is with which UID and GID it can handle the mail directories.
+In chapter 2 we created the user &lt;em&gt;mailreader&lt;/em&gt; which owns all the mail directories. We also decided not to include the GID and UID in the database as this would be overkill, so instead we hardcoded them into the &lt;em&gt;main.cf&lt;/em&gt; of &lt;em&gt;Postfix&lt;/em&gt;. We now have to do the same with the &lt;em&gt;dovecot.conf&lt;/em&gt;. Add these parameters to your file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;mail_uid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; the-uid-of-your-mailreader-user
+&lt;span class="nv"&gt;mail_gid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; the-gid-of-your-mailreader-user
+&lt;/pre&gt;
+
+
+&lt;p&gt;&lt;strong&gt;Update:&lt;/strong&gt; In newer Dovecot versions (after the writing of these posts) the default, minimal allowed UID lies above 200. Therefor, setting this variable to 200 will cause Dovecot to throw an error stating that this UID is not allowed. To fix this, set the &lt;em&gt;first_valid_uid&lt;/em&gt; variable before your &lt;em&gt;mail_uid&lt;/em&gt; inside your &lt;em&gt;dovecot.conf&lt;/em&gt; (be sure to check that UID 200 is not already in use on your system!): &lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;first_valid_uid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 200
+&lt;/pre&gt;
+
+
+&lt;p&gt;Remember we talked about password hashing in chapter 2 and how we would use &lt;em&gt;doveadm&lt;/em&gt; for creating our hashes? Lets do that right away!&lt;/p&gt;
+&lt;p&gt;In the above &lt;em&gt;dovecot-sql.conf&lt;/em&gt; you will notice that the &lt;em&gt;default_pass_scheme&lt;/em&gt; is set to SHA512, another very strong password hashing algorithm.
+So lets create a SHA512 hashed password for our "foo" user, shall we?&lt;/p&gt;
+&lt;p&gt;You can query which kind of hashing schemes your Dovecot installation supports by using &lt;em&gt;doveadm&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;doveadm pw -l
+&lt;/pre&gt;
+
+
+&lt;p&gt;There is a big chance you will see SHA512 among them. Lets now hash our plain text password:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;doveadm pw -p plain_text_password -s sha512 -r 100
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will return a hashed string using the sha512 scheme and hashed 100 times. Before this string is the scheme name withing brackets {SHA512}, &lt;em&gt;dont remove this&lt;/em&gt;!
+Insert this string into your database as the password for the user "foo".&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;users&lt;/span&gt; &lt;span class="k"&gt;SET&lt;/span&gt; &lt;span class="k"&gt;password&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'your-hashed-string" WHERE email = '&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="k"&gt;domain&lt;/span&gt;&lt;span class="mf"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="err"&gt;"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Before you can login with your mailclient, be sure to enable &lt;em&gt;PLAIN&lt;/em&gt; text login. Add the support for this in your &lt;em&gt;dovecot.conf&lt;/em&gt; file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ disable_plaintext_auth&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; no
+  &lt;span class="nv"&gt;auth_mechanisms&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; plain
+&lt;/pre&gt;
+
+
+&lt;p&gt;And now...you should be able to connect with an external mail client to your server. Setup your client to connect via &lt;em&gt;IMAP&lt;/em&gt; on port &lt;em&gt;143&lt;/em&gt; (open up this port in your firewall if needed). Set to connect via &lt;em&gt;STARTTLS&lt;/em&gt;. And also remember to input your full email address as your username, since that's what we also used in our PostgreSQL users database.&lt;/p&gt;
+&lt;p&gt;There is one more important thing left to do...sending mail.&lt;/p&gt;
+&lt;p&gt;You may have noticed that when you connect your mailclient and you synchronize your IMAP folders, you only have one folder name &lt;em&gt;INBOX&lt;/em&gt;. There is no &lt;em&gt;sent&lt;/em&gt;, &lt;em&gt;trash&lt;/em&gt; or &lt;em&gt;draft&lt;/em&gt;.
+Dovecot has a very neat way of setting up additional folders and setup whether or not users should be automatically subscribed to them.
+For this task, Dovecot has a plugin named  &lt;em&gt;autocreated&lt;/em&gt;. Open up your &lt;em&gt;dovecot.conf&lt;/em&gt; file and add the following lines:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;protocol imap &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;mail_plugins&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$mail_plugins&lt;/span&gt; autocreate
+  &lt;span class="o"&gt;}&lt;/span&gt;
+  plugin &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;autocreate&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Trash
+    &lt;span class="nv"&gt;autocreate2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Sent
+    &lt;span class="nv"&gt;autosubscribe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Trash
+    &lt;span class="nv"&gt;autosubscribe2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Sent
+  &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Se first we setup this plugin to be used together with &lt;em&gt;IMAP&lt;/em&gt;.
+Then in the &lt;em&gt;plugin{}&lt;/em&gt; section we define which folders should be automatically created and which one each user should be automatically subscribed to.
+Save this file and restart Dovecot. Now rebuild your &lt;em&gt;IMAP&lt;/em&gt; folder tree in your mail client...you should see these two new folders appearing!&lt;/p&gt;
+&lt;p&gt;Now for the actual sending part.&lt;/p&gt;
+&lt;p&gt;We need to go back to Postfix one more time, because we now need to enable Dovecot &lt;em&gt;SASL&lt;/em&gt; (remember chapter 1?) and let it use our PostgreSQL database as a lookup for authenticating users before they can send.
+Open up your &lt;em&gt;master.cf&lt;/em&gt; file and add the following overwrites to your submission daemon:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt; -o &lt;span class="nv"&gt;smtpd_sasl_type&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;dovecot
+   -o &lt;span class="nv"&gt;smtpd_sasl_path&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;private/auth
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will tell Postfix to not use the default &lt;em&gt;Cyrus SASL&lt;/em&gt; library, but use Dovecots one, which is simpler to setup and can communicate with PostgreSQL.
+Next we need to tell Dovecot to talk &lt;em&gt;SASL&lt;/em&gt; with Postfix, open up the &lt;em&gt;dovecot.conf&lt;/em&gt; file and add the following &lt;em&gt;service auth{}&lt;/em&gt; section:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;service auth &lt;span class="o"&gt;{&lt;/span&gt;
+    unix_listener auth_userdb &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="nv"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /var/spool/postfix/private/auth
+        &lt;span class="nv"&gt;mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; 0660
+        &lt;span class="nv"&gt;user&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; postfix
+        &lt;span class="nv"&gt;group&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; postfix
+    &lt;span class="o"&gt;}&lt;/span&gt;
+ &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now restart both Postfix and Dovecot.&lt;/p&gt;
+&lt;p&gt;Go back to your mailclient and make sure that you setup &lt;em&gt;TLS&lt;/em&gt; for the sending server and that is uses &lt;em&gt;PLAIN&lt;/em&gt; authentication with your full email as your username and also input your password.
+Try sending out an email...it should arrive at the other end...and in your sent folder!&lt;/p&gt;
+&lt;p&gt;There, believe it or not, you are done.&lt;/p&gt;
+&lt;p&gt;You now have a fully fledged mailserver with Postfix at its heart, PostgreSQL for the bookkeeping, Amavis for virus and spam fighting, Dovecot for the client reception and an "as secure as possible" method woven between them.&lt;/p&gt;
+&lt;p&gt;Now remember, in these four lengthy chapters we only seen the tip of the iceberg.
+Both Postfix and Dovecot are capable of many, many more powerful things...but I suggest that you keep hungry for knowledge and go explore these extra possibilities!&lt;/p&gt;
+&lt;p&gt;I decided to write a fifth, "unofficial" chapter about setting up some extra functionality to do some more fancy and useful stuff like filtering mail, setting up a vacation responder and an issue named "Time moved backwards". Stay tuned...&lt;/p&gt;
+&lt;p&gt;And as always, thanks for reading.&lt;/p&gt;&lt;/div&gt;</description><guid>http://shisaa.jp/ja/postset/mailserver-4.html</guid><pubDate>Sat, 20 Apr 2013 10:30:00 GMT</pubDate></item></channel></rss>

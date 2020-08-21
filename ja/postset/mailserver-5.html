@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5 | shisaa.jp">
+<meta name="description" content="">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5 | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="../../assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="../../assets/img/favicon.ico" rel="shortcut icon">
+<link href="../../assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-ja">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="../../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest ja-interest">ホームページ制作 / Webアプリケーション / Unix</span>
+	  <span class="ja-subtitle">フリーランスのシステムエンジニア（SE）、システム管理者へのソフトウェア開発</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="first"><a href="../../index.html" rel="alternate" hreflang="en">English</a></li>
+        
+          
+            <li class="current-lang not-first"><span>日本語</span></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href="../">ホーム</a>
+            </li>
+<li>
+<a href="../stories/homepage.html">ホームページ制作</a>
+            </li>
+<li>
+<a href="../stories/web-shop.html">Webshop</a>
+            </li>
+<li>
+<a href="../stories/web-application.html">Webアプリケーション</a>
+            </li>
+<li>
+<a href="../archive.html">ブログ (英語)</a>
+            </li>
+<li>
+<a href="../photography/index.html">写真撮影</a>
+            </li>
+<li>
+<a href="../stories/3d.html"></a>
+
+	  
+    <br>
+</li>
+</ul>
+<div id="content">
+	
+    <div class="postbox">
+    
+    <h2><a href="#">Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5</a></h2>
+
+    <p class="post-date">08/06/2013 <span>-</span> </p>
+    
+    <ul class="tags">
+<li class="tag"><a href="../categories/dovecot.html">dovecot</a></li>          
+         <li class="tag"><a href="../categories/postfix.html">postfix</a></li>          
+         <li class="tag"><a href="../categories/unix.html">unix</a></li>          
+    </ul>
+<div class="post">
+      <div>
+<h3>Chapter 5 - Dovecot continued: our frontdesk in more detail</h3>
+<p>Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.jp mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.</p>
+<p>Which ever being the case, lets see Dovecot in a little bit more detail.</p>
+<h4>Time moved backwards</h4>
+<p>First, lets mingle with time. Or to be more precise, lets <em>fix</em> time....the time on our server that is. What does this have to do with Dovecot?
+Well, if you are using Dovecot and you never got <em>"Time moved backwards"</em> as an error in your maillog, then good for you!
+It either means that you have configured the time correctly on your server, or that you just are one lucky falla (or gal).
+If you <em>do</em> have experienced this, you will know that this little error kills the Dovecot daemon and that you are left without a frontdesk to ask for your mail.</p>
+<p>So what does this error mean and why does Dovecot crash?</p>
+<p><em>"Time moved backwards"</em> means literally what it says: The time on your server suddenly moved back in time.</p>
+<p>How?</p>
+<p>This comes down to time synchronization and how you set this up. 
+If you have no time sync whats so ever, then your are fine. And with fine I mean fine for this error, actually your servers time is probably behind the actual time, you just don't know it.</p>
+<p>But if you are getting this error, it means you <em>have</em> setup time synchronization (yeah!), but you did it the wrong way (oh...).
+You have most probably setup time to sync itself with <em>ntpd</em> using a periodical cronjob that calls <em>ntpdate</em>.
+This will check the time against a NTP server every time the cronjob runs and immediately adjusts your servers system clock to match.
+Because this adjusting is done instantly, the clock will skip time (forwards or backwards). This may only be a matter of a few seconds, but the time will shift harshly non the less.
+This "jumping" of the time is what will crash Dovecot.</p>
+<p>Before we go into the simple solution to this problem, we have to ask if this is a bug in Dovecot or if this is desired behavior.
+To answer that we have to look at the implications that can come when time moves suddenly.</p>
+<p>For one, the files that are created in your maildir(s) rely on a timestamp for their uniqueness. If two timestamps would overlap, this could resolve in data loss.</p>
+<p>Second, timestamps in Unix are used in memory constantly, not only by Dovecot. Shifting in time could resolve in a possible unstable system.</p>
+<p>Is crashing desired behavior then?
+Well, not really, that's why as of version 2.x, Dovecot doesn't crash but it still stops the SMTP and POP3 daemon.
+This will prevent nasty things happening to your maildir files. It won't, however, save you from other potential instabilities that could happen in your system.</p>
+<p>The solution to this sudden jump in time is quite simple: Don't jump, stretch. If your clock is behind, speed up the time until it reaches the correct time. If time is in the future, slow it down.</p>
+<p>Makes sense, right?</p>
+<p>To setup this stretching is even simpler. You still use NTP, but the correct way.
+First make sure that you have NTP installed:</p>
+<pre class="code literal-block"><span class="nv">$ </span>yum install ntp
+</pre>
+
+
+<p>Next make it run on boot:</p>
+<pre class="code literal-block"><span class="nv">$ </span>chkconfig ntpd on
+</pre>
+
+
+<p>Before starting the daemon we have to setup which timeserver we want to synchronize with.
+Open the <em>ntp</em> configuration file located at <em>/etc/ntp.conf</em>.
+In here, setup the timezone server you which to use. To get a list of servers visit the <a href="http://www.pool.ntp.org/zone/@" title="NTP Pool Project website">NTP Pool Project</a>.</p>
+<pre class="code literal-block"><span class="nv">$ </span>server 0.your-favorite-timezone-server.org
+</pre>
+
+
+<p>Now save the file and simply start the daemon:</p>
+<pre class="code literal-block"><span class="nv">$ </span>/etc/init.d/ntpd start
+</pre>
+
+
+<p>That's it, now your server time will be updated gracefully.</p>
+<h4>Filtering mail</h4>
+<p>Maybe you want to put mail from specific addresses in specific mailfolders, you want to put messages marked as spam in its own container or you want to split work and private related email from the same address, which ever being the case, you need filtering.</p>
+<p>And whats more important, you want to filter server side.</p>
+<p>Why?</p>
+<p>If you check your mail on multiple devices, you don't want to setup the filter rules on each client. You want to manage your filtering on the server and watch the magic happen automatically on each machine you use.</p>
+<p>The combination of Postfix and Dovecot is ideal for this task.</p>
+<p>If you have followed <a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series">my</a> <a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series">previous</a> <a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series">four</a> <a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series">chapters</a> and setup your own mailserver, then currently Dovecot is only used to check mail and authenticate, all through the IMAP protocol.
+The actual delivery is done by Postfix itself using the Postfix LMTP delivery mechanism. This is a simple mechanism that, well, just delivers mail and does nothing else.
+To setup server side filtering we have to plugin Dovecot's <em>Local Delivery Agent</em> or <em>LDA</em> into our workflow. Substituting Postfix LMTP for Dovecot LDA gives us two main advantages:</p>
+<ul>
+<li>By letting Dovecot deliver the mail to the users mailfolder the filtering is done at the correct timing in the delivery workflow, while the mail is in transit, before it is delivered.</li>
+<li>By using this LDA we can directly tap into Dovecot's powerful filtering plugin language and setup some fancy rules with ease.</li>
+</ul>
+<p>So lets get our hands dirty and introduce a new workstation in our factory!</p>
+<p>First we start with setting up the Dovecot LDA. To do this we have to introduce a new protocol in the Dovecot configuration file. Add the LDA protocol to <em>dovecot.conf</em>:</p>
+<pre class="code literal-block">protocol lda <span class="o">{</span>
+  <span class="nv">mail_plugins</span> <span class="o">=</span> <span class="nv">$mail_plugins</span>
+<span class="o">}</span>
+</pre>
+
+
+<p>This will initiate the LDA mechanism and load in any plugins we define. We will need this later down the road.
+Next we need to define 2 important variables for Dovecot to be able to act as a delivery agent. Add these to the same file:</p>
+<pre class="code literal-block"><span class="nv">postmaster_address</span> <span class="o">=</span> tim@shisaa.jp
+<span class="nv">hostname</span> <span class="o">=</span> mail.shisaa.jp
+</pre>
+
+
+<p>Since Dovecot will do the delivery, it will now also do the rejection handling if something is wrong (instead of Postfix). When it rejects mail it needs to know where to sent a notification to.
+The hostname is used for including in the message headers.</p>
+<p>Now we have to input some familiar settings we used to make Dovecot communicate with Postfix. But this time, we need them for the user lookups that the LDA will have to do.
+To be more specific, we need to redeclare the <em>userdb</em> and the <em>auth-userdb</em> declarations.
+First the <em>userdb</em>:</p>
+<pre class="code literal-block">userdb <span class="o">{</span>
+    <span class="nv">driver</span> <span class="o">=</span> sql
+    <span class="nv">args</span> <span class="o">=</span> /etc/dovecot/dovecot-sql.conf
+<span class="o">}</span>
+</pre>
+
+
+<p><strong>Caution</strong>: leave your original <em>userdb</em> declaration intact. For Postfix we have setup the user lookup to <em>driver=prefetch</em> because we had enough information from the <em>passdb</em> query and we did not want to travel to the database twice. For the LDA, however, this is different. The lookup cannot work with the driver set to <em>prefetch</em>, we will have to do a separate query. So now you should have two <em>userdb</em> entries like so:</p>
+<pre class="code literal-block">userdb <span class="o">{</span>
+    <span class="nv">driver</span> <span class="o">=</span> prefetch
+<span class="o">}</span>
+userdb <span class="o">{</span>
+    <span class="nv">driver</span> <span class="o">=</span> sql
+    <span class="nv">args</span> <span class="o">=</span> /etc/dovecot/dovecot-sql.conf
+<span class="o">}</span>
+</pre>
+
+
+<p>Postfix will take the <em>prefetch</em> usersb and the LDA will take the second, because it fails using the first.
+The next thing is to declare a user lookup query in our <em>dovecot-sql.conf</em>. Open this file and add the following query:</p>
+<pre class="code literal-block"><span class="nv">user_query</span> <span class="o">=</span> SELECT <span class="s1">'/home/mail/'</span><span class="o">||</span>maildir as home, uid, gid, email FROM users WHERE <span class="nv">email</span> <span class="o">=</span> <span class="s1">'%u'</span>
+</pre>
+
+
+<p>This looks quite similar to the <em>password_query</em> we defined in chapter 4, and it is actually a bit redundant, but Dovecot LDA does simply not accept prefetch.
+There is one pitfall you have to look out for: the <em>maildir</em> or <em>home</em> if you will. As you can see we do the same concatenation as we did in the last chapter, but this time I have added an extra slash.
+So <em>'/home/mail'</em> becomes <em>'/home/mail/'</em>. I contrast to the Postfix LMTP, the LDA needs the extra slash at the end. So you could put an extra slash in your database entries, or just put it one time in the lookup queries and be done with it.</p>
+<p><strong>Don't forget to also put this extra slash in your password_query as well!</strong></p>
+<p>Another thing you may notice is that the concatenated <em>home</em> in the <em>user_query</em> does <strong>not</strong> start with <em>maildir:</em>. If you do so, Dovecot will complain about not supporting relative home directories.
+But if you don't put it their, the LDA will start complaining that it does not know in which format the mail directory is laid out. To fix this we have to return to our <em>dovecot.conf</em> and add the following line:</p>
+<pre class="code literal-block"><span class="nv">mail_location</span> <span class="o">=</span> Maildir:~/
+</pre>
+
+
+<p>This will tell Dovecot that our mail directories are in <em>Maildir</em> format. The lookup should succeed now.</p>
+<p>The last thing we have to edit in our <em>dovecot.conf</em> is the unix listener for the auth_userdb socket.
+Again, you already did this one chapter ago, but this was for the Postfix SMTP daemon.</p>
+<p><strong>You also need to keep the original entry!</strong>. Add the following entry:</p>
+<pre class="code literal-block">service auth <span class="o">{</span>
+    unix_listener auth-userdb <span class="o">{</span>
+    <span class="nv">mode</span> <span class="o">=</span> 0600
+    <span class="nv">user</span> <span class="o">=</span> mailreader
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre>
+
+
+<p>This will add another auth-userdb socket, besides the Postfix one, that the LDA will use to do the user lookups.
+If you keep the mode set to 600, you don't need to add a group, only our famous <em>mailreader</em> user is okay.</p>
+<p>Save the file and close it up. We are finished here.</p>
+<p>What's next?</p>
+<p>We need to tell Postfix about the new player in town, so crack open your master.cf and add the following service:</p>
+<pre class="code literal-block">dovecot   unix   -   n   n   -   -   pipe
+  <span class="nv">flags</span><span class="o">=</span>DRhu <span class="nv">user</span><span class="o">=</span>mailreader:mail <span class="nv">argv</span><span class="o">=</span>/usr/libexec/dovecot/deliver -f <span class="si">${</span><span class="nv">sender</span><span class="si">}</span> -d <span class="si">${</span><span class="nv">recipient</span><span class="si">}</span>
+</pre>
+
+
+<p>This will enable the LDA service and use Postfix <em>pipe</em> mechanism to pass mails that are ready to be delivered to the Dovecot LDA.</p>
+<p>Whats a <em>pipe</em> mechanism?</p>
+<p>In Postfix, the <em>pipe</em> mechanism or <em>pipe</em> daemon is a way for postfix to deliver mail to a command line program.
+In our case, we pipe the mail to an external program called <em>deliver</em>, which you can also run from the prompt.</p>
+<p>The <em>pipe</em> mechanism comes with a few attributes you can set. To begin, we have the <em>flags</em>. With <em>flags</em> you can modify messages before they are handed over to the piped program.
+In our case we say <em>DRhu</em>:</p>
+<ul>
+<li>D: Will include a <em>Deliver-To</em> in the message header</li>
+<li>R: Will include a <em>Return-Path</em> in the message header</li>
+<li>h: Will lowercase everything right of the @ sign (or right of the most right @ sign)</li>
+<li>u: Will lowercase everything left of the @ sign (or left of the most right @ sign)</li>
+</ul>
+<p>So basically we include some extra information and make sure the addresses are all lower cased.</p>
+<p>Next we specify as which user:group that the <em>deliver</em> command has to be run.</p>
+<p>The <em>argv=</em> part tells Postfix which program we actually want to call, being the Dovecot LDA.</p>
+<p>The <em>-f</em> and <em>-d</em> flags at the end are flags belonging to the <em>deliver</em> program itself.
+With <em>-f</em> you can define the <em>Envelope sender</em>, with <em>-d</em> you define the username.
+After each flag you can find a placeholder, these are placeholders defined by the Postfix pipe.</p>
+<p>Are we done?</p>
+<p>Almost! The only thing you have to do now is tell Postfix to actually <em>use</em> the LDA service. To do that we have to alter our <em>virtual</em> transport (which is the standard Postfix LMTP) and set that to the name of the service, in this case <em>dovecot</em>. Since we are using a fancy database lookup system, we will have to alter the entry in the <em>transport</em> table of our mail database. Change the transport from <em>virtual</em> to <em>dovecot</em> in the record that accompanies your domain (in most cases you will have just one entry in that table).</p>
+<p>Just restart both <em>Postfix</em> and <em>Dovecot</em> and you are done!</p>
+<p>If all is well, your mail should still be working and nothing should have changed (that's a good thing).
+But if you check your famous <em>maillog</em> file, you will see entries about <em>dovecot: lda</em> putting stuff in your mail directory.</p>
+<p>And now...the actual filtering.</p>
+<p>For filtering, Dovecot has a nice plugin called <em>Sieve</em> which uses the (surprise) <em>Sieve Language</em> for scripting together filtering rules.
+To get up and running, we need to install the Sieve interpreter and Dovecot plugin:</p>
+<pre class="code literal-block">yum install dovecot-pigeonhole
+</pre>
+
+
+<p>Yes...its name is Pigeonhole, I cannot help it.
+Now we have to load the plugin for our LDA. Open the <em>dovecot.conf</em> and go to the freshly inserted <em>protocol lda</em> block and append the <em>sieve</em> plugin:</p>
+<pre class="code literal-block">protocol lda <span class="o">{</span>
+    <span class="nv">mail_plugins</span> <span class="o">=</span> <span class="nv">$mail_plugins</span> sieve
+<span class="o">}</span>
+</pre>
+
+
+<p>And restart Dovecot.</p>
+<p>Next you need to go the <em>plugin</em> declaration block where you defined your different <em>autocreate</em> and <em>autosubscribed</em> behaviors in chapter 4.
+Here we can do the basic configuration for the <em>sieve</em> plugin. Many hosted mail providers that run of a Dovecot service provide the ability for users to upload their own custom sieve scripts.
+If you want to do so, you can declair the <em>sieve=</em> variable, which most of the time would be set like so:</p>
+<pre class="code literal-block"><span class="nv">sieve</span><span class="o">=</span>~/
+</pre>
+
+
+<p>This tells <em>sieve</em> that user script can be found in the users home directory.
+For the scope of this post I'm only interested in setting up a global script for all users. The <em>global_script_path</em> does this for us:</p>
+<pre class="code literal-block"><span class="nv">global_script_path</span> <span class="o">=</span> /home/mail/default.sieve
+</pre>
+
+
+<p>Now for the fun part, make your <em>default.sieve</em> file and lets start making a rule!
+In the beginning of your Sieve script you have to define which modules you want to load in.
+I first want to file messages that are marked <em>spam</em> by Amavis into a spam mail folder. So I only need the <em>fileinto</em> plugin which handles moving messages around.
+Start your script:</p>
+<pre class="code literal-block">require "fileinto";
+</pre>
+
+
+<p>Then for the rule:</p>
+<pre class="code literal-block">if header :contains "X-Spam-Flag" "YES" {
+    fileinto "Spam";
+}
+</pre>
+
+
+<p>Bam! That's quite readable and simple, won't you say? If the header has it spam flag set to "YES" file it into spam!
+Save this file into the defined location and make sure it is readable by Dovecot, so in our setup that would be:</p>
+<pre class="code literal-block">chown mailreader:mail /home/mail/default.sieve
+</pre>
+
+
+<p>Now remember, the <em>"Spam"</em> in this script corresponds to a folder that you made with Dovecot. If you have not made a <em>Spam</em> folder, go and make one now, checkout <a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series">chapter four</a> for details on how to do this.</p>
+<p>Next you want to put messages from a specific someone into its own folder? Lets do that then!
+For this we need "fileinto" and also a plugin to read out the message envelope.</p>
+<pre class="code literal-block">require ["fileinto","envelope"];
+if envelope "from" "tim@shisaa.jp" {
+    fileinto "Shisaa";
+}
+</pre>
+
+
+<p>And what about that vacation responder? Also, piece of cake:</p>
+<pre class="code literal-block">require "vacation";
+:days 1
+:subject "I'm on vacation!"
+:addresses ["tim@shisaa.jp,postmaster@shisaa.jp"]
+"I'm on vacation, you can join me or wait until I'm back.
+Cheers
+Tim";
+</pre>
+
+
+<p>A little bit more explenation may be in place. <em>days 1</em> simply tells Sieve to only send the same person the out-of-office reply once every day.
+The rest is pretty straight forward. You input the subject, the addresses and the message itself.
+And of course you can put everything together in one big Sieve script:</p>
+<pre class="code literal-block">require <span class="o">[</span><span class="s2">"fileinto"</span>,<span class="s2">"envelope"</span>,<span class="s2">"vacation"</span><span class="o">]</span>
+<span class="k">if</span> header :contains <span class="s2">"X-Spam-Flag"</span> <span class="s2">"YES"</span> <span class="o">{</span>
+    fileinto <span class="s2">"Spam"</span><span class="p">;</span>
+<span class="o">}</span>
+<span class="k">if</span> envelope <span class="s2">"from"</span> <span class="s2">"tim@shisaa.jp"</span> <span class="o">{</span>
+    fileinto <span class="s2">"Shisaa"</span><span class="p">;</span>
+<span class="o">}</span>
+:days 1
+:subject <span class="s2">"I'm on vacation!"</span>
+:addresses <span class="o">[</span><span class="s2">"tim@shisaa.jp,postmaster@shisaa.jp"</span><span class="o">]</span>
+<span class="s2">"I'm on vacation, you can join me or wait until I'm back.</span>
+<span class="s2">Cheers</span>
+<span class="s2">Tim"</span><span class="p">;</span>
+</pre>
+
+
+<p>You don't need to restart Dovecot after altering a Sieve script.</p>
+<p>Okay, we have gone out and had a little deeper chat with our frontdesk Dovecot. Quite a nice and capable person don't you think?</p>
+<p>If you run into any trouble, be sure to always check your maillog , for it will tell you quite clear (most of the time) whats going on.</p>
+<p>Maybe a small tip for debugging: If you want more verbose output from the whole LDA process (including Sieve) you can put this in the <em>protocol lda</em> block:</p>
+<pre class="code literal-block"><span class="nv">mail_debug</span><span class="o">=</span>yes
+</pre>
+
+
+<p>Now go out and learn more about what you can do with Sieve and harvest that knowledge!</p>
+<p>And as always, thanks for reading!</p>
+</div>
+    </div>
+    
+    <ul class="pager">
+<li class="previous">
+            <a href="mailserver-4.html">← 前の記事</a>
+        </li>
+        <li class="next">
+            <a href="3d-onsen.html">次の記事 →</a>
+        </li>
+    </ul>
+</div>
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="../../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+    </div>
+    
+        <script src="../../assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>

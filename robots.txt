@@ -1,4 +1,2 @@
 Sitemap: http://shisaa.jp/sitemapindex.xml
 
-User-Agent: *
-Host: shisaa.jp

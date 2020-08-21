@@ -1,9 +1,75 @@
 <!DOCTYPE html>
-<html><body><div class="postbox">
- PostgreSQL: A full text search engine - Part 2
- <p class="post-date">07/05/2014 <span>-</span> </p>
- <div class="post">
-  <div>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="PostgreSQL: A full text search engine - Part 2 | shisaa.jp">
+<meta name="description" content="">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>PostgreSQL: A full text search engine - Part 2 | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="shortcut icon">
+<link href="../assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-en">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest">web / unix / photography / japan</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="current-lang first"><span>English</span></li>
+        
+          
+            <li class="not-first"><a href="../ja/index.html" rel="alternate" hreflang="ja">日本語</a></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href="../">home</a>
+            </li>
+<li>
+<a href="../stories/about.html">about</a>
+            </li>
+<li>
+<a href="../stories/services.html">services</a>
+            </li>
+<li>
+<a href="../archive.html">blog</a>
+            </li>
+<li>
+<a href="../photography/index.html">photography</a>
+            </li>
+<li>
+<a href="../stories/3d.html">3D</a>
+
+	  
+    </li>
+<li id="flattr">
+<small>Like my material?</small><small>Feel free to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a></small><small id="final-small">She thanks you!</small>
+</li>
+
+      </ul>
+<div id="content">
+	
+    <div class="postbox">
+    
+    <h2><a href="#">PostgreSQL: A full text search engine - Part 2</a></h2>
+
+    <p class="post-date">07/05/2014 <span>-</span> </p>
+    
+    <ul class="tags">
+<li class="tag"><a href="../categories/full-text-search.html">full text search</a></li>          
+         <li class="tag"><a href="../categories/postgresql.html">postgresql</a></li>          
+    </ul>
+<div class="post">
+      <div>
 <p>Welcome to the second installment of our look into full text search within PostgreSQL.</p>
 <p>If this is the first time you heard about full text search I highly encourage you to go and read <a href="http://shisaa.jp/postset/postgresql-full-text-search-part-1.html" title="First chapter introducing the full text search capabilities of PostgreSQL.">the first chapter</a> in this series before continuing. This chapter builds on what we have seen previously.</p>
 <h3>A look back</h3>
@@ -21,51 +87,51 @@
 <p>Beware of localized packages of PostgreSQL though. As I noted in the previous chapter, there is a small possibility that the default configuration in your PostgreSQL installation is <em>not</em> set to 'english'.
 If this is the case with your setup, be sure to include the 'english' configuration if not stated otherwise or <em>change</em> it to be 'english'. We will see how to do that in a minute.</p>
 <p>Taking the small database we created last time, the syntax to feed a configuration set to PostgreSQL during parsing was the following:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span><span class="s1">'elephants &amp; blue'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span><span class="s1">'elephants &amp; blue'</span><span class="p">);</span>
 </pre>
 
 
 <p>The string '<em>english</em>' represents the <em>name</em> of the configuration which we would like to use. As you know by now, this string can be omitted which will make the database use the default configuration. PostgreSQL knows this default because it is set in the general <em>postgresql.conf</em> configuration file. In that file you will find a variable called <em>default_text_search_config</em> which, in most cases, is set to <em>pg_catalog.english</em>. If you wish to have a own, custom configuration to be the default, that is the place to set it.</p>
 <p>Before hacking away at your own configuration, it may be of interest to see what PostgreSQL has to offer. To see which shipped configuration files are available to you, use the <em>describe</em> command (\d) together with the full text flag (F):</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">dF</span>
+<pre class="code literal-block"><span class="err">\</span><span class="n">dF</span>
 </pre>
 
 
 <p>This will <em>describe</em> the objects in the database that represent full text configurations. You see that by default you have quite a lot of language support. To see a different configuration in action, let us do a quick, fun test. </p>
 <p>First, take the dutch string "Een blauwe olifant springt al dartelend over de kreupele dolfijn.", which is a rough translation of the "The blue elephant jumps over the crippled dolphin." example from the first chapter. If we would feed this to PostgreSQL, using the default (english) configuration:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span> <span class="s1">'Een blauwe olifant springt al dartelend over de kreupele dolfijn'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span> <span class="s1">'Een blauwe olifant springt al dartelend over de kreupele dolfijn'</span><span class="p">);</span>
 </pre>
 
 
 <p>We would get back:</p>
-<pre class="code literal-block"><span></span> <span class="s1">'al'</span><span class="p">:</span><span class="mi">5</span> <span class="s1">'blauw'</span><span class="p">:</span><span class="mi">2</span> <span class="s1">'dartelend'</span><span class="p">:</span><span class="mi">6</span> <span class="s1">'de'</span><span class="p">:</span><span class="mi">8</span> <span class="s1">'dolfijn'</span><span class="p">:</span><span class="mi">10</span> <span class="s1">'een'</span><span class="p">:</span><span class="mi">1</span> <span class="s1">'kreupel'</span><span class="p">:</span><span class="mi">9</span> <span class="s1">'olif'</span><span class="p">:</span><span class="mi">3</span> <span class="s1">'springt'</span><span class="p">:</span><span class="mi">4</span>
+<pre class="code literal-block"> <span class="s1">'al'</span><span class="p">:</span><span class="mi">5</span> <span class="s1">'blauw'</span><span class="p">:</span><span class="mi">2</span> <span class="s1">'dartelend'</span><span class="p">:</span><span class="mi">6</span> <span class="s1">'de'</span><span class="p">:</span><span class="mi">8</span> <span class="s1">'dolfijn'</span><span class="p">:</span><span class="mi">10</span> <span class="s1">'een'</span><span class="p">:</span><span class="mi">1</span> <span class="s1">'kreupel'</span><span class="p">:</span><span class="mi">9</span> <span class="s1">'olif'</span><span class="p">:</span><span class="mi">3</span> <span class="s1">'springt'</span><span class="p">:</span><span class="mi">4</span>
 </pre>
 
 
 <p>It attempted to guess some words as you can see from the lexeme 'olif', but, to a dutch reader, this is <em>not</em> stemmed correctly. Neither are the stop words removed: 'de' and 'een' are articles which, in dutch, are considered of no value in a text search context. So let us try this again with the built-in <em>dutch</em> configuration:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'dutch'</span><span class="p">,</span> <span class="s1">'Een blauwe olifant springt al dartelend over de kreupele dolfijn'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'dutch'</span><span class="p">,</span> <span class="s1">'Een blauwe olifant springt al dartelend over de kreupele dolfijn'</span><span class="p">);</span>
 </pre>
 
 
 <p>And we get:</p>
-<pre class="code literal-block"><span></span> <span class="s1">'blauw'</span><span class="p">:</span><span class="mi">2</span> <span class="s1">'dartel'</span><span class="p">:</span><span class="mi">6</span> <span class="s1">'dolfijn'</span><span class="p">:</span><span class="mi">10</span> <span class="s1">'kreupel'</span><span class="p">:</span><span class="mi">9</span> <span class="s1">'olifant'</span><span class="p">:</span><span class="mi">3</span> <span class="s1">'springt'</span><span class="p">:</span><span class="mi">4</span>
+<pre class="code literal-block"> <span class="s1">'blauw'</span><span class="p">:</span><span class="mi">2</span> <span class="s1">'dartel'</span><span class="p">:</span><span class="mi">6</span> <span class="s1">'dolfijn'</span><span class="p">:</span><span class="mi">10</span> <span class="s1">'kreupel'</span><span class="p">:</span><span class="mi">9</span> <span class="s1">'olifant'</span><span class="p">:</span><span class="mi">3</span> <span class="s1">'springt'</span><span class="p">:</span><span class="mi">4</span>
 </pre>
 
 
 <p>Aha! That is much shorter then the previous result, and it is also more correct. As you can see, the words 'de' and 'een' are now removed and the stemming is done correctly on 'dartel', 'olifant' and 'kreupel'.
 The target of this series, however, is not to show you the dutch language (for it will make you weep...), but you see the effect a different configuration set can have. </p>
 <p>But what is such a configuration set made of? To answer that, we can simply use the same describe, but ask for more detailed information with the <em>+</em> flag:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">dF</span><span class="o">+</span>
+<pre class="code literal-block"><span class="err">\</span><span class="n">dF</span><span class="o">+</span>
 </pre>
 
 
 <p>This will return a list of <em>all</em> the configurations and their details, so let us filter that and look at only the english version:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">dF</span><span class="o">+</span> <span class="n">english</span>
+<pre class="code literal-block"><span class="err">\</span><span class="n">dF</span><span class="o">+</span> <span class="n">english</span>
 </pre>
 
 
 <p>The following result will be returned:</p>
-<pre class="code literal-block"><span></span> asciihword      <span class="p">|</span> english_stem
+<pre class="code literal-block"> asciihword      <span class="p">|</span> english_stem
  asciiword       <span class="p">|</span> english_stem
  email           <span class="p">|</span> simple
  file            <span class="p">|</span> simple
@@ -100,7 +166,7 @@ The target of this series, however, is not to show you the dutch language (for i
 The same kind of <em>normalization</em> is done for file paths, version numbers, host names, units of measure, ... . A lot more then normal, English words.</p>
 <p>There are 23 categories in total that the parser can recognize, ones not included here, for example, are <em>tag</em> for XML tags, <em>blank</em> for whitespace or punctuation, etc.</p>
 <p>To see a description of the different token categories supported, use the 'p' flag together with '+' for more information:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">dFp</span><span class="o">+</span>
+<pre class="code literal-block"><span class="err">\</span><span class="n">dFp</span><span class="o">+</span>
 </pre>
 
 
@@ -122,7 +188,7 @@ A <em>dictionary</em> is an instantiation of that template - providing it with d
 <p>Take, for example, the <em>simple</em> dictionary <em>template</em>. It does two things: it first checks a token against a <em>stop word</em> list. If it finds a match it returns an <em>empty array</em>, which will result in the token being discarded. If no match is found in the stop word list, the process will return the same token, but with <em>casing removed</em>.</p>
 <p>All the checking and case removing is done by functions, under the hood. The stop word file, however, is something that the <em>dictionary</em> (the instantiation) provides.
 The instantiation of the <em>simple</em> dictionary template, thus the <em>dictionary</em> itself, would be defined as follows:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="k">simple</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="k">simple</span> <span class="p">(</span>
     <span class="k">template</span> <span class="o">=</span> <span class="k">simple</span><span class="p">,</span>
     <span class="n">stopwords</span> <span class="o">=</span> <span class="n">english</span>
 <span class="p">);</span>
@@ -145,7 +211,7 @@ However, if you do not provide a full path, PostgreSQL will search for it inside
 <p>Luckily for us, this is trivial. A stop word file is nothing more then a plain text file with one word on each line. Empty lines and trailing whitespace are ignored. We would then have to save this file with the <em>.stop</em> extension. Let us try just that.</p>
 <p>Open up your editor and punch in the words "dolphin" and "the", both on their own line. Write the file out as "shisaa_stop.stop", preferably in PostgreSQL's shared directory.</p>
 <p>Next we need to setup our dictionary. Connect to the "phrases" database from chapter one and run the following SQL:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_simple</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_simple</span> <span class="p">(</span>
     <span class="k">template</span> <span class="o">=</span> <span class="k">simple</span><span class="p">,</span>
     <span class="n">stopwords</span> <span class="o">=</span> <span class="n">shisaa_stop</span>
 <span class="p">);</span>
@@ -156,19 +222,19 @@ However, if you do not provide a full path, PostgreSQL will search for it inside
 <p>Now, the dictionary by itself is not very helpful. As we have seen before, we need to map it to token categories before we can actually use it for parsing.
 This means that we need to make our own configuration.</p>
 <p>Let us setup an empty configuration (not based on an existing one like 'english'):</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span> <span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="s1">'default'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span> <span class="p">(</span><span class="n">parser</span><span class="o">=</span><span class="s1">'default'</span><span class="p">);</span>
 </pre>
 
 
 <p>This statement will create a new configuration for us which is completely empty, it has no mappings. The argument we have to give here can be either <em>parser</em> or <em>copy</em>. With parser you define which parser to use and it will create an empty configuration. PostgreSQL has only one parser by default which is named...<em>default</em>. If you choose <em>copy</em> then you will have to provide an <em>existing</em> configuration name (like english) from which you would like to make a copy.</p>
 <p>To verify that the configuration is empty, run our describe on it:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">dF</span><span class="o">+</span> <span class="n">shisaa</span>
+<pre class="code literal-block"><span class="err">\</span><span class="n">dF</span><span class="o">+</span> <span class="n">shisaa</span>
 </pre>
 
 
 <p>And marvel at its emptiness.</p>
 <p>Now, let us add the <em>shisaa_simple</em> dictionary we created before:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
     <span class="k">ALTER</span> <span class="n">MAPPING</span> <span class="k">FOR</span> <span class="n">asciiword</span><span class="p">,</span> <span class="n">asciihword</span><span class="p">,</span> <span class="n">hword_asciipart</span><span class="p">,</span>
                   <span class="n">word</span><span class="p">,</span> <span class="n">hword</span><span class="p">,</span> <span class="n">hword_part</span>
     <span class="k">WITH</span> <span class="n">shisaa_simple</span><span class="p">;</span>
@@ -186,12 +252,12 @@ But then again...what is this folly...who would even need a different database!<
 </ul>
 <p>Just remember that these are not part of the SQL standard (something which PostgreSQL holds very dear, in high contrast with many other databases).</p>
 <p>Did it work? Well, describe it:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">dF</span><span class="o">+</span> <span class="n">shisaa</span>
+<pre class="code literal-block"><span class="err">\</span><span class="n">dF</span><span class="o">+</span> <span class="n">shisaa</span>
 </pre>
 
 
 <p>And get back:</p>
-<pre class="code literal-block"><span></span> asciihword      <span class="p">|</span> shisaa_simple
+<pre class="code literal-block"> asciihword      <span class="p">|</span> shisaa_simple
  asciiword       <span class="p">|</span> shisaa_simple
  hword           <span class="p">|</span> shisaa_simple
  hword_asciipart <span class="p">|</span> shisaa_simple
@@ -203,12 +269,12 @@ But then again...what is this folly...who would even need a different database!<
 <p>Perfect!</p>
 <p>Here we mapped our fresh dictionary to the token groups "asciihword", "asciiword", "hword", "hword_asciipart", "hword_part", "word", because these will target most of a normal, English sentence.</p>
 <p>It is time to try out this new search configuration! Punch in the same on-the-fly SQL as we had in the previous chapter, but this time with <em>our own</em> configuration:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'shisaa'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'shisaa'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">);</span>
 </pre>
 
 
 <p>And we get back:</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9 <span class="s1">'crippled'</span>:8 <span class="s1">'elephant'</span>:4 <span class="s1">'jumped'</span>:5 <span class="s1">'over'</span>:6
+<pre class="code literal-block"><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9 <span class="s1">'crippled'</span>:8 <span class="s1">'elephant'</span>:4 <span class="s1">'jumped'</span>:5 <span class="s1">'over'</span>:6
 </pre>
 
 
@@ -219,7 +285,7 @@ But then again...what is this folly...who would even need a different database!<
 <p>What?</p>
 <p><em>Snowball</em> is a <em>very proven</em> string processing language specially designed for stemming purposes and supports a wide range of languages. It originated from the <em>Porter stemming algorithm</em> and uses a natural syntax to define stemming rules. </p>
 <p>And luckily for us, PostgreSQL has a <em>Snowball</em> dictionary template ready to use. This template has the Snowball stemming rules embedded for a wide variety of languages. Let us create a <em>dictionary</em> for our shisaa configuration, shall we?</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_snowball</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_snowball</span> <span class="p">(</span>
     <span class="k">template</span> <span class="o">=</span> <span class="n">snowball</span><span class="p">,</span>
     <span class="k">language</span> <span class="o">=</span> <span class="n">english</span>
 <span class="p">);</span>
@@ -234,7 +300,7 @@ If you would not tell the <em>snowball</em> dictionary to remove stop words, it 
 <p>This stop word list can be the exact same list we fed the <em>simple</em> dictionary.</p>
 <p>Also, because a <em>snowball</em> dictionary will try and parse <em>all</em> the tokens it is being fed, it is consider to be a <em>wide</em> dictionary. Therefor, as we have seen earlier, it is a good idea when chaining dictionaries together to put this dictionary at the end of your chain.</p>
 <p>We now have our own version of the <em>snowball</em> dictionary and need to extend our configuration and map this dictionary to the desired token categories:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
     <span class="k">ALTER</span> <span class="n">MAPPING</span> <span class="k">FOR</span> <span class="n">asciiword</span><span class="p">,</span> <span class="n">asciihword</span><span class="p">,</span> <span class="n">hword_asciipart</span><span class="p">,</span>
                   <span class="n">word</span><span class="p">,</span> <span class="n">hword</span><span class="p">,</span> <span class="n">hword_part</span>
     <span class="k">WITH</span> <span class="n">shisaa_simple</span><span class="p">,</span> <span class="n">shisaa_snowball</span><span class="p">;</span>
@@ -243,12 +309,12 @@ If you would not tell the <em>snowball</em> dictionary to remove stop words, it 
 
 <p>Notice that in the <em>WITH</em> clause we are now chaining the <em>simple</em> and the <em>snowball</em> dictionary together. The order is, of course, important.
 Describe our configuration once more:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">dF</span><span class="o">+</span> <span class="n">shisaa</span>
+<pre class="code literal-block"><span class="err">\</span><span class="n">dF</span><span class="o">+</span> <span class="n">shisaa</span>
 </pre>
 
 
 <p>And get back:</p>
-<pre class="code literal-block"><span></span>asciihword      <span class="p">|</span> shisaa_simple,shisaa_snowball
+<pre class="code literal-block">asciihword      <span class="p">|</span> shisaa_simple,shisaa_snowball
 asciiword       <span class="p">|</span> shisaa_simple,shisaa_snowball
 hword           <span class="p">|</span> shisaa_simple,shisaa_snowball
 hword_asciipart <span class="p">|</span> shisaa_simple,shisaa_snowball
@@ -260,12 +326,12 @@ word            <span class="p">|</span> shisaa_simple,shisaa_snowball
 <p>Perfect, now the <em>simple</em> dictionary will be consulted first followed by the <em>snowball</em> dictionary.</p>
 <p>Note that throughout this chapter I will chain together dictionaries in order. This will <em>not</em> always be the most smart or desired order, just an order to demonstrate <em>how</em> you can chain dictionaries.</p>
 <p>To the test, throw a new query at it:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'shisaa'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'shisaa'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">);</span>
 </pre>
 
 
 <p>And get back:</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9 <span class="s1">'crippled'</span>:8 <span class="s1">'elephant'</span>:4 <span class="s1">'jumped'</span>:5 <span class="s1">'over'</span>:6
+<pre class="code literal-block"><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9 <span class="s1">'crippled'</span>:8 <span class="s1">'elephant'</span>:4 <span class="s1">'jumped'</span>:5 <span class="s1">'over'</span>:6
 </pre>
 
 
@@ -273,12 +339,12 @@ word            <span class="p">|</span> shisaa_simple,shisaa_snowball
 <p>Well, the <em>simple</em> dictionary, as we defined it earlier, is setup to be a bit greedy. In its current state it will return an unmatched token as a lexeme with casing removed.
 It does not return <em>NULL</em>. And, as you know by now, <em>NULL</em> is needed to give other dictionaries a chance to examine the token.</p>
 <p>So, we need to alter the <em>simple</em> dictionary's behavior. For this, we can use the <em>ALTER</em> syntax provided to us. And as it turns out, the <em>simple</em> dictionary <em>template</em> can accept one more variable: the <em>accept</em> variable. If this is set to false, then it will return <em>NULL</em> for every unmatched token. Let us alter that dictionary:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_simple</span> <span class="p">(</span> <span class="n">accept</span> <span class="o">=</span> <span class="k">false</span> <span class="p">);</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_simple</span> <span class="p">(</span> <span class="n">accept</span> <span class="o">=</span> <span class="k">false</span> <span class="p">);</span>
 </pre>
 
 
 <p>Run the ts_vector query again, and look at the results:</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9 <span class="s1">'crippl'</span>:8 <span class="s1">'eleph'</span>:4 <span class="s1">'jump'</span>:5 <span class="s1">'over'</span>:6
+<pre class="code literal-block"><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9 <span class="s1">'crippl'</span>:8 <span class="s1">'eleph'</span>:4 <span class="s1">'jump'</span>:5 <span class="s1">'over'</span>:6
 </pre>
 
 
@@ -288,18 +354,18 @@ It does not return <em>NULL</em>. And, as you know by now, <em>NULL</em> is need
 <p>Let us extend our favorite sentence and add a few synonyms to it: "The big blue elephant, joined by its enormous blue mammoth friend, jumped over the crippled blue dolphin while smiling at the orca."</p>
 <p>Still perfectly possible.</p>
 <p>In the light of (cue dark en deep Batman voice) "science" (end Batman voice), let us first see what we get when we run it through our current configuration:</p>
-<pre class="code literal-block"><span></span><span class="s1">'at'</span>:20 <span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9,16 <span class="s1">'by'</span>:6 <span class="s1">'crippl'</span>:15 <span class="s1">'eleph'</span>:4 <span class="s1">'enorm'</span>:8 <span class="s1">'friend'</span>:11 <span class="s1">'it'</span>:7 <span class="s1">'join'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:10 <span class="s1">'orca'</span>:22 <span class="s1">'over'</span>:13 <span class="s1">'smile'</span>:19 <span class="s1">'while'</span>:18
+<pre class="code literal-block"><span class="s1">'at'</span>:20 <span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9,16 <span class="s1">'by'</span>:6 <span class="s1">'crippl'</span>:15 <span class="s1">'eleph'</span>:4 <span class="s1">'enorm'</span>:8 <span class="s1">'friend'</span>:11 <span class="s1">'it'</span>:7 <span class="s1">'join'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:10 <span class="s1">'orca'</span>:22 <span class="s1">'over'</span>:13 <span class="s1">'smile'</span>:19 <span class="s1">'while'</span>:18
 </pre>
 
 
 <p>That is one big result set. Maybe we should cut the blue dolphin a little bit of slack and feed a real stop word list to our <em>simple</em> dictionary before continuing by altering our <em>dictionary</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_simple</span> <span class="p">(</span> <span class="n">stopwords</span> <span class="o">=</span> <span class="n">english</span> <span class="p">);</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_simple</span> <span class="p">(</span> <span class="n">stopwords</span> <span class="o">=</span> <span class="n">english</span> <span class="p">);</span>
 </pre>
 
 
 <p>As you see you can simply use the same <em>ALTER</em> syntax as before. The "english" here refers to the shipped "english.stop" stop word list.</p>
 <p>Querying again, we will get back a better, short list (including our Dolphin friend):</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9,16 <span class="s1">'crippl'</span>:15 <span class="s1">'dolphin'</span>:17 <span class="s1">'eleph'</span>:4 <span class="s1">'enorm'</span>:8 <span class="s1">'friend'</span>:11 <span class="s1">'join'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:10 <span class="s1">'orca'</span>:22 <span class="s1">'smile'</span>:19
+<pre class="code literal-block"><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9,16 <span class="s1">'crippl'</span>:15 <span class="s1">'dolphin'</span>:17 <span class="s1">'eleph'</span>:4 <span class="s1">'enorm'</span>:8 <span class="s1">'friend'</span>:11 <span class="s1">'join'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:10 <span class="s1">'orca'</span>:22 <span class="s1">'smile'</span>:19
 </pre>
 
 
@@ -307,14 +373,14 @@ It does not return <em>NULL</em>. And, as you know by now, <em>NULL</em> is need
 <p>Enter the <em>synonym</em> dictionary <em>template</em>.</p>
 <p>This template requires you to have a so-called "synonym" file; A file containing lists of words with the same meaning. For the sake of learning, let us create our own synonym file. This file has to end with the <em>.syn</em> extension.</p>
 <p>Open up your editor again and write out a file called "shisaa_syn.syn" with the following contents:</p>
-<pre class="code literal-block"><span></span>big enormous
+<pre class="code literal-block">big enormous
 elephant mammoth
 dolphin orca
 </pre>
 
 
 <p>And let us setup the <em>dictionary</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_synonym</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_synonym</span> <span class="p">(</span>
     <span class="k">template</span> <span class="o">=</span> <span class="n">synonym</span><span class="p">,</span>
     <span class="n">synonyms</span> <span class="o">=</span> <span class="n">shisaa_syn</span>
 <span class="p">);</span>
@@ -322,7 +388,7 @@ dolphin orca
 
 
 <p>And add the mapping for it:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
     <span class="k">ALTER</span> <span class="n">MAPPING</span> <span class="k">FOR</span> <span class="n">asciiword</span><span class="p">,</span> <span class="n">asciihword</span><span class="p">,</span> <span class="n">hword_asciipart</span><span class="p">,</span>
                   <span class="n">word</span><span class="p">,</span> <span class="n">hword</span><span class="p">,</span> <span class="n">hword_part</span>
     <span class="k">WITH</span> <span class="n">shisaa_simple</span><span class="p">,</span> <span class="n">shisaa_synonym</span><span class="p">,</span> <span class="n">shisaa_snowball</span><span class="p">;</span>
@@ -330,7 +396,7 @@ dolphin orca
 
 
 <p>Okay, time to test our big string again and see the results:</p>
-<pre class="code literal-block"><span></span><span class="s1">'blue'</span>:3,9,16 <span class="s1">'crippl'</span>:15 <span class="s1">'enorm'</span>:8 <span class="s1">'enormous'</span>:2 <span class="s1">'friend'</span>:11 <span class="s1">'join'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:4,10 <span class="s1">'orca'</span>:17,22 <span class="s1">'smile'</span>:19
+<pre class="code literal-block"><span class="s1">'blue'</span>:3,9,16 <span class="s1">'crippl'</span>:15 <span class="s1">'enorm'</span>:8 <span class="s1">'enormous'</span>:2 <span class="s1">'friend'</span>:11 <span class="s1">'join'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:4,10 <span class="s1">'orca'</span>:17,22 <span class="s1">'smile'</span>:19
 </pre>
 
 
@@ -341,17 +407,17 @@ Also notice that both "mammoth" and "orca" have two pointers each, one for every
 The reason why this is happening is because our <em>synonym</em> dictionary has priority over our <em>snowball</em> one. The <em>synonym</em> dictionary emits a lexeme as a synonym for <em>big</em>, being <em>enormous</em>, simply because we told it to do so in our <em>synonym file</em>. Now, because it emits a lexeme, the original token, <em>big</em>, is not available anymore for the rest of the dictionary chain.</p>
 <p>The token <em>enormous</em> itself has <em>no</em> synonym because we did not define it in our synonym file. It is ignored by the <em>synonym</em> dictionary and passed over to the <em>snowball</em> dictionary which then stems the token into a lexeme resulting in <em>enorm</em>.</p>
 <p>If you wish to prevent this from happening, you could add a self pointing line to your synonym list:</p>
-<pre class="code literal-block"><span></span>enormous enormous
+<pre class="code literal-block">enormous enormous
 </pre>
 
 
 <p>Now load in the file on disk to pull the changes into PostgreSQL:</p>
-<pre class="code literal-block"><span></span> <span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_synonym</span> <span class="p">(</span><span class="n">synonyms</span><span class="o">=</span><span class="n">shisaa_syn</span><span class="p">);</span>
+<pre class="code literal-block"> <span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_synonym</span> <span class="p">(</span><span class="n">synonyms</span><span class="o">=</span><span class="n">shisaa_syn</span><span class="p">);</span>
 </pre>
 
 
 <p>And run the query again, the result should now read:</p>
-<pre class="code literal-block"><span></span><span class="s1">'blue'</span>:3,9,16 <span class="s1">'crippl'</span>:15 <span class="s1">'enormous'</span>:2,8 <span class="s1">'friend'</span>:11 <span class="s1">'join'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:4,10 <span class="s1">'orca'</span>:17,22 <span class="s1">'smile'</span>:19
+<pre class="code literal-block"><span class="s1">'blue'</span>:3,9,16 <span class="s1">'crippl'</span>:15 <span class="s1">'enormous'</span>:2,8 <span class="s1">'friend'</span>:11 <span class="s1">'join'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:4,10 <span class="s1">'orca'</span>:17,22 <span class="s1">'smile'</span>:19
 </pre>
 
 
@@ -362,7 +428,7 @@ The reason why this is happening is because our <em>synonym</em> dictionary has 
 <p>A <em>thesaurus</em> dictionary is used to recognize phrases and convert them into lexemes with the same meaning. Again, this dictionary relies on a file containing the phrase conversions.
 This time, the file has the <em>.ths</em> extension. </p>
 <p>Open up your editor and write out a file called "shisaa_thesaurus.ths" with the following contents:</p>
-<pre class="code literal-block"><span></span>big blue elephant : PostgreSQL
+<pre class="code literal-block">big blue elephant : PostgreSQL
 crippled blue dolphin : MySQL
 </pre>
 
@@ -370,7 +436,7 @@ crippled blue dolphin : MySQL
 <p>Before we can create the dictionary, there is one more required variable we have to set, the <em>subdictionary</em> the <em>thesaurus</em> dictionary can use.
 This subdictionary will be <em>another</em> dictionary you have defined before. Most of the time a stemmer is fed to this variable to let the thesaurus stem the input before comparing it with its thesaurus file.</p>
 <p>So let us feed it our <em>snowball</em> dictionary and set it up:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_thesaurus</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_thesaurus</span> <span class="p">(</span>
     <span class="k">TEMPLATE</span> <span class="o">=</span> <span class="n">thesaurus</span><span class="p">,</span>
     <span class="n">DICTFILE</span> <span class="o">=</span> <span class="n">shisaa_thesaurus</span><span class="p">,</span>
     <span class="k">DICTIONARY</span> <span class="o">=</span> <span class="n">shisaa_snowball</span>
@@ -379,7 +445,7 @@ This subdictionary will be <em>another</em> dictionary you have defined before. 
 
 
 <p>Map it:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
     <span class="k">ALTER</span> <span class="n">MAPPING</span> <span class="k">FOR</span> <span class="n">asciiword</span><span class="p">,</span> <span class="n">asciihword</span><span class="p">,</span> <span class="n">hword_asciipart</span><span class="p">,</span>
                   <span class="n">word</span><span class="p">,</span> <span class="n">hword</span><span class="p">,</span> <span class="n">hword_part</span>
     <span class="k">WITH</span> <span class="n">shisaa_simple</span><span class="p">,</span> <span class="n">shisaa_thesaurus</span><span class="p">,</span> <span class="n">shisaa_snowball</span><span class="p">;</span>
@@ -388,7 +454,7 @@ This subdictionary will be <em>another</em> dictionary you have defined before. 
 
 <p>Notice that I took out the <em>synonym</em> dictionary. If we chain up to many dictionaries, the results might turn out to be undesirable in our demonstration use case.</p>
 <p>Querying will result in the following tsvector:</p>
-<pre class="code literal-block"><span></span><span class="s1">'blue'</span>:7 <span class="s1">'enorm'</span>:6 <span class="s1">'friend'</span>:9 <span class="s1">'join'</span>:3 <span class="s1">'jump'</span>:10 <span class="s1">'mammoth'</span>:8 <span class="s1">'mysql'</span>:13 <span class="s1">'orca'</span>:18 <span class="s1">'postgresql'</span>:2 <span class="s1">'smile'</span>:15
+<pre class="code literal-block"><span class="s1">'blue'</span>:7 <span class="s1">'enorm'</span>:6 <span class="s1">'friend'</span>:9 <span class="s1">'join'</span>:3 <span class="s1">'jump'</span>:10 <span class="s1">'mammoth'</span>:8 <span class="s1">'mysql'</span>:13 <span class="s1">'orca'</span>:18 <span class="s1">'postgresql'</span>:2 <span class="s1">'smile'</span>:15
 </pre>
 
 
@@ -405,7 +471,7 @@ Normally you would want to download these files from the official OpenOffice pag
 .
 Download the files for your desired language and place the <em>.dict</em> and the <em>.affix</em> files into the PostgreSQL shared directory.</p>
 <p>For now, let us just take the basic <em>english</em> dict and affix files (named both <em>en_us</em> and already shipped with PostgreSQL) and feed them to the configuration:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_ispell</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="k">DICTIONARY</span> <span class="n">shisaa_ispell</span> <span class="p">(</span>
     <span class="k">template</span> <span class="o">=</span> <span class="n">ispell</span><span class="p">,</span>
     <span class="n">DictFile</span> <span class="o">=</span> <span class="n">en_us</span><span class="p">,</span>
     <span class="n">AffFile</span> <span class="o">=</span> <span class="n">en_us</span><span class="p">,</span>
@@ -415,7 +481,7 @@ Download the files for your desired language and place the <em>.dict</em> and th
 
 
 <p>And chain it:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="nb">TEXT</span> <span class="k">SEARCH</span> <span class="n">CONFIGURATION</span> <span class="n">shisaa</span>
     <span class="k">ALTER</span> <span class="n">MAPPING</span> <span class="k">FOR</span> <span class="n">asciiword</span><span class="p">,</span> <span class="n">asciihword</span><span class="p">,</span> <span class="n">hword_asciipart</span><span class="p">,</span>
                   <span class="n">word</span><span class="p">,</span> <span class="n">hword</span><span class="p">,</span> <span class="n">hword_part</span>
     <span class="k">WITH</span> <span class="n">shisaa_simple</span><span class="p">,</span> <span class="n">shisaa_ispell</span><span class="p">,</span> <span class="n">shisaa_snowball</span><span class="p">;</span>
@@ -424,7 +490,7 @@ Download the files for your desired language and place the <em>.dict</em> and th
 
 <p>Notice again I took out the <em>thesaurus</em> dictionary, not to pile up too many dictionaries at once.</p>
 <p>Query it once more, and look at what we get back:</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9,16 <span class="s1">'cripple'</span>:15 <span class="s1">'dolphin'</span>:17 <span class="s1">'elephant'</span>:4 <span class="s1">'enormous'</span>:8 <span class="s1">'friend'</span>:11 <span class="s1">'join'</span>:5 <span class="s1">'joined'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:10 <span class="s1">'orca'</span>:22 <span class="s1">'smile'</span>:19 <span class="s1">'smiling'</span>:19
+<pre class="code literal-block"><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9,16 <span class="s1">'cripple'</span>:15 <span class="s1">'dolphin'</span>:17 <span class="s1">'elephant'</span>:4 <span class="s1">'enormous'</span>:8 <span class="s1">'friend'</span>:11 <span class="s1">'join'</span>:5 <span class="s1">'joined'</span>:5 <span class="s1">'jump'</span>:12 <span class="s1">'mammoth'</span>:10 <span class="s1">'orca'</span>:22 <span class="s1">'smile'</span>:19 <span class="s1">'smiling'</span>:19
 </pre>
 
 
@@ -439,17 +505,17 @@ One of the reasons why Ispell is such a powerful dictionary is because it can re
 <p>The first function I want show you is a <em>very</em> handy one that is built to test your <em>whole</em> full text configuration. It helps you keep your mental condition to just mildly insane, so to speak.</p>
 <p>The function <em>ts_debug()</em> accepts a configuration and a string of text you wish to test. As a result you will get back a set that contains an overview of how the parser chopped your string into tokens,  which category it picked for each token, which dictionary was consulted and which lexeme(s) where emitted. Oh boy, this is too much fun, let us just try it out! </p>
 <p>Feed our original pun string and let us test the current <em>shisaa</em> configuration:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ts_debug</span><span class="p">(</span><span class="s1">'shisaa'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ts_debug</span><span class="p">(</span><span class="s1">'shisaa'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">);</span>
 </pre>
 
 
 <p>Hmm, that may not be very readable, rather use the wildcard selector and a FROM clause to include column names into our result set (one of the few times you may use this selector without getting smacked):</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">ts_debug</span><span class="p">(</span><span class="s1">'shisaa'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">ts_debug</span><span class="p">(</span><span class="s1">'shisaa'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">);</span>
 </pre>
 
 
 <p>Which will result in the following, huge set:</p>
-<pre class="code literal-block"><span></span>  <span class="nb">alias</span>   <span class="p">|</span>   description   <span class="p">|</span>  token   <span class="p">|</span>                 dictionaries                  <span class="p">|</span>  dictionary   <span class="p">|</span>  lexemes   
+<pre class="code literal-block">  <span class="nb">alias</span>   <span class="p">|</span>   description   <span class="p">|</span>  token   <span class="p">|</span>                 dictionaries                  <span class="p">|</span>  dictionary   <span class="p">|</span>  lexemes   
 -----------+-----------------+----------+-----------------------------------------------+---------------+------------
 asciiword <span class="p">|</span> Word, all ASCII <span class="p">|</span> The      <span class="p">|</span> <span class="o">{</span>shisaa_simple,shisaa_ispell,shisaa_snowball<span class="o">}</span> <span class="p">|</span> shisaa_simple <span class="p">|</span> <span class="o">{}</span>
 blank     <span class="p">|</span> Space symbols   <span class="p">|</span>          <span class="p">|</span> <span class="o">{}</span>                                            <span class="p">|</span>               <span class="p">|</span> 
@@ -481,12 +547,12 @@ blank     <span class="p">|</span> Space symbols   <span class="p">|</span> .   
 <h4>ts_lexize()</h4>
 <p>The second function is <em>ts_lexize()</em>. This little helper lets you test different <em>parts</em> of your whole setup. Take the unexpected result of our last dictionary, where we got back multiple lexemes. As it turned out it is normal behavior, but you may want to verify that the result is coming from the dictionary and not from a side effect of how you chained your dictionaries together.</p>
 <p>To test our single, <em>shisaa_ispell</em> dictionary, we could feed it to this new function, together with <em>one token</em> we wish to test:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ts_lexize</span><span class="p">(</span><span class="s1">'shisaa_ispell'</span><span class="p">,</span><span class="s1">'joined'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ts_lexize</span><span class="p">(</span><span class="s1">'shisaa_ispell'</span><span class="p">,</span><span class="s1">'joined'</span><span class="p">);</span>
 </pre>
 
 
 <p>This will return:</p>
-<pre class="code literal-block"><span></span><span class="o">{</span>joined,join<span class="o">}</span>
+<pre class="code literal-block"><span class="o">{</span>joined,join<span class="o">}</span>
 </pre>
 
 
@@ -505,5 +571,22 @@ In the next chapter, I will round up this introduction by introducing you to the
 <!--  LocalWords:  instantiation PostgreSQL
  -->
 </div>
- </div>
-</div></body></html>
+    </div>
+    
+    <ul class="pager">
+<li class="previous">
+            <a href="postgresql-full-text-search-part-1.html">← Previous post</a>
+        </li>
+        <li class="next">
+            <a href="postgresql-full-text-search-part-3.html">Next post →</a>
+        </li>
+    </ul>
+</div>
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+    </div>
+    
+        <script src="../assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>

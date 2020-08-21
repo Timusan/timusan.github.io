@@ -1,9 +1,75 @@
 <!DOCTYPE html>
-<html><body><div class="postbox">
- PostgreSQL: A full text search engine - Part 1
- <p class="post-date">30/04/2014 <span>-</span> </p>
- <div class="post">
-  <div>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="PostgreSQL: A full text search engine - Part 1 | shisaa.jp">
+<meta name="description" content="">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>PostgreSQL: A full text search engine - Part 1 | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="shortcut icon">
+<link href="../assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-en">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest">web / unix / photography / japan</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="current-lang first"><span>English</span></li>
+        
+          
+            <li class="not-first"><a href="../ja/index.html" rel="alternate" hreflang="ja">日本語</a></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href="../">home</a>
+            </li>
+<li>
+<a href="../stories/about.html">about</a>
+            </li>
+<li>
+<a href="../stories/services.html">services</a>
+            </li>
+<li>
+<a href="../archive.html">blog</a>
+            </li>
+<li>
+<a href="../photography/index.html">photography</a>
+            </li>
+<li>
+<a href="../stories/3d.html">3D</a>
+
+	  
+    </li>
+<li id="flattr">
+<small>Like my material?</small><small>Feel free to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a></small><small id="final-small">She thanks you!</small>
+</li>
+
+      </ul>
+<div id="content">
+	
+    <div class="postbox">
+    
+    <h2><a href="#">PostgreSQL: A full text search engine - Part 1</a></h2>
+
+    <p class="post-date">30/04/2014 <span>-</span> </p>
+    
+    <ul class="tags">
+<li class="tag"><a href="../categories/full-text-search.html">full text search</a></li>          
+         <li class="tag"><a href="../categories/postgresql.html">postgresql</a></li>          
+    </ul>
+<div class="post">
+      <div>
 <h3>Preface</h3>
 <p>PostgreSQL, the database of miracles, the RDBMS of wonders.</p>
 <p>People who have read my stuff before know that I am a fan of the blue-ish elephant and I greatly entrust it with my data. 
@@ -23,27 +89,27 @@ Well, diddlydangeroo, then by all means, keep reading, because that is exactly w
 Now we would like to find the string <em>"An elephant a day keeps the dolphins at bay."</em>.
 We do not fully remember the above string, but we do remember it had the word "elephant" in it.
 With regular SQL you could use the "LIKE" operator to try and find a matching substring. The resulting query would look something like this:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="k">LIKE</span> <span class="s1">'%elephant%'</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="k">LIKE</span> <span class="s1">'%elephant%'</span><span class="p">;</span>
 </pre>
 
 
 <p>It would work, you render any index on the table mute when using front <em>and</em> back wildcards, but it would work.
 Now imagine a humble user would like to find the same string but their memory is bad, they thought the word elephant was capitalized, because it may refer to PostgreSQL, of course.
 The query would become this:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="k">LIKE</span> <span class="s1">'%Elephant%'</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="k">LIKE</span> <span class="s1">'%Elephant%'</span><span class="p">;</span>
 </pre>
 
 
 <p>And as a result, you get back zero records.</p>
 <p>"But wait!", you shout, "I am a smart ass, there is a solution to this!". And you are correct: the ILIKE operator.
 The "I" stands for Insensitive...as in <em>Case Insensitive</em>. So you change the query:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="k">ILIKE</span> <span class="s1">'%Elephant%'</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="k">ILIKE</span> <span class="s1">'%Elephant%'</span><span class="p">;</span>
 </pre>
 
 
 <p>And now you will get back a result. Good for you.</p>
 <p>A day goes by and the same user comes back and wishes to find this string again. But, his memory still being bad and all, he thought there where multiple elephants keeping the dolphins at bay, because, you know, pun. So the query, you altered yesterday, now reads:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="k">ILIKE</span> <span class="s1">'%Elephants%'</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="k">ILIKE</span> <span class="s1">'%Elephants%'</span><span class="p">;</span>
 </pre>
 
 
@@ -110,7 +176,7 @@ It is the container in which the result of the parsing is eventually stored.</p>
 Imagine a document with the following string of text inside: <em>"The big blue elephant jumped over the crippled blue dolphin."</em>.
 A perfectly normal sentence, elephants jump over dolphins all the time.</p>
 <p>Without bothering about how to do it, if we let PostgreSQL parse this string, we will get the following tsvector stored in our record:</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span><span class="p">:</span><span class="mi">2</span> <span class="s1">'blue'</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span> <span class="s1">'crippl'</span><span class="p">:</span><span class="mi">8</span> <span class="s1">'dolphin'</span><span class="p">:</span><span class="mi">10</span> <span class="s1">'eleph'</span><span class="p">:</span><span class="mi">4</span> <span class="s1">'jump'</span><span class="p">:</span><span class="mi">5</span>
+<pre class="code literal-block"><span class="s1">'big'</span><span class="p">:</span><span class="mi">2</span> <span class="s1">'blue'</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span><span class="mi">9</span> <span class="s1">'crippl'</span><span class="p">:</span><span class="mi">8</span> <span class="s1">'dolphin'</span><span class="p">:</span><span class="mi">10</span> <span class="s1">'eleph'</span><span class="p">:</span><span class="mi">4</span> <span class="s1">'jump'</span><span class="p">:</span><span class="mi">5</span>
 </pre>
 
 
@@ -132,18 +198,18 @@ If a match is found, the dictionary will propose a lexeme. This lexeme is the on
 But instead of a varchar column, this table will contain a tsvector type for we will unleash to power of Full Text Search!</p>
 <p>Note: I am assuming you have at least PostgreSQL 9.1 or higher. This post was written with PostgreSQL 9.3 in mind.</p>
 <p>So connect to your PostgreSQL install and create the database:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">phrases</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">phrases</span><span class="p">;</span>
 </pre>
 
 
 <p>Do not worry to much about the ownership of this database nor the ownership of its tables, you can discard it whole later.
 Now, switch over to the database:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="k">c</span> <span class="n">phrases</span>
+<pre class="code literal-block"><span class="err">\</span><span class="k">c</span> <span class="n">phrases</span>
 </pre>
 
 
 <p>And create the phraseTable table:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">phraseTable</span> <span class="p">(</span><span class="n">phrase</span> <span class="n">tsvector</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">phraseTable</span> <span class="p">(</span><span class="n">phrase</span> <span class="n">tsvector</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">);</span>
 </pre>
 
 
@@ -151,7 +217,7 @@ Now, switch over to the database:</p>
 <p>Let us insert a parsed vector into the table.
 Again, without employing a thesaurus or any other tools, we only use the built-in, default configuration to parse a string and save it as a vector.</p>
 <p>Let us insert the vector, shall we?</p>
-<pre class="code literal-block"><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">phraseTable</span> <span class="k">VALUES</span> <span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">));</span>
+<pre class="code literal-block"><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">phraseTable</span> <span class="k">VALUES</span> <span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span><span class="s1">'The big blue elephant jumped over the crippled blue dolphin.'</span><span class="p">));</span>
 </pre>
 
 
@@ -163,12 +229,12 @@ PostgreSQL has some default settings, which many times are good enough. The 'eng
 <p><em>Note:</em> As was pointed out by one of my observant readers, depending on how your PostgreSQL is packaged, it could be <em>localized</em>. This means that the default 'english' configuration could be changed to reflect the language of the localized package. If this is the case with your install, be sure to <em>not omit</em> the optional parameter and keep its value set to 'english' for all the tsvector and tsquery work we will do in this chapter. Otherwise your full text parsing will produce different, unpredictable results which will make this chapter difficult to follow.</p>
 <p>In the next chapter we will delve <em>deep</em> into creating our own configuration, for now just take it for granted.</p>
 <p>If we query the result, with a simple select, it will return our newly created vector:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">from</span> <span class="n">phraseTable</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">from</span> <span class="n">phraseTable</span>
 </pre>
 
 
 <p>Will return:</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9 <span class="s1">'crippl'</span>:8 <span class="s1">'dolphin'</span>:10 <span class="s1">'eleph'</span>:4 <span class="s1">'jump'</span>:5
+<pre class="code literal-block"><span class="s1">'big'</span>:2 <span class="s1">'blue'</span>:3,9 <span class="s1">'crippl'</span>:8 <span class="s1">'dolphin'</span>:10 <span class="s1">'eleph'</span>:4 <span class="s1">'jump'</span>:5
 </pre>
 
 
@@ -179,7 +245,7 @@ You may wish to put a higher weight on lexemes that come from a title element an
 <p>PostgreSQL knows four weight labels <em>A</em>, <em>B</em>, <em>C</em>, <em>D</em>. The lowest in rank being <em>D</em>. In fact, if you do not define any weights to the lexemes inside a tsvector, all of them will implicitly get a <em>D</em> assigned.
 If all the lexemes in a tsvector carry a <em>D</em>, it is omitted from display when printing the tsvector, simply for readability.
 The above query result could thus also be written as:</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span>:2D <span class="s1">'blue'</span>:3D,9D <span class="s1">'crippl'</span>:8D <span class="s1">'dolphin'</span>:10D <span class="s1">'eleph'</span>:4D <span class="s1">'jump'</span>:5D
+<pre class="code literal-block"><span class="s1">'big'</span>:2D <span class="s1">'blue'</span>:3D,9D <span class="s1">'crippl'</span>:8D <span class="s1">'dolphin'</span>:10D <span class="s1">'eleph'</span>:4D <span class="s1">'jump'</span>:5D
 </pre>
 
 
@@ -194,12 +260,12 @@ If you wish to reflect your original document structure by using weights, you wi
 The process of weight assignment is trivial. PostgreSQL gives you the appropriately named <em>setweight</em> function for this.
 This function accepts a tsvector as the first argument and a weight label as the second.</p>
 <p>To demonstrate, let me update our record and give all the lexemes in our famous sentence a <em>A</em> weight label:</p>
-<pre class="code literal-block"><span></span><span class="k">UPDATE</span> <span class="n">phraseTable</span> <span class="k">SET</span> <span class="n">phrase</span> <span class="o">=</span> <span class="n">setweight</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span><span class="s1">'A'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">UPDATE</span> <span class="n">phraseTable</span> <span class="k">SET</span> <span class="n">phrase</span> <span class="o">=</span> <span class="n">setweight</span><span class="p">(</span><span class="n">phrase</span><span class="p">,</span><span class="s1">'A'</span><span class="p">);</span>
 </pre>
 
 
 <p>If we now query this table, the result will be this:</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span>:2A <span class="s1">'blue'</span>:3A,9A <span class="s1">'crippl'</span>:8A <span class="s1">'dolphin'</span>:10A <span class="s1">'eleph'</span>:4A <span class="s1">'jump'</span>:5A
+<pre class="code literal-block"><span class="s1">'big'</span>:2A <span class="s1">'blue'</span>:3A,9A <span class="s1">'crippl'</span>:8A <span class="s1">'dolphin'</span>:10A <span class="s1">'eleph'</span>:4A <span class="s1">'jump'</span>:5A
 </pre>
 
 
@@ -207,7 +273,7 @@ This function accepts a tsvector as the first argument and a weight label as the
 <p>One more for fun. What if you wanted to assign different weights to the lexemes?
 For this, you have to concatenate several <em>setweight</em> functions together.
 An example query would look something like this:</p>
-<pre class="code literal-block"><span></span><span class="k">update</span> <span class="n">phraseTable</span> <span class="k">set</span> <span class="n">phrase</span><span class="o">=</span>
+<pre class="code literal-block"><span class="k">update</span> <span class="n">phraseTable</span> <span class="k">set</span> <span class="n">phrase</span><span class="o">=</span>
 <span class="n">setweight</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'the big blue elephant'</span><span class="p">),</span> <span class="s1">'A'</span><span class="p">)</span> <span class="o">||</span>
 <span class="n">setweight</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'jumped over the'</span><span class="p">),</span> <span class="s1">'B'</span><span class="p">)</span> <span class="o">||</span>
 <span class="n">setweight</span><span class="p">(</span><span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'crippled blue dolphin.'</span><span class="p">),</span> <span class="s1">'C'</span><span class="p">);</span>
@@ -215,7 +281,7 @@ An example query would look something like this:</p>
 
 
 <p>The result:</p>
-<pre class="code literal-block"><span></span><span class="s1">'big'</span>:2A <span class="s1">'blue'</span>:3A,7C <span class="s1">'crippl'</span>:6C <span class="s1">'dolphin'</span>:8C <span class="s1">'eleph'</span>:4A <span class="s1">'jump'</span>:5B
+<pre class="code literal-block"><span class="s1">'big'</span>:2A <span class="s1">'blue'</span>:3A,7C <span class="s1">'crippl'</span>:6C <span class="s1">'dolphin'</span>:8C <span class="s1">'eleph'</span>:4A <span class="s1">'jump'</span>:5B
 </pre>
 
 
@@ -233,7 +299,7 @@ When you parse the document and construct the query, you could assign all lexeme
 <p>Pay attention to the fact that we do not call <em>tsquery</em> a set of extra <em>operators</em> but we call it a <em>data type</em>. This is very important to understand.
 With <em>tsquery</em> we can construct search <em>predicates</em>, which can search through a <em>tsvector</em> type and can employ specially designed indexes to speed up the process. </p>
 <p>Let me throw a query at you that will try to find the word "elephants" in our favorite string using <em>tsquery</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span><span class="s1">'elephants'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span><span class="s1">'elephants'</span><span class="p">);</span>
 </pre>
 
 
@@ -243,7 +309,7 @@ The function <em>to_tsquery</em> takes one argument, a string containing the <em
 The first argument I give in this example, 'english', is again the full text configuration and is optional.</p>
 <p>Let us first look a bit more at this one. Say, for instance, you wish to find two tokens of the sentence inside your database.
 Your first instinct would be to query this the following way:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants blue'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants blue'</span><span class="p">);</span>
 </pre>
 
 
@@ -251,7 +317,7 @@ Your first instinct would be to query this the following way:</p>
 The <em>to_tsquery</em> helper function does not accept a simple string of text, it needs a string of tokens <em>separated by operators</em>.
 The operators at your disposal are the regular <em>&amp;</em> (AND), <em>|</em> (OR) and <em>!</em> (NOT). Note that the <em>!</em> operator <em>needs</em> the <em>&amp;</em> or the <em>|</em> operator.</p>
 <p>It then goes and creates a true <em>tsquery</em> to retrieve the results. Let us try this query again, but with correct syntax this time:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants &amp; blue'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants &amp; blue'</span><span class="p">);</span>
 </pre>
 
 
@@ -260,7 +326,7 @@ Like I said before, what this helper function does is translate its input (the t
 <p>We still have a problem if we would let a user type her or his search string into an interface search box and feed it to <em>to_tsquery</em>, for a user does not know about the operators they need to use.
 Luckily for us, there is another help function, the <em>plainto_tsquery</em> which takes care of exactly that problem: convert an arbitrary string of text into lexemes.</p>
 <p>Let me demonstrate:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">plainto_tsquery</span><span class="p">(</span><span class="s1">'elephants blue'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">phrase</span> <span class="k">FROM</span> <span class="n">phraseTable</span> <span class="k">WHERE</span> <span class="n">phrase</span> <span class="o">@@</span> <span class="n">plainto_tsquery</span><span class="p">(</span><span class="s1">'elephants blue'</span><span class="p">);</span>
 </pre>
 
 
@@ -275,29 +341,29 @@ If you wish to have something other then the <em>&amp;</em> operator, you will h
 <p>So, one way or the other, you will have to write your own parser if you want a non-database user to work with your application. This parser looks at the options your present on your search form and will crawl over the user entered string to interpret certain characters not as words to search but as operators or grouping tokens to build your final query.</p>
 <p>But enough about web applications, that is not our focus now. Let us continue.</p>
 <p>The next, new item you will see in the last few queries is the <em>@@</em> operator. This operator (also referred to as text-search-matching operator) is also specific to a full text search context. It allows you to <em>match</em> a <em>ts_vector</em> against the results of a <em>ts_query</em>. In our queries we matched the result of a <em>ts_query</em> against a column, but you could also match against a <em>ts_vector</em> on the fly:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'The blue elephant.'</span><span class="p">)</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'blue &amp; the'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">to_tsvector</span><span class="p">(</span><span class="s1">'The blue elephant.'</span><span class="p">)</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'blue &amp; the'</span><span class="p">);</span>
 </pre>
 
 
 <p>A nice little detail about the <em>@@</em> operator is that it can also match against a <em>TEXT</em> or <em>VARCHAR</em> data type, giving you a poor-mans full text capability. Let me demonstrate:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="s1">'The blue elephant.'</span> <span class="p">::</span> <span class="nb">VARCHAR</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'blue &amp; the'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="s1">'The blue elephant.'</span> <span class="p">::</span> <span class="nb">VARCHAR</span> <span class="o">@@</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'blue &amp; the'</span><span class="p">);</span>
 </pre>
 
 
 <p>This 'on-the-fly' query will generate a <em>VARCHAR</em> string (by using the <em>::</em> or <em>cast</em> operator) and try to match the tokens <em>blue</em> and <em>the</em>. The result will be <em>t</em>, meaning that a match is found.</p>
 <p>Before I continue, it is nice to know that you can always test the result of a <em>ts_query</em>, meaning, test the output of what it will use to find lexemes in the <em>ts_vector</em>.
 To see that output, you simply call it with the helper function, the same way we called the <em>to_tsvector</em> a while ago:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants &amp; blue'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'elephants &amp; blue'</span><span class="p">);</span>
 </pre>
 
 
 <p>This will result in:</p>
-<pre class="code literal-block"><span></span> <span class="s1">'eleph'</span> <span class="o">&amp;</span> <span class="s1">'blue'</span>
+<pre class="code literal-block"> <span class="s1">'eleph'</span> <span class="o">&amp;</span> <span class="s1">'blue'</span>
 </pre>
 
 
 <p>It is also important to note that <em>to_tsquery</em> (and <em>plainto_tsquery</em>) too uses a configuration of the same kind <em>to_tsvector</em> uses, for it too has to do the same parsing to find the lexemes of the string or tokens you feed it. So the first, optional argument to <em>to_tsquery</em> is the configuration, this also defaults to "english". This means we could rewrite the query as such:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span><span class="s1">'elephants &amp; blue'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">to_tsquery</span><span class="p">(</span><span class="s1">'english'</span><span class="p">,</span><span class="s1">'elephants &amp; blue'</span><span class="p">);</span>
 </pre>
 
 
@@ -323,5 +389,22 @@ We will cover fun stuff like:</p>
 <p>Hang in there!</p>
 <p>And as always...thanks for reading!</p>
 </div>
- </div>
-</div></body></html>
+    </div>
+    
+    <ul class="pager">
+<li class="previous">
+            <a href="moving-to-japan.html">← Previous post</a>
+        </li>
+        <li class="next">
+            <a href="postgresql-full-text-search-part-2.html">Next post →</a>
+        </li>
+    </ul>
+</div>
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+    </div>
+    
+        <script src="../assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>

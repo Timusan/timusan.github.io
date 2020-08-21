@@ -1,9 +1,76 @@
 <!DOCTYPE html>
-<html><body><div class="postbox">
- Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5
- <p class="post-date">08/06/2013 <span>-</span> </p>
- <div class="post">
-  <div>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5 | shisaa.jp">
+<meta name="description" content="">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5 | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="shortcut icon">
+<link href="../assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-en">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest">web / unix / photography / japan</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="current-lang first"><span>English</span></li>
+        
+          
+            <li class="not-first"><a href="../ja/index.html" rel="alternate" hreflang="ja">日本語</a></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href="../">home</a>
+            </li>
+<li>
+<a href="../stories/about.html">about</a>
+            </li>
+<li>
+<a href="../stories/services.html">services</a>
+            </li>
+<li>
+<a href="../archive.html">blog</a>
+            </li>
+<li>
+<a href="../photography/index.html">photography</a>
+            </li>
+<li>
+<a href="../stories/3d.html">3D</a>
+
+	  
+    </li>
+<li id="flattr">
+<small>Like my material?</small><small>Feel free to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a></small><small id="final-small">She thanks you!</small>
+</li>
+
+      </ul>
+<div id="content">
+	
+    <div class="postbox">
+    
+    <h2><a href="#">Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5</a></h2>
+
+    <p class="post-date">08/06/2013 <span>-</span> </p>
+    
+    <ul class="tags">
+<li class="tag"><a href="../categories/dovecot.html">dovecot</a></li>          
+         <li class="tag"><a href="../categories/postfix.html">postfix</a></li>          
+         <li class="tag"><a href="../categories/unix.html">unix</a></li>          
+    </ul>
+<div class="post">
+      <div>
 <h3>Chapter 5 - Dovecot continued: our frontdesk in more detail</h3>
 <p>Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.jp mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.</p>
 <p>Which ever being the case, lets see Dovecot in a little bit more detail.</p>
@@ -33,24 +100,24 @@ This will prevent nasty things happening to your maildir files. It won't, howeve
 <p>Makes sense, right?</p>
 <p>To setup this stretching is even simpler. You still use NTP, but the correct way.
 First make sure that you have NTP installed:</p>
-<pre class="code literal-block"><span></span>$ yum install ntp
+<pre class="code literal-block"><span class="nv">$ </span>yum install ntp
 </pre>
 
 
 <p>Next make it run on boot:</p>
-<pre class="code literal-block"><span></span>$ chkconfig ntpd on
+<pre class="code literal-block"><span class="nv">$ </span>chkconfig ntpd on
 </pre>
 
 
 <p>Before starting the daemon we have to setup which timeserver we want to synchronize with.
 Open the <em>ntp</em> configuration file located at <em>/etc/ntp.conf</em>.
 In here, setup the timezone server you which to use. To get a list of servers visit the <a href="http://www.pool.ntp.org/zone/@" title="NTP Pool Project website">NTP Pool Project</a>.</p>
-<pre class="code literal-block"><span></span>$ server <span class="m">0</span>.your-favorite-timezone-server.org
+<pre class="code literal-block"><span class="nv">$ </span>server 0.your-favorite-timezone-server.org
 </pre>
 
 
 <p>Now save the file and simply start the daemon:</p>
-<pre class="code literal-block"><span></span>$ /etc/init.d/ntpd start
+<pre class="code literal-block"><span class="nv">$ </span>/etc/init.d/ntpd start
 </pre>
 
 
@@ -70,7 +137,7 @@ To setup server side filtering we have to plugin Dovecot's <em>Local Delivery Ag
 </ul>
 <p>So lets get our hands dirty and introduce a new workstation in our factory!</p>
 <p>First we start with setting up the Dovecot LDA. To do this we have to introduce a new protocol in the Dovecot configuration file. Add the LDA protocol to <em>dovecot.conf</em>:</p>
-<pre class="code literal-block"><span></span>protocol lda <span class="o">{</span>
+<pre class="code literal-block">protocol lda <span class="o">{</span>
   <span class="nv">mail_plugins</span> <span class="o">=</span> <span class="nv">$mail_plugins</span>
 <span class="o">}</span>
 </pre>
@@ -78,7 +145,7 @@ To setup server side filtering we have to plugin Dovecot's <em>Local Delivery Ag
 
 <p>This will initiate the LDA mechanism and load in any plugins we define. We will need this later down the road.
 Next we need to define 2 important variables for Dovecot to be able to act as a delivery agent. Add these to the same file:</p>
-<pre class="code literal-block"><span></span><span class="nv">postmaster_address</span> <span class="o">=</span> tim@shisaa.jp
+<pre class="code literal-block"><span class="nv">postmaster_address</span> <span class="o">=</span> tim@shisaa.jp
 <span class="nv">hostname</span> <span class="o">=</span> mail.shisaa.jp
 </pre>
 
@@ -88,7 +155,7 @@ The hostname is used for including in the message headers.</p>
 <p>Now we have to input some familiar settings we used to make Dovecot communicate with Postfix. But this time, we need them for the user lookups that the LDA will have to do.
 To be more specific, we need to redeclare the <em>userdb</em> and the <em>auth-userdb</em> declarations.
 First the <em>userdb</em>:</p>
-<pre class="code literal-block"><span></span>userdb <span class="o">{</span>
+<pre class="code literal-block">userdb <span class="o">{</span>
     <span class="nv">driver</span> <span class="o">=</span> sql
     <span class="nv">args</span> <span class="o">=</span> /etc/dovecot/dovecot-sql.conf
 <span class="o">}</span>
@@ -96,7 +163,7 @@ First the <em>userdb</em>:</p>
 
 
 <p><strong>Caution</strong>: leave your original <em>userdb</em> declaration intact. For Postfix we have setup the user lookup to <em>driver=prefetch</em> because we had enough information from the <em>passdb</em> query and we did not want to travel to the database twice. For the LDA, however, this is different. The lookup cannot work with the driver set to <em>prefetch</em>, we will have to do a separate query. So now you should have two <em>userdb</em> entries like so:</p>
-<pre class="code literal-block"><span></span>userdb <span class="o">{</span>
+<pre class="code literal-block">userdb <span class="o">{</span>
     <span class="nv">driver</span> <span class="o">=</span> prefetch
 <span class="o">}</span>
 userdb <span class="o">{</span>
@@ -108,7 +175,7 @@ userdb <span class="o">{</span>
 
 <p>Postfix will take the <em>prefetch</em> usersb and the LDA will take the second, because it fails using the first.
 The next thing is to declare a user lookup query in our <em>dovecot-sql.conf</em>. Open this file and add the following query:</p>
-<pre class="code literal-block"><span></span><span class="nv">user_query</span> <span class="o">=</span> SELECT <span class="s1">'/home/mail/'</span><span class="o">||</span>maildir as home, uid, gid, email FROM users WHERE <span class="nv">email</span> <span class="o">=</span> <span class="s1">'%u'</span>
+<pre class="code literal-block"><span class="nv">user_query</span> <span class="o">=</span> SELECT <span class="s1">'/home/mail/'</span><span class="o">||</span>maildir as home, uid, gid, email FROM users WHERE <span class="nv">email</span> <span class="o">=</span> <span class="s1">'%u'</span>
 </pre>
 
 
@@ -118,7 +185,7 @@ So <em>'/home/mail'</em> becomes <em>'/home/mail/'</em>. I contrast to the Postf
 <p><strong>Don't forget to also put this extra slash in your password_query as well!</strong></p>
 <p>Another thing you may notice is that the concatenated <em>home</em> in the <em>user_query</em> does <strong>not</strong> start with <em>maildir:</em>. If you do so, Dovecot will complain about not supporting relative home directories.
 But if you don't put it their, the LDA will start complaining that it does not know in which format the mail directory is laid out. To fix this we have to return to our <em>dovecot.conf</em> and add the following line:</p>
-<pre class="code literal-block"><span></span><span class="nv">mail_location</span> <span class="o">=</span> Maildir:~/
+<pre class="code literal-block"><span class="nv">mail_location</span> <span class="o">=</span> Maildir:~/
 </pre>
 
 
@@ -126,9 +193,9 @@ But if you don't put it their, the LDA will start complaining that it does not k
 <p>The last thing we have to edit in our <em>dovecot.conf</em> is the unix listener for the auth_userdb socket.
 Again, you already did this one chapter ago, but this was for the Postfix SMTP daemon.</p>
 <p><strong>You also need to keep the original entry!</strong>. Add the following entry:</p>
-<pre class="code literal-block"><span></span>service auth <span class="o">{</span>
+<pre class="code literal-block">service auth <span class="o">{</span>
     unix_listener auth-userdb <span class="o">{</span>
-    <span class="nv">mode</span> <span class="o">=</span> <span class="m">0600</span>
+    <span class="nv">mode</span> <span class="o">=</span> 0600
     <span class="nv">user</span> <span class="o">=</span> mailreader
     <span class="o">}</span>
 <span class="o">}</span>
@@ -140,7 +207,7 @@ If you keep the mode set to 600, you don't need to add a group, only our famous 
 <p>Save the file and close it up. We are finished here.</p>
 <p>What's next?</p>
 <p>We need to tell Postfix about the new player in town, so crack open your master.cf and add the following service:</p>
-<pre class="code literal-block"><span></span>dovecot   unix   -   n   n   -   -   pipe
+<pre class="code literal-block">dovecot   unix   -   n   n   -   -   pipe
   <span class="nv">flags</span><span class="o">=</span>DRhu <span class="nv">user</span><span class="o">=</span>mailreader:mail <span class="nv">argv</span><span class="o">=</span>/usr/libexec/dovecot/deliver -f <span class="si">${</span><span class="nv">sender</span><span class="si">}</span> -d <span class="si">${</span><span class="nv">recipient</span><span class="si">}</span>
 </pre>
 
@@ -171,13 +238,13 @@ But if you check your famous <em>maillog</em> file, you will see entries about <
 <p>And now...the actual filtering.</p>
 <p>For filtering, Dovecot has a nice plugin called <em>Sieve</em> which uses the (surprise) <em>Sieve Language</em> for scripting together filtering rules.
 To get up and running, we need to install the Sieve interpreter and Dovecot plugin:</p>
-<pre class="code literal-block"><span></span>yum install dovecot-pigeonhole
+<pre class="code literal-block">yum install dovecot-pigeonhole
 </pre>
 
 
 <p>Yes...its name is Pigeonhole, I cannot help it.
 Now we have to load the plugin for our LDA. Open the <em>dovecot.conf</em> and go to the freshly inserted <em>protocol lda</em> block and append the <em>sieve</em> plugin:</p>
-<pre class="code literal-block"><span></span>protocol lda <span class="o">{</span>
+<pre class="code literal-block">protocol lda <span class="o">{</span>
     <span class="nv">mail_plugins</span> <span class="o">=</span> <span class="nv">$mail_plugins</span> sieve
 <span class="o">}</span>
 </pre>
@@ -187,13 +254,13 @@ Now we have to load the plugin for our LDA. Open the <em>dovecot.conf</em> and g
 <p>Next you need to go the <em>plugin</em> declaration block where you defined your different <em>autocreate</em> and <em>autosubscribed</em> behaviors in chapter 4.
 Here we can do the basic configuration for the <em>sieve</em> plugin. Many hosted mail providers that run of a Dovecot service provide the ability for users to upload their own custom sieve scripts.
 If you want to do so, you can declair the <em>sieve=</em> variable, which most of the time would be set like so:</p>
-<pre class="code literal-block"><span></span><span class="nv">sieve</span><span class="o">=</span>~/
+<pre class="code literal-block"><span class="nv">sieve</span><span class="o">=</span>~/
 </pre>
 
 
 <p>This tells <em>sieve</em> that user script can be found in the users home directory.
 For the scope of this post I'm only interested in setting up a global script for all users. The <em>global_script_path</em> does this for us:</p>
-<pre class="code literal-block"><span></span><span class="nv">global_script_path</span> <span class="o">=</span> /home/mail/default.sieve
+<pre class="code literal-block"><span class="nv">global_script_path</span> <span class="o">=</span> /home/mail/default.sieve
 </pre>
 
 
@@ -201,12 +268,12 @@ For the scope of this post I'm only interested in setting up a global script for
 In the beginning of your Sieve script you have to define which modules you want to load in.
 I first want to file messages that are marked <em>spam</em> by Amavis into a spam mail folder. So I only need the <em>fileinto</em> plugin which handles moving messages around.
 Start your script:</p>
-<pre class="code literal-block"><span></span>require "fileinto";
+<pre class="code literal-block">require "fileinto";
 </pre>
 
 
 <p>Then for the rule:</p>
-<pre class="code literal-block"><span></span>if header :contains "X-Spam-Flag" "YES" {
+<pre class="code literal-block">if header :contains "X-Spam-Flag" "YES" {
     fileinto "Spam";
 }
 </pre>
@@ -214,14 +281,14 @@ Start your script:</p>
 
 <p>Bam! That's quite readable and simple, won't you say? If the header has it spam flag set to "YES" file it into spam!
 Save this file into the defined location and make sure it is readable by Dovecot, so in our setup that would be:</p>
-<pre class="code literal-block"><span></span>chown mailreader:mail /home/mail/default.sieve
+<pre class="code literal-block">chown mailreader:mail /home/mail/default.sieve
 </pre>
 
 
 <p>Now remember, the <em>"Spam"</em> in this script corresponds to a folder that you made with Dovecot. If you have not made a <em>Spam</em> folder, go and make one now, checkout <a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series">chapter four</a> for details on how to do this.</p>
 <p>Next you want to put messages from a specific someone into its own folder? Lets do that then!
 For this we need "fileinto" and also a plugin to read out the message envelope.</p>
-<pre class="code literal-block"><span></span>require ["fileinto","envelope"];
+<pre class="code literal-block">require ["fileinto","envelope"];
 if envelope "from" "tim@shisaa.jp" {
     fileinto "Shisaa";
 }
@@ -229,7 +296,7 @@ if envelope "from" "tim@shisaa.jp" {
 
 
 <p>And what about that vacation responder? Also, piece of cake:</p>
-<pre class="code literal-block"><span></span>require "vacation";
+<pre class="code literal-block">require "vacation";
 :days 1
 :subject "I'm on vacation!"
 :addresses ["tim@shisaa.jp,postmaster@shisaa.jp"]
@@ -242,14 +309,14 @@ Tim";
 <p>A little bit more explenation may be in place. <em>days 1</em> simply tells Sieve to only send the same person the out-of-office reply once every day.
 The rest is pretty straight forward. You input the subject, the addresses and the message itself.
 And of course you can put everything together in one big Sieve script:</p>
-<pre class="code literal-block"><span></span>require <span class="o">[</span><span class="s2">"fileinto"</span>,<span class="s2">"envelope"</span>,<span class="s2">"vacation"</span><span class="o">]</span>
+<pre class="code literal-block">require <span class="o">[</span><span class="s2">"fileinto"</span>,<span class="s2">"envelope"</span>,<span class="s2">"vacation"</span><span class="o">]</span>
 <span class="k">if</span> header :contains <span class="s2">"X-Spam-Flag"</span> <span class="s2">"YES"</span> <span class="o">{</span>
     fileinto <span class="s2">"Spam"</span><span class="p">;</span>
 <span class="o">}</span>
 <span class="k">if</span> envelope <span class="s2">"from"</span> <span class="s2">"tim@shisaa.jp"</span> <span class="o">{</span>
     fileinto <span class="s2">"Shisaa"</span><span class="p">;</span>
 <span class="o">}</span>
-:days <span class="m">1</span>
+:days 1
 :subject <span class="s2">"I'm on vacation!"</span>
 :addresses <span class="o">[</span><span class="s2">"tim@shisaa.jp,postmaster@shisaa.jp"</span><span class="o">]</span>
 <span class="s2">"I'm on vacation, you can join me or wait until I'm back.</span>
@@ -262,12 +329,29 @@ And of course you can put everything together in one big Sieve script:</p>
 <p>Okay, we have gone out and had a little deeper chat with our frontdesk Dovecot. Quite a nice and capable person don't you think?</p>
 <p>If you run into any trouble, be sure to always check your maillog , for it will tell you quite clear (most of the time) whats going on.</p>
 <p>Maybe a small tip for debugging: If you want more verbose output from the whole LDA process (including Sieve) you can put this in the <em>protocol lda</em> block:</p>
-<pre class="code literal-block"><span></span><span class="nv">mail_debug</span><span class="o">=</span>yes
+<pre class="code literal-block"><span class="nv">mail_debug</span><span class="o">=</span>yes
 </pre>
 
 
 <p>Now go out and learn more about what you can do with Sieve and harvest that knowledge!</p>
 <p>And as always, thanks for reading!</p>
 </div>
- </div>
-</div></body></html>
+    </div>
+    
+    <ul class="pager">
+<li class="previous">
+            <a href="mailserver-4.html">← Previous post</a>
+        </li>
+        <li class="next">
+            <a href="3d-onsen.html">Next post →</a>
+        </li>
+    </ul>
+</div>
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+    </div>
+    
+        <script src="../assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>

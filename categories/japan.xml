@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>shisaa.jp (Posts about japan)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/categories/japan.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><copyright>Contents © 2017 &lt;a href="mailto:tim@shisaa.jp"&gt;Tim van der Linden&lt;/a&gt; </copyright><lastBuildDate>Sat, 17 Jun 2017 07:08:38 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Moving to Japan</title><link>http://shisaa.jp/postset/moving-to-japan.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Preface&lt;/h3&gt;
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.jp (japan)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/categories/japan.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><lastBuildDate>Mon, 05 Jan 2015 12:42:51 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Moving to Japan</title><link>http://shisaa.jp/postset/moving-to-japan.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Preface&lt;/h3&gt;
 &lt;p&gt;If you have had the courage to read my
 &lt;a href="http://shisaa.jp/stories/about.html" title="About me"&gt;about page&lt;/a&gt; you will have noticed
 that I have an interest in Japan and that I am married to a Citizen of the
@@ -53,14 +53,12 @@ visa&lt;/em&gt;. This visa is strictly for roaming around the country; you are n
 to do any paid (or unpaid) employment. The maximum length of stay is limited to
 three months. If you want to actually work in Japan you will need a different
 type of visa. One of the most significant ones:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Diplomat visa&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;Diplomat visa&lt;/li&gt;
 &lt;li&gt;Student exchange program visa&lt;/li&gt;
 &lt;li&gt;Working visa&lt;/li&gt;
 &lt;li&gt;Press agency visa&lt;/li&gt;
 &lt;li&gt;Spouse or child of Japanese national visa&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Being married to a Japanese national, I have to choose the last: &lt;em&gt;Spouse
+&lt;/ul&gt;&lt;p&gt;Being married to a Japanese national, I have to choose the last: &lt;em&gt;Spouse
 or child of Japanese national&lt;/em&gt;. Each visa has their own procedures and
 surprises, but this post will, of course, only cover the latter type.&lt;/p&gt;
 &lt;p&gt;First, what exactly is this visa thing?&lt;/p&gt;
@@ -99,13 +97,11 @@ of your current residence.&lt;/p&gt;
 &lt;p&gt;This layout has to be entered in Japanese form. Japanese layout always
 consists out of a number followed by letters representing predefined rooms. The
 following letter codes are available:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;L = Living room&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;L = Living room&lt;/li&gt;
 &lt;li&gt;D = Dining room&lt;/li&gt;
 &lt;li&gt;K = Kitchen&lt;/li&gt;
 &lt;li&gt;S = Service room&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;All of the remaining rooms can be summed up and put in the number preceding the letters.&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;All of the remaining rooms can be summed up and put in the number preceding the letters.&lt;/p&gt;
 &lt;p&gt;Example:&lt;/p&gt;
 &lt;p&gt;2LDK = Living room, kitchen, dining room and 2 extra rooms.&lt;/p&gt;
 &lt;p&gt;3LK - Living room, kitchen and 3 extra rooms.&lt;/p&gt;
@@ -133,8 +129,7 @@ itself that the more material you can include, the better chance you will have
 of being taken seriously.&lt;/p&gt;
 &lt;p&gt;The next 5 pages consist of many small questions asking more details about you
 as a couple and the family on both sides. These questions are:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;What language do you speak with your spouse?&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;What language do you speak with your spouse?&lt;/li&gt;
 &lt;li&gt;To what extend do you understand your spouse main language?&lt;/li&gt;
 &lt;li&gt;To what extend does your spouse understand your main language?&lt;/li&gt;
 &lt;li&gt;How well do you understand Japanese and how did you learn to speak it?&lt;/li&gt;
@@ -150,8 +145,7 @@ as a couple and the family on both sides. These questions are:&lt;/p&gt;
   direct family members&lt;/li&gt;
 &lt;li&gt;Who of those listed direct family members knows about your marriage with your
   spouse (both sides)&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;None of these questions are difficult to fill in and many of them are in multiple
+&lt;/ul&gt;&lt;p&gt;None of these questions are difficult to fill in and many of them are in multiple
 choice style; you do not have to write much stories. Use common sense to fill
 them in, you can be optimistic but be realistic. If
 you can only speak very basic Japanese, be honest. If you say you speak it
@@ -182,8 +176,7 @@ with a western style signature. They have to be signed with a special stamp
 baring the family or given name of the person it belongs to. This stamp is
 called and &lt;em&gt;inkan&lt;/em&gt; or &lt;em&gt;hanko&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;You usually have three types of inkan:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Registered inkan: This inkan can be used for the whole direct family and
+&lt;ul&gt;&lt;li&gt;Registered inkan: This inkan can be used for the whole direct family and
   carries the family name decorated with many lines to make it as unique as
   possible. This inkan has to be registered at your local city hall and can only
   be used to sign very official documents ie. buying a house, buying a car, ...&lt;/li&gt;
@@ -191,14 +184,12 @@ called and &lt;em&gt;inkan&lt;/em&gt; or &lt;em&gt;hanko&lt;/em&gt;.&lt;/p&gt;
   or to open a new bank account.&lt;/li&gt;
 &lt;li&gt;Regular inkan: This stamp, also referred to as &lt;em&gt;hanko&lt;/em&gt;, is used to sign every
   day things ie. receiving a parcel, signing something at your office, ...&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h4&gt;The Application for Certificate of Eligibility Form&lt;/h4&gt;
+&lt;/ul&gt;&lt;h4&gt;The Application for Certificate of Eligibility Form&lt;/h4&gt;
 &lt;p&gt;The next sheets you have to fill in are called the &lt;em&gt;"Application for Certificate
 of Eligibility form"&lt;/em&gt;. This is the &lt;em&gt;actual&lt;/em&gt; application form for getting your
 certificate. Being a bit redundant, you have to fill in many details again. Part
 one of the form consists of your personal details:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;a recent photo&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;a recent photo&lt;/li&gt;
 &lt;li&gt;your full name, sex, age&lt;/li&gt;
 &lt;li&gt;place and date of birth&lt;/li&gt;
 &lt;li&gt;current place of residence&lt;/li&gt;
@@ -216,26 +207,21 @@ one of the form consists of your personal details:&lt;/p&gt;
 &lt;li&gt;if you have been deported out of Japan previously&lt;/li&gt;
 &lt;li&gt;which immigration office you would like to apply in Japan&lt;/li&gt;
 &lt;li&gt;details of your family in-law in Japan&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Part two mainly asks about your financial situation:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;which visa type are you applying for&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Part two mainly asks about your financial situation:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;which visa type are you applying for&lt;/li&gt;
 &lt;li&gt;do you have any money in the bank (Japanese bank or foreign bank) to support
   yourself&lt;/li&gt;
 &lt;li&gt;do you bring cash money into Japan and how much&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Part three of this form will ask, again, the details of your Guarantor.&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;Part three of this form will ask, again, the details of your Guarantor.&lt;/p&gt;
 &lt;p&gt;That is actually all the mandatory forms you have to fill in before your
 application will be accepted. However, again, the more details you can ship with
 your application the better.&lt;/p&gt;
 &lt;p&gt;In my case, we added the following extra documents:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;A copy of the official "Marriage certificate" issued by our local government office here
+&lt;ul&gt;&lt;li&gt;A copy of the official "Marriage certificate" issued by our local government office here
   in Belgium.&lt;/li&gt;
 &lt;li&gt;All the bank statements regarding the savings we build up the past few years;
   money which we will use to bootstrap our Japan life.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h3&gt;Trip to the immigration office&lt;/h3&gt;
+&lt;/ul&gt;&lt;h3&gt;Trip to the immigration office&lt;/h3&gt;
 &lt;p&gt;After you have filled in all these forms and supplied all the additional pieces
 you are ready to submit this to your preferred immigration office in
 Japan.&lt;/p&gt;
@@ -276,13 +262,11 @@ countries like America or Russia, the local Japanese embassy will probably requi
 different items.&lt;/p&gt;
 &lt;p&gt;Once your certificate arrived you have to prepare the following items to bring 
 to your Japanese embassy:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Your current valid passport&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;Your current valid passport&lt;/li&gt;
 &lt;li&gt;Recent photo&lt;/li&gt;
 &lt;li&gt;Your certificate of eligibility&lt;/li&gt;
 &lt;li&gt;Your ID card&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;When you arrive at your embassy you will get another application form, this time
+&lt;/ul&gt;&lt;p&gt;When you arrive at your embassy you will get another application form, this time
 to get your visa. This form is only one page with some general questions like
 your full name, birth date and place, passport number, ...&lt;/p&gt;
 &lt;p&gt;Give this form together with a recent photo, your passport and your certificate to an embassy
@@ -312,13 +296,11 @@ with a few pamphlets telling me about the Japanese health care system, Japanese 
 Now everything is left up to you, learn the language, find a job, become a pupil of a bonsai
 master, etc. Start your Japanese life.&lt;/p&gt;
 &lt;p&gt;Some starting points:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Get your Japanese drivers license&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;Get your Japanese drivers license&lt;/li&gt;
 &lt;li&gt;Go to your local city hall to enroll into the national health insurance&lt;/li&gt;
 &lt;li&gt;Go to your local city hall to enroll into the national pension service&lt;/li&gt;
 &lt;li&gt;Go to your local city hall to register your official Inkan&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;From time to time I will update you with enlightenments about my Japanese experiences, hopefully 
+&lt;/ul&gt;&lt;p&gt;From time to time I will update you with enlightenments about my Japanese experiences, hopefully 
 giving you useful tips and tricks to speed up your life over here or to help you consider 
 (or reconsider) a possible move to Japan. Keep watching!&lt;/p&gt;
 &lt;p&gt;And as always, thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>japan</category><guid>http://shisaa.jp/postset/moving-to-japan.html</guid><pubDate>Mon, 03 Mar 2014 10:00:00 GMT</pubDate></item></channel></rss>

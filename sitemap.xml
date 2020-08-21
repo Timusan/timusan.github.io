@@ -1,232 +1,451 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset
     xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-    xmlns:xhtml="http://www.w3.org/1999/xhtml"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
                         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
  <url>
   <loc>http://shisaa.jp/2013/index.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/2014/index.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
- </url>
- <url>
-  <loc>http://shisaa.jp/3d.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
- </url>
- <url>
-  <loc>http://shisaa.jp/about.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/archive.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/3d.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/amavis.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/blender.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/chicken.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/dovecot.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/full-text-search.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/index.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/japan.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/json-rpc.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/postfix.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/postgis.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/postgresql.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/python.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/scheme.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/timezone.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/unix.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/categories/web.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
- </url>
- <url>
-  <loc>http://shisaa.jp/encourage-the-shisaa.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
- </url>
- <url>
-  <loc>http://shisaa.jp/galleries/index.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
- </url>
- <url>
-  <loc>http://shisaa.jp/homepage.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/index-1.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/index.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/2013/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/2014/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/archive.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/3d.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/amavis.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/blender.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/chicken.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/dovecot.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/full-text-search.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/japan.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/json-rpc.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/postfix.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/postgis.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/postgresql.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/python.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/scheme.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/timezone.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/unix.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/categories/web.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/index-1.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/photography/belgian-coast/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/photography/cape-hedo/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/photography/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/photography/kin-blue-beach/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/photography/okinawa-high-school-graduation/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/photography/tokyo-in-june/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/photography/visiting-okinawa/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/photography/yachimun-pottery/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/3d-onsen.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/chicken-scheme-1.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/chicken-scheme-2.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/chicken-scheme-3.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/mailserver-1.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/mailserver-2.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/mailserver-3.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/mailserver-4.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/mailserver-5.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/moving-to-japan.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/nikola-web.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/postgis-and-postgresql-in-action-timezones.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/postgis-postgresqls-spatial-partner-part-1.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/postgis-postgresqls-spatial-partner-part-2.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/postgis-postgresqls-spatial-partner-part-3.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/postgresql-full-text-search-part-1.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/postgresql-full-text-search-part-2.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/postset/postgresql-full-text-search-part-3.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/stories/3d.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/stories/about.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/stories/encourage-the-shisaa.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/stories/homepage.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/stories/services.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/stories/web-application.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/ja/stories/web-shop.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/listings/index.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/pages/3d.html</loc>
-  <lastmod>2017-06-17T06:26:00Z</lastmod>
+  <loc>http://shisaa.jp/photography/belgian-coast/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/pages/about.html</loc>
-  <lastmod>2017-06-17T06:26:00Z</lastmod>
+  <loc>http://shisaa.jp/photography/cape-hedo/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/pages/encourage-the-shisaa.html</loc>
-  <lastmod>2017-06-17T06:26:00Z</lastmod>
+  <loc>http://shisaa.jp/photography/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/pages/homepage.html</loc>
-  <lastmod>2017-06-17T06:26:00Z</lastmod>
+  <loc>http://shisaa.jp/photography/kin-blue-beach/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/pages/services.html</loc>
-  <lastmod>2017-06-17T06:26:00Z</lastmod>
+  <loc>http://shisaa.jp/photography/okinawa-high-school-graduation/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/pages/web-application.html</loc>
-  <lastmod>2017-06-17T06:26:00Z</lastmod>
+  <loc>http://shisaa.jp/photography/tokyo-in-june/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/pages/web-shop.html</loc>
-  <lastmod>2017-06-17T06:26:00Z</lastmod>
+  <loc>http://shisaa.jp/photography/visiting-okinawa/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/photography/yachimun-pottery/index.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/3d-onsen.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/chicken-scheme-1.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/chicken-scheme-2.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/chicken-scheme-3.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/mailserver-1.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/mailserver-2.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/mailserver-3.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/mailserver-4.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/mailserver-5.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/moving-to-japan.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/nikola-web.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/postgis-and-postgresql-in-action-timezones.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/postgis-postgresqls-spatial-partner-part-1.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/postgis-postgresqls-spatial-partner-part-2.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/postgis-postgresqls-spatial-partner-part-3.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/postgresql-full-text-search-part-1.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/postgresql-full-text-search-part-2.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
   <loc>http://shisaa.jp/postset/postgresql-full-text-search-part-3.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/services.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <loc>http://shisaa.jp/stories/3d.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/web-application.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <loc>http://shisaa.jp/stories/about.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
  <url>
-  <loc>http://shisaa.jp/web-shop.html</loc>
-  <lastmod>2017-06-17T08:03:00Z</lastmod>
+  <loc>http://shisaa.jp/stories/encourage-the-shisaa.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/stories/homepage.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/stories/services.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/stories/web-application.html</loc>
+  <lastmod>2015-01-05</lastmod>
+ </url>
+ <url>
+  <loc>http://shisaa.jp/stories/web-shop.html</loc>
+  <lastmod>2015-01-05</lastmod>
  </url>
 </urlset>

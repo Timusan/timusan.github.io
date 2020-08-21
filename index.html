@@ -1,64 +1,342 @@
 <!DOCTYPE html>
-<html><body>
-<p>## -*- coding: utf-8 -*-
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="shisaa.jp | shisaa.jp">
+<meta name="description" content="A blog about Programming, Unix, Japan and Photography">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>shisaa.jp | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="assets/img/favicon.ico" rel="shortcut icon">
+<link href="assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-en">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest">web / unix / photography / japan</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="current-lang first"><span>English</span></li>
+        
+          
+            <li class="not-first"><a href="ja/index.html" rel="alternate" hreflang="ja">日本語</a></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href=".">home</a>
+            </li>
+<li>
+<a href="stories/about.html">about</a>
+            </li>
+<li>
+<a href="stories/services.html">services</a>
+            </li>
+<li>
+<a href="archive.html">blog</a>
+            </li>
+<li>
+<a href="photography/index.html">photography</a>
+            </li>
+<li>
+<a href="stories/3d.html">3D</a>
+
+	  
+    </li>
+<li id="flattr">
+<small>Like my material?</small><small>Feel free to <a href="stories/encourage-the-shisaa.html">Encourage the Shisaa</a></small><small id="final-small">She thanks you!</small>
+</li>
+
+      </ul>
+<div id="content">
+	
+    <div class="index-post">
+      <h2><a href="postset/postgis-and-postgresql-in-action-timezones.html">Postgis and PostgreSQL in Action - Timezones</a></h2>
+      <p class="post-date">20/08/2014 <span>-</span> </p>
+      
+    <ul class="tags">
+<li class="tag"><a href="categories/postgis.html">postgis</a></li>          
+         <li class="tag"><a href="categories/postgresql.html">postgresql</a></li>          
+         <li class="tag"><a href="categories/timezone.html">timezone</a></li>          
+    </ul>
+<div class="index-post-text">
+	<div>
+<h3>Preface</h3>
+<p>Recently, I was lucky to be part of an <em>awesome</em> project called the <a href="http://breakingboundariestour.com">Breaking Boundaries Tour</a>.</p>
+<p>This project is about two brothers, Omar and Greg Colin, who take their Stella scooters to make a full round trip across the United States.
+And, while they are at it, try to raise funding for <a href="http://surfershealing.org/">Surfer's Healing Folly Beach</a> - an organization that does great work enhancing the lives of children with autism through surfing .
+To accommodate this trip, they wished to have a site where visitors could follow their trail <em>live</em>, as it happened.
+A marker would travel across the map, with them, 24/7.</p>
+<p>Furthermore, they needed the ability to jump off their scooters, snap a few pictures, edit a video, write some side info and push it on the net, for whole the world to see.
+Immediately after they made their post, it had to appear on the exact spot they where at when snapping their moments of beauty.</p>
+<p>To aid in the live tracking of their global position, they acquired a dedicated GPS tracking device which sends a latitude/longitude coordinate via a mobile data network every 5 minutes.</p>
+<p>Now, this (short) post is not about how I build the entire application, but rather about how I used PostGIS and PostgreSQL for a rather peculiar matter: deducting timezone information.</p>
+<p>For those who are interested though: the site is entirely build in Python using the Flask "micro framework" and, of course, PostgreSQL as the database.</p>
+<h3>Timezone information?</h3>
+<p>Yes. Time, dates, timezones: hairy worms in hairy cans which many developers hate to open, but have to sooner or later.</p>
+<p>In the case of Breaking Boundaries Tour, we had one major occasion where we needed the correct timezone information: where did the post happen?</p>
+<h3>Where did it happen?</h3>
+<p>A feature we wanted to implement was one to help visitors get a better view of when a certain post was written.
+To be able to see when a post was written in your local timezone is much more convenient then seeing the post time in some foreign zone.</p>
+<p>We are lazy and do not wish to count back- or forward to figure out when a post popped up in our frame of time.</p>
+<p>The reasoning is simple, always calculate all the times involved back to simple UTC (GMT). Then figure out the clients timezone using JavaScript, apply the time difference and done!</p>
+<p>Simple eh?</p>
+<p>Correct, except for one small detail in the feature request, in what zone was the post actually made?</p>
+<p>Well...damn.</p>
+<p>While you heart might be at the right place while thinking: "Simple, just look at the locale of the machine (laptop, mobile phone, ...) that was used to post!", this information if just too fragile. Remember, the bothers are <em>crossing</em> the USA, riding through at least three major timezones.
+You can simply not expect all the devices involved when posting to always adjust their locale automatically depending on where they are.</p>
+<p>We need a more robust solution. We need PostGIS.</p>
+<p>But, how can a spatial database help us to figure out the timezone?</p>
+<p>Well, thanks to the hard labor delivered to us by Eric Muller from <a href="http://efele.net">efele.net</a>, we have a <em>complete</em> and <em>maintained</em> shapefile of the entire world, containing polygons that represent the different timezones accompanied by the official timezone declarations.</p>
+<p>This enables us to use the latitude and longitude information from the dedicated tracking device to pin point in which timezone they where while writing their post.</p>
+<p>So let me take you on a short trip to show you how I used the above data in conjunction with PostGIS and PostgreSQL.</p>
+<h3>Getting the data</h3>
+<p>The first thing to do, obviously, is to download the shapefile data and load it in to our PostgreSQL database.
+Navigate to the <a href="http://efele.net/maps/tz/world/">Timezone World</a> portion of the efele.net site and download the "tz_world" shapefile.</p>
+<p>This will give you a zip which you can extract:</p>
+<pre class="code literal-block"><span class="nv">$ </span>unzip tz_world.zip
+</pre>
 
 
+<p>Unzipping will create a directory called "world" in which you can find the needed shapefile package files.</p>
+<p>Next you will need to make sure that your database is PostGIS ready. Connect to your desired database (let us call it <em>bar</em>) <em>as a superuser</em>:</p>
+<pre class="code literal-block"><span class="nv">$ </span>psql -U postgres bar
+</pre>
 
 
+<p>And create the PostGIS extension:</p>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="n">EXTENSION</span> <span class="n">postgis</span><span class="p">;</span>
+</pre>
 
 
+<p>Now go back to your terminal and load the shapefile into your database using the original owner of the database (here called <em>foo</em>):</p>
+<pre class="code literal-block"><span class="nv">$ </span>shp2pgsql -S -s <span class="m">4326</span> -I tz_world <span class="p">|</span> psql -U foo bar
+</pre>
 
 
-    ${parent.extra_head()}
-    % if posts and (permalink == '/' or permalink == '/' + index_file):
-        <link rel="prefetch" href="%24%7Bposts%5B0%5D.permalink()%7D" type="text/html">
-    % endif
-    ${math.math_styles_ifposts(posts)}
-%block&gt;
+<p>As you might remember from the PostGIS series, this loads in the geometry from the shapefile using only simple geometry (not "MULTI..." types) with a SRID of 4326.</p>
+<h3>What have we got?</h3>
+<p>This will take a couple of seconds and will create one table and two indexes. If you describe your database (assuming you have not made any tables yourself):</p>
+<pre class="code literal-block">public <span class="p">|</span> geography_columns <span class="p">|</span> view     <span class="p">|</span> postgres
+public <span class="p">|</span> geometry_columns  <span class="p">|</span> view     <span class="p">|</span> postgres
+public <span class="p">|</span> raster_columns    <span class="p">|</span> view     <span class="p">|</span> postgres
+public <span class="p">|</span> raster_overviews  <span class="p">|</span> view     <span class="p">|</span> postgres
+public <span class="p">|</span> spatial_ref_sys   <span class="p">|</span> table    <span class="p">|</span> postgres
+public <span class="p">|</span> tz_world          <span class="p">|</span> table    <span class="p">|</span> foo
+public <span class="p">|</span> tz_world_gid_seq  <span class="p">|</span> sequence <span class="p">|</span> foo
+</pre>
 
 
+<p>You will see the standard PostGIS bookkeeping and you will find the <em>tz_world</em> table together with a <em>gid</em> sequence.</p>
+<p>Let us describe the table:</p>
+<pre class="code literal-block"><span class="err">\</span><span class="n">d</span> <span class="n">tz_world</span>
+</pre>
 
-    ${feeds_translations.translation_link()}
-%block&gt;
-% if 'main_index' in pagekind:
-    ${front_index_header}
-% endif
-% if page_links:
-    ${pagination.page_navigation(current_page, page_links, prevlink, nextlink, prev_next_links_reversed)}
-% endif
-</p>
-<div class="postindex">
-% for post in posts:
-    <article class="h-entry post-${post.meta('type')}"><header><h1 class="p-name entry-title"><a href="%24%7Bpost.permalink()%7D" class="u-url">${post.title()|h}</a></h1>
-        <div class="metadata">
-            <p class="byline author vcard"><span class="byline-name fn" itemprop="author">
-            % if author_pages_generated:
-                <a href="%24%7B_link('author',%20post.author())%7D">${post.author()|h}</a>
-            % else:
-                ${post.author()|h}
-            % endif
-            </span></p>
-            <p class="dateline"><a href="%24%7Bpost.permalink()%7D" rel="bookmark"><time class="published dt-published" datetime="${post.formatted_date('webiso')}" title="${post.formatted_date(date_format)|h}">${post.formatted_date(date_format)|h}</time></a></p>
-            % if not post.meta('nocomments') and site_has_comments:
-                <p class="commentline">${comments.comment_link(post.permalink(), post._base_path)}
-            % endif
-        </p>
+
+<p>And get:</p>
+<pre class="code literal-block">Column <span class="p">|</span>          Type          <span class="p">|</span>                       Modifiers                        
+--------+------------------------+--------------------------------------------------------
+gid    <span class="p">|</span> integer                <span class="p">|</span> not null default nextval<span class="o">(</span><span class="s1">'tz_world_gid_seq'</span>::regclass<span class="o">)</span>
+tzid   <span class="p">|</span> character varying<span class="o">(</span>30<span class="o">)</span>  <span class="p">|</span> 
+geom   <span class="p">|</span> geometry<span class="o">(</span>Polygon,4326<span class="o">)</span> <span class="p">|</span> 
+Indexes:
+    <span class="s2">"tz_world_pkey"</span> PRIMARY KEY, btree <span class="o">(</span>gid<span class="o">)</span>
+    <span class="s2">"tz_world_geom_gist"</span> gist <span class="o">(</span>geom<span class="o">)</span>
+</pre>
+
+
+<p>So we have:</p>
+<ul>
+<li>
+<em>gid</em>: an arbitrary id column</li>
+<li>
+<em>tzid</em>: holding the standards compliant textual timezone identification</li>
+<li>
+<em>geom</em>: holding polygons in <em>SRID</em> 4326.</li>
+</ul>
+<p>Also notice we have two indexes made for us:</p>
+<ul>
+<li>
+<em>tz_world_pkey</em>: a simple B-tree index on our gid</li>
+<li>
+<em>tz_world_geom_gist</em>: a GiST index on our geometry</li>
+</ul>
+<p>This is a rather nice set, would you not say?</p>
+<h3>Using the data</h3>
+<p>So how do we go about using this data?</p>
+<p>As I have said above, we need to figure out in which polygon (timezone) a certain point resides.</p>
+<p>Let us take an arbitrary point on the earth:</p>
+<ul>
+<li>latitude: 35.362852</li>
+<li>longitude: 140.196131</li>
+</ul>
+<p>This is a spot in the Chiba prefecture, central Japan.</p>
+<p>Using the <em>Simple Features functions</em> we have available in PostGIS, it is trivial to find out in which polygon a certain point resides:</p>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">tzid</span> 
+    <span class="k">FROM</span> <span class="n">tz_world</span>
+    <span class="k">WHERE</span> <span class="n">ST_Intersects</span><span class="p">(</span><span class="n">ST_GeomFromText</span><span class="p">(</span><span class="s1">'POINT(140.196131 35.362852)'</span><span class="p">,</span> <span class="mi">4326</span><span class="p">),</span> <span class="n">geom</span><span class="p">);</span>
+</pre>
+
+
+<p>And we get back:</p>
+<pre class="code literal-block">    tzid    
+------------
+ Asia/Tokyo
+</pre>
+
+
+<p><em>Awesome!</em></p>
+<p>In the above query I used the function <em>ST_Intersects</em> which checks if a given piece of geometry (our point) <em>shares any space</em> with another piece.
+If we would check the execute plan of this query:</p>
+<pre class="code literal-block"><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> <span class="k">SELECT</span> <span class="n">tzid</span> 
+    <span class="k">FROM</span> <span class="n">tz_world</span>
+    <span class="k">WHERE</span> <span class="n">ST_Intersects</span><span class="p">(</span><span class="n">ST_GeomFromText</span><span class="p">(</span><span class="s1">'POINT(140.196131 35.362852)'</span><span class="p">,</span> <span class="mi">4326</span><span class="p">),</span> <span class="n">geom</span><span class="p">);</span>
+</pre>
+
+
+<p>We get back:</p>
+<pre class="code literal-block">                                                      QUERY PLAN                                                          
+------------------------------------------------------------------------------------------------------------------------------
+Index Scan using tz_world_geom_gist on tz_world  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span>0.28..8.54 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">width</span><span class="o">=</span>15<span class="o">)</span> <span class="o">(</span>actual <span class="nb">time</span><span class="o">=</span>0.591..0.592 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">loops</span><span class="o">=</span>1<span class="o">)</span>
+    Index Cond: <span class="o">(</span><span class="s1">'0101000020E61000006BD784B446866140E3A430EF71AE4140'</span>::geometry <span class="o">&amp;&amp;</span> geom<span class="o">)</span>
+    Filter: _st_intersects<span class="o">(</span><span class="s1">'0101000020E61000006BD784B446866140E3A430EF71AE4140'</span>::geometry, geom<span class="o">)</span>
+Total runtime: 0.617 ms
+</pre>
+
+
+<p>That is not bad at all, a runtime of little over 0.6 Milliseconds and it is using our GiST index.</p>
+<p>But, if a lookup is using our GiST index, a small alarm bell should go off inside your head. Remember my last chapter on the PostGIS series?
+I kept on babbling about index usage and how geometry functions or operators can only use GiST indexes when they perform <em>bounding box</em> calculations.</p>
+<p>The latter might pose a problem in our case, for bounding boxes are a <em>very</em> rough approximations of the actual geometry.
+This means that when we arrive near timezone borders, our calculations might just give us the wrong timezone.</p>
+<p>So how can we fix this?</p>
+<p>This time, we do not need to.</p>
+<p>This is one of the few <em>blessed</em> functions that makes use of both an index <em>and</em> is very accurate.</p>
+<p>The <em>ST_Intersects</em> first uses the index to perform bounding box calculations. This filters out the majority of available geometry.
+Then it performs a more expensive, but more accurate calculation (on a small subset) to check if the given point is <em>really</em> inside the returned matches.</p>
+<p>We can thus simply use this function without any more magic...life is simple!</p>
+<h3>Implementation</h3>
+<p>Now it is fair to say that we do not wish to perform this calculation every time a user views a post, that would not be very efficient nor smart.</p>
+<p>Rather, it is a good idea to generate this information at post time, and save it for later use.</p>
+<p>The way I have setup to save this information is twofold:</p>
+<ul>
+<li>I only save a UTC (GTM) generalized timestamp of when the post was made.</li>
+<li>I made an extra column in my so-called "posts" table where I only save the string that represents the timezone (Asia/Tokyo in the above case).</li>
+</ul>
+<p>This keeps the date/time information in the database naive of any timezone and makes for easier calculations to give the time in either the clients timezone or in the timezone the post was originally written.
+You simply have one "root" time which you can move around timezones.</p>
+<p>On every insert of a new post I have created a trigger that fetches the timezone and inserts it into the designated column.
+You could also fetch the timezone and update the post record using Python, but opting for an in-database solution saves you a few extra, unneeded round trips and is most likely a lot faster.</p>
+<p>Let us see how we could create such a trigger.</p>
+<p>A trigger in PostgreSQL is an event you can set to fire when certain conditions are met. The event(s) that fire have to be encapsulated inside a PostgreSQL function.
+Let us thus first start by creating the function that will insert our timezone string.</p>
+<h3>Creating functions</h3>
+<p>In PostgreSQL you can write functions in either <em>C</em>, <em>Procedural</em> languages (PgSQL, Perl, Python) or plain <em>SQL</em>.</p>
+<p>Creating functions with plain SQL is the most straightforward and most easy way. However, since we want to write a function that is to be used inside a trigger, we have even a better option.
+We could employ the power of the embedded PostgreSQL procedural language to easily access and manipulate our newly insert data.</p>
+<p>First, let us see which query we would use to fetch the timezone and update our post record:</p>
+<pre class="code literal-block"><span class="k">UPDATE</span> <span class="n">posts</span>
+  <span class="k">SET</span> <span class="n">tzid</span> <span class="o">=</span> <span class="n">timezone</span><span class="p">.</span><span class="n">tzid</span>
+  <span class="k">FROM</span> <span class="p">(</span><span class="k">SELECT</span> <span class="n">tzid</span>
+          <span class="k">FROM</span> <span class="n">tz_world</span>
+          <span class="k">WHERE</span> <span class="n">ST_Intersects</span><span class="p">(</span>
+            <span class="n">ST_SetSRID</span><span class="p">(</span>
+              <span class="n">ST_MakePoint</span><span class="p">(</span><span class="mi">140</span><span class="p">.</span><span class="mi">196131</span><span class="p">,</span> <span class="mi">35</span><span class="p">.</span><span class="mi">362852</span><span class="p">),</span>
+            <span class="mi">4326</span><span class="p">),</span>
+          <span class="n">geom</span><span class="p">))</span> <span class="k">AS</span> <span class="n">timezone</span>
+  <span class="k">WHERE</span> <span class="n">pid</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</pre>
+
+
+<p>This query will fetch the timezone string using a subquery and then update the correct record (a post with "pid" 1 in this example).</p>
+<p>How do we pour this into a function?</p>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">OR</span> <span class="k">REPLACE</span> <span class="k">FUNCTION</span> <span class="n">set_timezone</span><span class="p">()</span> <span class="k">RETURNS</span> <span class="k">TRIGGER</span> <span class="k">AS</span> <span class="err">$$</span>
+<span class="k">BEGIN</span>
+    <span class="k">UPDATE</span> <span class="n">posts</span>
+    <span class="k">SET</span> <span class="n">tzid</span> <span class="o">=</span> <span class="n">timezone</span><span class="p">.</span><span class="n">tzid</span>
+    <span class="k">FROM</span> <span class="p">(</span><span class="k">SELECT</span> <span class="n">tzid</span> 
+            <span class="k">FROM</span> <span class="n">tz_world</span>
+              <span class="k">WHERE</span> <span class="n">ST_Intersects</span><span class="p">(</span>
+                <span class="n">ST_SetSRID</span><span class="p">(</span>
+                  <span class="n">ST_MakePoint</span><span class="p">(</span><span class="k">NEW</span><span class="p">.</span><span class="n">longitude</span><span class="p">,</span> <span class="k">NEW</span><span class="p">.</span><span class="n">latitude</span><span class="p">),</span>
+                <span class="mi">4326</span><span class="p">),</span>
+              <span class="n">geom</span><span class="p">))</span> <span class="k">AS</span> <span class="n">timezone</span>
+    <span class="k">WHERE</span> <span class="n">pid</span> <span class="o">=</span> <span class="k">NEW</span><span class="p">.</span><span class="n">pid</span><span class="p">;</span>
+    <span class="k">RETURN</span> <span class="k">NEW</span><span class="p">;</span>
+<span class="k">END</span> <span class="err">$$</span>
+<span class="k">LANGUAGE</span> <span class="n">PLPGSQL</span> <span class="k">IMMUTABLE</span><span class="p">;</span>
+</pre>
+
+
+<p>First we use the syntax <em>CREATE OR REPLACE FUNCTION</em> to indicate we want to create (or replace) a custom function.
+Then we tell PostgreSQL that this function will return type <em>TRIGGER</em>.</p>
+<p>You might notice that we do not give this function any arguments. The reasoning here is that this function is "special".
+Functions which are used as triggers magically get information about the inserted data available.</p>
+<p>Inside the function you can see we access our latitude and longitude prefixed with <em>NEW</em>. These keywords, <em>NEW</em> and <em>OLD</em>, refer to the <em>record</em> after and before the trigger(s) happened.
+In our case we could have used both, since we do not alter the latitude or longitude data, we simply fill a column that is NULL by default.
+There are more keywords available (<em>TG_NAME</em>, <em>TG_RELID</em>, <em>TG_NARGS</em>, ...) which refer to properties of the trigger itself, but that is beyond today's scope.</p>
+<p>The actual SQL statement is wrapped between double dollar signs (<em>$$</em>). This is called <em>dollar quoting</em> and is the preferred way to quote your SQL string (as opposed to using single quotes).
+The body of the function, which in our case is mostly the SQL statement, is surrounded with a <em>BEGIN</em> and <em>END</em> keyword.</p>
+<p>A trigger function always needs a <em>RETURN</em> statement that is used to provide the data for the updated record. This too has to reside in the body of the function.</p>
+<p>Near the end of our function we need to declare in which language this function was written, in our case <em>PLPGSQL</em>.</p>
+<p>Finally, the <em>IMMUTABLE</em> keyword tells PostgreSQL that this function is rather "functional", meaning: if the inputs are the same, the output will also, <em>always</em> be the same.
+Using this <em>caching</em> keyword gives our famous PostgreSQL planner the ability to make decisions based on this knowledge.</p>
+<h3>Creating triggers</h3>
+<p>Now that we have this functionality wrapped into a tiny PLPGSQL function, we can go ahead and create the trigger.</p>
+<p>First you have the event on which a trigger can execute, these are:</p>
+<ul>
+<li>INSERT</li>
+<li>UPDATE</li>
+<li>DELETE</li>
+<li>TRUNCATE</li>
+</ul>
+<p>Next, for each event you can specify at what timing your trigger has to fire:</p>
+<ul>
+<li>BEFORE</li>
+<li>AFTER</li>
+<li>INSTEAD OF</li>
+</ul>
+<p>The last one is a special timing by which you can replace the default behavior of the mentioned events.</p>
+<p>For our use case, we are interested in executing our function <em>AFTER INSERT</em>.</p>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">TRIGGER</span> <span class="n">set_timezone</span>
+    <span class="k">AFTER</span> <span class="k">INSERT</span> <span class="k">ON</span> <span class="n">posts</span>
+    <span class="k">FOR</span> <span class="k">EACH</span> <span class="k">ROW</span>
+    <span class="k">EXECUTE</span> <span class="k">PROCEDURE</span> <span class="n">set_timezone</span><span class="p">();</span>
+</pre>
+
+
+<p>This will setup the trigger that fires after the insert of a new record.</p>
+<h3>Wrapping it up</h3>
+<p>Good, that all there is to it.</p>
+<p>We use a query, wrapped in a function, triggered by an insert event to inject the official timezone string which is deducted by PostGIS's spatial abilities.</p>
+<p>Now you can use this information to get the exact timezone of where the post was made and use this to present the surfing client both the post timezone time and their local time.</p>
+<p>For the curious ones out there: I used the <a href="http://momentjs.com/%20MomentJS%20JavaScript%20library">MomentJS</a> library for the client side time parsing. This library offers a timezone extension which accepts these official timezone strings to calculate offsets. A lifesaver, so go check it out.</p>
+<p>Also, be sure to follow the bros while they scooter across the States!</p>
+<p>And as always...thanks for reading!</p>
 </div>
-    </header>
-    %if index_teasers:
-    <div class="p-summary entry-summary">
-    ${post.text(teaser_only=True)}
-    %else:
-    <div class="e-content entry-content">
-    ${post.text(teaser_only=False)}
-    %endif
+      </div>
+      
+    <ul class="pager">
+<li class="previous">
+            <a href="postset/postgis-postgresqls-spatial-partner-part-3.html">← Previous post</a>
+        </li>
+    </ul>
+</div>
+
+
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
     </div>
     
-% endfor
-</div>
-${helper.html_pager()}
-${comments.comment_link_script()}
-${math.math_scripts_ifposts(posts)}
-%block&gt;</article>
-</div>
-</body></html>
+        <script src="assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>

@@ -1,9 +1,76 @@
 <!DOCTYPE html>
-<html><body><div class="postbox">
- The Scheme programming language AKA The CHICKEN hens nest - Part 1
- <p class="post-date">23/08/2013 <span>-</span> </p>
- <div class="post">
-  <div>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="The Scheme programming language AKA The CHICKEN hens nest - Part 1 | shisaa.jp">
+<meta name="description" content="">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>The Scheme programming language AKA The CHICKEN hens nest - Part 1 | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="shortcut icon">
+<link href="../assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-en">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest">web / unix / photography / japan</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="current-lang first"><span>English</span></li>
+        
+          
+            <li class="not-first"><a href="../ja/index.html" rel="alternate" hreflang="ja">日本語</a></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href="../">home</a>
+            </li>
+<li>
+<a href="../stories/about.html">about</a>
+            </li>
+<li>
+<a href="../stories/services.html">services</a>
+            </li>
+<li>
+<a href="../archive.html">blog</a>
+            </li>
+<li>
+<a href="../photography/index.html">photography</a>
+            </li>
+<li>
+<a href="../stories/3d.html">3D</a>
+
+	  
+    </li>
+<li id="flattr">
+<small>Like my material?</small><small>Feel free to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a></small><small id="final-small">She thanks you!</small>
+</li>
+
+      </ul>
+<div id="content">
+	
+    <div class="postbox">
+    
+    <h2><a href="#">The Scheme programming language AKA The CHICKEN hens nest - Part 1</a></h2>
+
+    <p class="post-date">23/08/2013 <span>-</span> </p>
+    
+    <ul class="tags">
+<li class="tag"><a href="../categories/chicken.html">chicken</a></li>          
+         <li class="tag"><a href="../categories/json-rpc.html">json rpc</a></li>          
+         <li class="tag"><a href="../categories/scheme.html">scheme</a></li>          
+    </ul>
+<div class="post">
+      <div>
 <h3>Chapter 1 - A Schemey world of wonder</h3>
 <p>I just recently finished writing my first egg (module) for the Scheme implementation called CHICKEN.
 For me, this seemed as a good point in time to take you on a journey to the world of the Scheme programming language.</p>
@@ -88,7 +155,7 @@ This can be done on a <a href="http://wiki.call-cc.org/platforms" title="CHICKEN
 <p>On most Linux systems there are binaries available that you can use to get up and running quickly.</p>
 <p>I use Arch Linux as my main development platform, so I will stick to that for setting everything up.
 To install CHICKEN you can simply let your package manager do the heavy lifting:</p>
-<pre class="code literal-block"><span></span>pacman -S chicken
+<pre class="code literal-block">pacman -S chicken
 </pre>
 
 
@@ -177,7 +244,7 @@ According to the spec the request string consists out of four different entities
 </li>
 </ul>
 <p>So a JSON string build according to this spec would look something like this:</p>
-<pre class="code literal-block"><span></span><span class="p">{</span><span class="nt">"jsonrpc"</span><span class="p">:</span> <span class="s2">"2.0"</span><span class="p">,</span> <span class="nt">"method"</span><span class="p">:</span> <span class="s2">"subtract"</span><span class="p">,</span> <span class="nt">"params"</span><span class="p">:</span> <span class="p">[</span><span class="mi">42</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="nt">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<pre class="code literal-block"><span class="p">{</span><span class="nt">"jsonrpc"</span><span class="p">:</span> <span class="s2">"2.0"</span><span class="p">,</span> <span class="nt">"method"</span><span class="p">:</span> <span class="s2">"subtract"</span><span class="p">,</span> <span class="nt">"params"</span><span class="p">:</span> <span class="p">[</span><span class="mi">42</span><span class="p">,</span> <span class="mi">23</span><span class="p">],</span> <span class="nt">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
 </pre>
 
 
@@ -211,7 +278,7 @@ Actually, a JSON string contains JavaScript data types!</p>
 <p>But Medea does a conversion for almost <em>every</em> data type, so first we have to look at which data types we actually need.
 Since our starting point is an existing JSON-RPC string we have to start by looking at the JavaScript side of things.
 Let us introduce a XBMC JSON-RPC string to dissect:</p>
-<pre class="code literal-block"><span></span><span class="p">{</span><span class="nt">"jsonrpc"</span><span class="p">:</span> <span class="s2">"2.0"</span><span class="p">,</span> <span class="nt">"method"</span><span class="p">:</span> <span class="s2">"Player.PlayPause"</span><span class="p">,</span> <span class="nt">"params"</span><span class="p">:</span> <span class="p">{</span> <span class="nt">"playerid"</span><span class="p">:</span> <span class="mi">0</span> <span class="p">},</span> <span class="nt">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<pre class="code literal-block"><span class="p">{</span><span class="nt">"jsonrpc"</span><span class="p">:</span> <span class="s2">"2.0"</span><span class="p">,</span> <span class="nt">"method"</span><span class="p">:</span> <span class="s2">"Player.PlayPause"</span><span class="p">,</span> <span class="nt">"params"</span><span class="p">:</span> <span class="p">{</span> <span class="nt">"playerid"</span><span class="p">:</span> <span class="mi">0</span> <span class="p">},</span> <span class="nt">"id"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
 </pre>
 
 
@@ -232,19 +299,19 @@ The object can be used to give <em>named</em> params (as in the example above), 
 <p>So we actually have three data types to look at. Still not too bad!</p>
 <p>Let us look at each of them and see what they look like in CHICKEN.</p>
 <p>A string in CHICKEN looks like this:</p>
-<pre class="code literal-block"><span></span><span class="s">"This is a string"</span>
+<pre class="code literal-block"><span class="s">"This is a string"</span>
 </pre>
 
 
 <p>Just the same as in most languages. A sequences of characters wrapped in double quotes.
 On to the next one, a vector (this would be a normal array in another language):</p>
-<pre class="code literal-block"><span></span><span class="o">#</span><span class="p">(</span><span class="s">"foo"</span> <span class="s">"bar"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="o">#</span><span class="p">(</span><span class="s">"foo"</span> <span class="s">"bar"</span><span class="p">)</span>
 </pre>
 
 
 <p>This is a vector containing two strings. It is represented as a list proceeded with a hash symbol.
 And finally an associative list (this would be a hash table or associative array in another language):</p>
-<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">foo</span> <span class="o">.</span> <span class="nv">bar</span><span class="p">)</span> <span class="p">(</span><span class="nf">faa</span> <span class="o">.</span> <span class="nv">bor</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">((</span><span class="nf">foo</span> <span class="o">.</span> <span class="nv">bar</span><span class="p">)</span> <span class="p">(</span><span class="nf">faa</span> <span class="o">.</span> <span class="nv">bor</span><span class="p">))</span>
 </pre>
 
 
@@ -274,19 +341,19 @@ As we have seen before, the REPL in CHICKEN is called <em>csi</em>, so open up a
 <p>You will see a small greeting and a blinking cursor waiting for your input.
 By default, the interpreter has no extra modules loaded. If we want to use Medea, we first have to load in that module.
 So punch in this line and hit enter:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">use</span> <span class="nv">medea</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">use</span> <span class="nv">medea</span><span class="p">)</span>
 </pre>
 
 
 <p>And we have....an error. Ah, aren't I a sneaky bastard...CHICKEN does not know this module "Medea" that you want to use. Why? Because we haven't installed it yet.
 So leave you interpreter by typing:</p>
-<pre class="code literal-block"><span></span><span class="o">.</span><span class="nv">q</span>
+<pre class="code literal-block"><span class="o">.</span><span class="nv">q</span>
 </pre>
 
 
 <p>Before you can install any egg, you have to be root.
 So become root and install Medea:</p>
-<pre class="code literal-block"><span></span>chicken-install medea
+<pre class="code literal-block">chicken-install medea
 </pre>
 
 
@@ -301,21 +368,21 @@ According to Medea's documentation we have two procedures we can use to read or 
 <p>Okay, let us continue.</p>
 <p>By loading in the egg we have many new procedures at our disposal.
 There are two of them which we can use directly in the REPL to see the conversion in action:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">read-json</span> <span class="nv">datum</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">read-json</span> <span class="nv">datum</span><span class="p">)</span>
 <span class="p">(</span><span class="nf">write-json</span> <span class="nv">datum</span><span class="p">)</span>
 </pre>
 
 
 <p><em>Datum</em> is a placeholder used to describe any form of data that can be put there.
 Let us take the JSON string we dissected above and see what Medea makes of it.</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">read-json</span> <span class="s">"{\"jsonrpc\": \"2.0\", \"method\": \"Player.PlayPause\", \"params\": { \"playerid\": 0 }, \"id\": 1}"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">read-json</span> <span class="s">"{\"jsonrpc\": \"2.0\", \"method\": \"Player.PlayPause\", \"params\": { \"playerid\": 0 }, \"id\": 1}"</span><span class="p">)</span>
 </pre>
 
 
 <p>As you know a string in CHICKEN is wrapper in double quotes. JSON also uses double quotes inside its serialized string.
 So to not confuse CHICKEN, we have to escape the JSON double quotes. Escaping of characters inside a CHICKEN string is done with a backslash.
 If you input this into your interpreter you will get the following output:</p>
-<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)(</span><span class="nf">params</span> <span class="p">(</span><span class="nf">playerid</span> <span class="o">.</span> <span class="mi">0</span><span class="p">))(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)(</span><span class="nf">params</span> <span class="p">(</span><span class="nf">playerid</span> <span class="o">.</span> <span class="mi">0</span><span class="p">))(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
 </pre>
 
 
@@ -324,23 +391,23 @@ If you input this into your interpreter you will get the following output:</p>
 <p>These pairs are also referred to as <em>cons cells</em>, the building blocks of a list inside CHICKEN.
 You may notice that the members of each cons cell are separated by a dot. This is the true, correct way of writing down a pair.</p>
 <p>Let us first break down the cons cells that are required according to the JSON-RPC spec (version, method, id):</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)</span>
 </pre>
 
 
 <p>This cons cell describes the JSON-RPC spec version we will use, being 2.0.</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
 </pre>
 
 
 <p>This cons cell describes the method we send to the server, being a string known to the XBMC api.</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">)</span>
 </pre>
 
 
 <p>And here yet another simple cons cell telling which ID this request object will have.</p>
 <p>Now let us look at the optional one, the params:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">params</span> <span class="o">.</span> <span class="p">(</span><span class="nf">playerid</span> <span class="o">.</span> <span class="mi">0</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">params</span> <span class="o">.</span> <span class="p">(</span><span class="nf">playerid</span> <span class="o">.</span> <span class="mi">0</span><span class="p">))</span>
 </pre>
 
 
@@ -358,23 +425,23 @@ Car and cdr are two primitive procedures, introduced by John McCarthy himself, t
 <p>Cons is another primitive procedure that <em>creates</em> a pair.
 This procedure takes <em>two</em> arguments and returns the two items <em>consed</em> onto each other.</p>
 <p>To demonstrate, try this in the REPL:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="s">"foo"</span> <span class="s">"faa"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">cons </span><span class="s">"foo"</span> <span class="s">"faa"</span><span class="p">)</span>
 </pre>
 
 
 <p>It will result in:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="s">"foo"</span> <span class="o">.</span> <span class="s">"faa"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="s">"foo"</span> <span class="o">.</span> <span class="s">"faa"</span><span class="p">)</span>
 </pre>
 
 
 <p>But the elements don't have to be primitive elements, they can also be lists.
 That means we can do this:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="s">"foo"</span> <span class="o">'</span><span class="p">(</span><span class="s">"faa"</span> <span class="s">"fii"</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">cons </span><span class="s">"foo"</span> <span class="o">'</span><span class="p">(</span><span class="s">"faa"</span> <span class="s">"fii"</span><span class="p">))</span>
 </pre>
 
 
 <p>And get this in return:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="s">"foo"</span> <span class="s">"faa"</span> <span class="s">"fii"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="s">"foo"</span> <span class="s">"faa"</span> <span class="s">"fii"</span><span class="p">)</span>
 </pre>
 
 
@@ -390,7 +457,7 @@ The symbol, most of the time, is used as an identifier for a variable, so it eva
 A cons cell is actually a pair of two <em>pointers</em>, two references to places inside your computers memory.
 The car of the cons cell points to the s-expression you want to have as the first element and the cdr points to another s-expression.
 In case you have a pair, this is what actually happens:</p>
-<pre class="code literal-block"><span></span>   <span class="nv">----&gt;</span> <span class="s">"foo"</span>
+<pre class="code literal-block">   <span class="nv">----&gt;</span> <span class="s">"foo"</span>
    <span class="nv">|</span>
 <span class="p">(</span><span class="s">"foo"</span> <span class="o">.</span> <span class="s">"bar"</span><span class="p">)</span>             <span class="nv">-----&gt;</span> <span class="o">'</span><span class="p">()</span>
            <span class="nv">|</span>                <span class="nv">|</span>
@@ -403,13 +470,13 @@ In case you have a pair, this is what actually happens:</p>
 <p>The car of the cons cell ("foo" . "bar") points to the atom "foo" in memory.
 The cdr points to another list in memory. You don't actually see it, but every (proper) list ends with the empty list '().
 So the cdr of this cons cell is actually not "bar" but rather a small list:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="s">"bar"</span> <span class="o">'</span><span class="p">())</span>
+<pre class="code literal-block"><span class="p">(</span><span class="s">"bar"</span> <span class="o">'</span><span class="p">())</span>
 </pre>
 
 
 <p>With this profound new knowledge, let us take another peek at the CHICKEN s-expression that Medea gave us.
 This time I will indent it a little bit differently:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span>
+<pre class="code literal-block"><span class="p">(</span>
   <span class="p">(</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)</span>
   <span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
   <span class="p">(</span><span class="nf">params</span>
@@ -423,13 +490,13 @@ This time I will indent it a little bit differently:</p>
 <p>This should now look like a piece of cake (nom . nom)!</p>
 <p>We have seen how can get from a JSON string to a CHICKEN s-expression, but what about the other way around?
 As seen above we can use the following procedure:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">write-json</span> <span class="nv">datum</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">write-json</span> <span class="nv">datum</span><span class="p">)</span>
 </pre>
 
 
 <p>Let us see if we can convert the s-expression we got above back to a JSON string.
 This is rather simple:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">write-json</span> <span class="o">'</span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)(</span><span class="nf">mathod</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)(</span><span class="nf">params</span> <span class="p">(</span><span class="nf">playerid</span> <span class="o">.</span> <span class="mi">0</span><span class="p">))(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">)))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">write-json</span> <span class="o">'</span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)(</span><span class="nf">mathod</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)(</span><span class="nf">params</span> <span class="p">(</span><span class="nf">playerid</span> <span class="o">.</span> <span class="mi">0</span><span class="p">))(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">)))</span>
 </pre>
 
 
@@ -472,13 +539,13 @@ Open up your favorite editor and create a file called <em>json-rpc-client.scm</e
 <p>The other important thing to note is that the server we communicate with supports a certain version of the JSON-RPC specification.
 When laying a connection with the server, we also want to declare which version of the spec we want to use.</p>
 <p>These three things are all we need to setup a connection and they are all we need to <em>define</em> our procedure that we will call <em>json-rpc-server</em>:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="nv">version</span><span class="p">)</span> <span class="o">...</span> <span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="nv">version</span><span class="p">)</span> <span class="o">...</span> <span class="p">)</span>
 </pre>
 
 
 <p>There we have it, our first line of code and the first line of our procedure. We defined it, set the name to <em>json-rpc-server</em> and gave it three arguments <em>input</em>, <em>output</em> and <em>version</em>. The three dots indicate that this code is not finished yet and thus cannot be copy and pasted into the REPL.</p>
 <p>What would be even better is to explicitly set our version to "2.0", because that's the only version we will support in this egg:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span> <span class="o">...</span> <span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span> <span class="o">...</span> <span class="p">)</span>
 </pre>
 
 
@@ -487,12 +554,12 @@ When laying a connection with the server, we also want to declare which version 
 <p>The first thing we need in this procedure is to check if the given arguments are valid. And if not valid, give the user some useful feedback.
 To check each argument, we can use so called <em>predicates</em>. These are procedures that check their argument and simply return true or false.
 Build in to CHICKEN are predicates to check for a valid input-port or output-port, so let us use them to check our first two arguments:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">port</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">input-port? </span><span class="nv">port</span><span class="p">)</span>
 </pre>
 
 
 <p>and</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">port</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">output-port? </span><span class="nv">port</span><span class="p">)</span>
 </pre>
 
 
@@ -501,7 +568,7 @@ Build in to CHICKEN are predicates to check for a valid input-port or output-por
 <p>To do this, simply start to declare a new procedure which we will call <em>is-valid-version?</em>.
 It is common to put a question mark behind the name of a predicate to distinguish them from "other" procedures. In contrast with many other languages, in CHICKEN you can use almost <em>any</em> character inside a variable name. So a question mark is perfectly fine! Just don't use characters like <em>(</em>, <em>)</em> or <em>'</em> or you may confuse CHICKEN into thinking it is the start or end of a list. You can, of course, <em>escape</em> characters inside variable names, but you do not have to worry about that now.</p>
 <p>From reading the JSON-RPC spec we know that <em>version</em> has to be a string containing exactly "2.0"...so that is what we have to check for:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">)</span>
   <span class="p">(</span><span class="nb">string=? </span><span class="nv">version</span> <span class="s">"2.0"</span><span class="p">))</span>
 </pre>
 
@@ -513,7 +580,7 @@ But because we <em>know</em> that <em>version</em> is a string  we can be more s
 By doing that, the compiler (who will eventual compile our egg) also has to do less checks and can make some smart shortcuts.</p>
 <p>Okay, so now we have three predicates we can use for our three arguments. But <em>how</em> do we use them?</p>
 <p>Well, put them inside your procedure!</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
 <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span>
        <span class="p">((</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span>
        <span class="p">((</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">)))</span> <span class="o">...</span> <span class="p">)</span>
@@ -534,7 +601,7 @@ By good usage of these you can prevent your program from a "crash and burn" situ
 <p>With <em>signal</em> you can raise a <em>continuable</em> exception. This means that the program does not stop, but simply alerts the user and waits for further input.
 We can use <em>signal</em> inside a procedure that we make, a custom exception handler that we will construct specifically for setting up a correct JSON-RPC connection.</p>
 <p>Let me give you the full code of such an exception handler:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="nv">type</span> <span class="nv">expected</span> <span class="nv">given</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="nv">type</span> <span class="nv">expected</span> <span class="nv">given</span><span class="p">)</span>
   <span class="p">(</span><span class="nf">signal</span>
     <span class="p">(</span><span class="nf">make-property-condition</span>
       <span class="ss">'exn</span> <span class="ss">'message</span>
@@ -553,7 +620,7 @@ With <em>sprintf</em> you can construct a string with placeholders, and then fil
 In our case, we fill in these placeholders with the arguments we give to our custom exception handler.</p>
 <p>To be able to ue <em>sprintf</em> we have to load in the <em>extras</em> library. To load in libraries or modules, we can use the <em>use</em> procedure as we have seen when loading in Medea on the REPL.
 Put this in the top of your file so that the procedures of <em>extras</em> always get loaded in:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">use</span> <span class="nv">extras</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">use</span> <span class="nv">extras</span><span class="p">)</span>
 </pre>
 
 
@@ -561,46 +628,46 @@ Put this in the top of your file so that the procedures of <em>extras</em> alway
 We use <em>~S</em> and <em>~A</em> which are stand for <em>writing</em> or <em>displaying</em> the next argument.</p>
 <p>What is the difference between <em>writing</em> and <em>displaying</em>?</p>
 <p>A very good question! And also an essential question. <em>Writing</em> and <em>displaying</em> are specified in the <em>RnRS</em> Scheme standards and differ in the way they handle outputting the argument they represent. If you <em>write</em> an argument you will put the quoted and escaped representation of, say, a string. With <em>display</em> you will put the <em>unquoted and unescaped</em> representation:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">write </span><span class="s">"foo (bar)"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">write </span><span class="s">"foo (bar)"</span><span class="p">)</span>
 </pre>
 
 
 <p>Will give you the same, quoted and escaped output:</p>
-<pre class="code literal-block"><span></span><span class="s">"foo (bar)"</span>
+<pre class="code literal-block"><span class="s">"foo (bar)"</span>
 </pre>
 
 
 <p>Where as</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">display </span><span class="s">"foo (bar)"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">display </span><span class="s">"foo (bar)"</span><span class="p">)</span>
 </pre>
 
 
 <p>Will give you a an unquoted and unescaped output:</p>
-<pre class="code literal-block"><span></span><span class="nv">foo</span> <span class="p">(</span><span class="nf">bar</span><span class="p">)</span>
+<pre class="code literal-block"><span class="nv">foo</span> <span class="p">(</span><span class="nf">bar</span><span class="p">)</span>
 </pre>
 
 
 <p>In our case we wish to display the given and the excepted arguments as there unquoted and unescaped representation.</p>
 <p>So now that we have a basic but decent error handling concept, let us see how we can use it if our above predicates turn out to be false.
 Let us take a look at the first line of the predicates:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">)))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">)))</span>
 </pre>
 
 
 <p>If we simply put our exception handler there, it would look like this:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">)</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">))))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">)</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">))))</span>
 </pre>
 
 
 <p>But now something is not quite correct. If you look closely, the above snipped says: If the give input is indeed a valid input-port then trigger the exception handler.
 The is not what we want, we want it to trigger when it is <em>not</em> a valid input-port. How? Simple, we use <em>not</em>:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">))))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">))))</span>
 </pre>
 
 
 <p>Now we have "inverted" the condition. If (input-port?) is <em>#f</em>, then trigger the exception handler. If it is <em>#t</em>, just continue to the next line.</p>
 <p>If we implement this into all of our predicates, our code would look like this:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
   <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
          <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
          <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"version"</span> <span class="s">"2.0"</span> <span class="nv">version</span><span class="p">)))</span> <span class="o">...</span> <span class="p">)</span>
@@ -616,7 +683,7 @@ But I wanted to go a small step further by making a message that gives a little 
 For this I created so called <em>helper function</em>, <em>helper procedure</em> or <em>helper</em> that checks which data type the given argument is and returns some information that we can print it in our message.</p>
 <p>As you can see, this <em>helper</em> is called "get-type" and accepts one argument being the argument that the user gave us.
 The helper consists of mere predicates for the most common data types we have. It looks like this:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">get-type</span> <span class="nv">x</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">get-type</span> <span class="nv">x</span><span class="p">)</span>
 <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">input-port? </span><span class="nv">x</span><span class="p">)</span> <span class="s">"an input port"</span><span class="p">)</span>
        <span class="p">((</span><span class="nb">output-port? </span><span class="nv">x</span><span class="p">)</span> <span class="s">"an output port"</span><span class="p">)</span>
        <span class="p">((</span><span class="nb">number? </span><span class="nv">x</span><span class="p">)</span> <span class="s">"a mumber"</span><span class="p">)</span>
@@ -634,19 +701,19 @@ The helper consists of mere predicates for the most common data types we have. I
 <p>What happens here is we have a <em>cond</em> expression which checks a series of conditions.
 If one of the given conditions return true it returns with a string, if none of them are true, the final expression, <em>else</em>, will be returned being <em>something unknown</em>.</p>
 <p>To illustrate in further detail how this whole chain of procedures and predicates work, let us assume we call our procedure with an erroneous argument:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="nv">xbmc</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">valid-input</span> <span class="s">"foobar"</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="nv">xbmc</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">valid-input</span> <span class="s">"foobar"</span><span class="p">))</span>
 </pre>
 
 
 <p>We call our <em>json-rpc-server</em> procedure with two arguments (version is implicit). Our input-port argument is perfect, our output-port is not so.
 What happens in our chain? Let us see step by step:</p>
 <p>First the procedure enters the predicate checks. The first one we encounter is our input check:</p>
-<pre class="code literal-block"><span></span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
+<pre class="code literal-block"><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
 </pre>
 
 
 <p>Since our input-port is correct, this predicate returns true and the <em>cond</em> statement goes to the next line:</p>
-<pre class="code literal-block"><span></span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
+<pre class="code literal-block"><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
 </pre>
 
 
@@ -656,25 +723,25 @@ The <em>not</em> statement has our custom exception handler as its second argume
 The first two are simple strings, but the third is our <em>helper</em> "get-type" with the given output-port as an argument, being the string "foobar" here.</p>
 <p>Before we can enter the <em>body</em> of our exception handler procedure, we first have to find out what the return value of "get-type" is.
 When we call "get-type" here, it will look like this:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">get-type</span> <span class="s">"foobar"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">get-type</span> <span class="s">"foobar"</span><span class="p">)</span>
 </pre>
 
 
 <p>Since "foobar" is a string, the following predicate will return <em>#t</em>:</p>
-<pre class="code literal-block"><span></span><span class="p">((</span><span class="nb">string? </span><span class="nv">x</span><span class="p">)</span> <span class="s">"a string"</span><span class="p">)</span>
+<pre class="code literal-block"><span class="p">((</span><span class="nb">string? </span><span class="nv">x</span><span class="p">)</span> <span class="s">"a string"</span><span class="p">)</span>
 </pre>
 
 
 <p>The argument "x" being our string "foobar". this will make the procedure end and return "a string" to its <em>caller</em>.
 Our <em>caller</em> is the exception handler that is waiting for this return value so it can know its third argument and can continue to its <em>body</em>.
 We now know this third argument and our call now looks like this:</p>
-<pre class="code literal-block"><span></span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="s">"a string"</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="s">"a string"</span><span class="p">))</span>
 </pre>
 
 
 <p>So now the exception handler can finally execute and throw an exception with a custom message, constructed with the arguments we gave it.
 The messages returned will look like this:</p>
-<pre class="code literal-block"><span></span><span class="s2">"Cannot setup connection, the output-port is invalid. Excepted output-port type but got a string."</span>
+<pre class="code literal-block"><span class="s2">"Cannot setup connection, the output-port is invalid. Excepted output-port type but got a string."</span>
 </pre>
 
 
@@ -683,7 +750,7 @@ It's now time to build the rest of our procedure.</p>
 <p>If all the predicates pass, what should happen next?</p>
 <p>Well, we want this procedure to return <em>another</em> procedure that the user can use to actually send the commands.</p>
 <p>We have seen how we can call our procedure:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="nv">xbmc</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">valid-input-port</span> <span class="nv">valid-output-port</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="nv">xbmc</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">valid-input-port</span> <span class="nv">valid-output-port</span><span class="p">))</span>
 </pre>
 
 
@@ -696,7 +763,7 @@ In that box we find a keyboard that is now linked to our server and that we can 
 <p>Let us first continue writing our code.</p>
 <p>How do we continue after our predicates return <em>#t</em>? When using a <em>cond</em> you can do this by using the <em>else</em> statement.
 In our code this would look like so:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
 <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
        <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
        <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"version"</span> <span class="s">"2.0"</span> <span class="nv">version</span><span class="p">))</span>
@@ -712,12 +779,12 @@ How to we make a procedure return another procedure?</p>
 <p><em>Lambda</em> or <em>Lambda Calculus</em> is a system in computer programming that allows you to write functions or procedures without naming them.. that's all you need to know for now.</p>
 <p>Actually, we have been using lambda's the whole time, I just did not tell you. Every time you declare a new procedure in CHICKEN, you are using a lambda.
 When <em>defining</em> a new procedure, we wrote this:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">foo</span> <span class="nv">arguments</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">foo</span> <span class="nv">arguments</span><span class="p">))</span>
 </pre>
 
 
 <p>But this is actually a shorthand for this:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="nv">foo</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="nv">foo</span>
     <span class="p">(</span><span class="k">lambda </span><span class="p">(</span><span class="nf">arguments</span><span class="p">)))</span>
 </pre>
 
@@ -726,7 +793,7 @@ When <em>defining</em> a new procedure, we wrote this:</p>
 <p>Back to our egg, we want our procedure to return a procedure.
 Here we cannot use a shorthand, we have to tell it to return a <em>nameless</em> procedure or lambda.
 Implementing this, it would look something like this:</p>
-<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
   <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
          <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
          <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"version"</span> <span class="s">"2.0"</span> <span class="nv">version</span><span class="p">))</span>
@@ -758,5 +825,22 @@ If you did not understand something I suggest you go and read it again until the
 <p>The next chapter will be online soon!</p>
 <p>And as always...thanks for reading!</p>
 </div>
- </div>
-</div></body></html>
+    </div>
+    
+    <ul class="pager">
+<li class="previous">
+            <a href="3d-onsen.html">← Previous post</a>
+        </li>
+        <li class="next">
+            <a href="chicken-scheme-2.html">Next post →</a>
+        </li>
+    </ul>
+</div>
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+    </div>
+    
+        <script src="../assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>

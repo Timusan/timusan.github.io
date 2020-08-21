@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>shisaa.jp (Posts about timezone)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/categories/timezone.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><copyright>Contents © 2017 &lt;a href="mailto:tim@shisaa.jp"&gt;Tim van der Linden&lt;/a&gt; </copyright><lastBuildDate>Sat, 17 Jun 2017 07:08:39 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Postgis and PostgreSQL in Action - Timezones</title><link>http://shisaa.jp/postset/postgis-and-postgresql-in-action-timezones.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Preface&lt;/h3&gt;
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.jp (timezone)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/categories/timezone.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><lastBuildDate>Mon, 05 Jan 2015 12:42:48 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Postgis and PostgreSQL in Action - Timezones</title><link>http://shisaa.jp/postset/postgis-and-postgresql-in-action-timezones.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Preface&lt;/h3&gt;
 &lt;p&gt;Recently, I was lucky to be part of an &lt;em&gt;awesome&lt;/em&gt; project called the &lt;a href="http://breakingboundariestour.com"&gt;Breaking Boundaries Tour&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;This project is about two brothers, Omar and Greg Colin, who take their Stella scooters to make a full round trip across the United States.
 And, while they are at it, try to raise funding for &lt;a href="http://surfershealing.org/"&gt;Surfer's Healing Folly Beach&lt;/a&gt; - an organization that does great work enhancing the lives of children with autism through surfing .
@@ -32,30 +32,30 @@ You can simply not expect all the devices involved when posting to always adjust
 &lt;p&gt;The first thing to do, obviously, is to download the shapefile data and load it in to our PostgreSQL database.
 Navigate to the &lt;a href="http://efele.net/maps/tz/world/"&gt;Timezone World&lt;/a&gt; portion of the efele.net site and download the "tz_world" shapefile.&lt;/p&gt;
 &lt;p&gt;This will give you a zip which you can extract:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ unzip tz_world.zip
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;unzip tz_world.zip
 &lt;/pre&gt;
 
 
 &lt;p&gt;Unzipping will create a directory called "world" in which you can find the needed shapefile package files.&lt;/p&gt;
 &lt;p&gt;Next you will need to make sure that your database is PostGIS ready. Connect to your desired database (let us call it &lt;em&gt;bar&lt;/em&gt;) &lt;em&gt;as a superuser&lt;/em&gt;:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ psql -U postgres bar
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;psql -U postgres bar
 &lt;/pre&gt;
 
 
 &lt;p&gt;And create the PostGIS extension:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;EXTENSION&lt;/span&gt; &lt;span class="n"&gt;postgis&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="n"&gt;EXTENSION&lt;/span&gt; &lt;span class="n"&gt;postgis&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;Now go back to your terminal and load the shapefile into your database using the original owner of the database (here called &lt;em&gt;foo&lt;/em&gt;):&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ shp2pgsql -S -s &lt;span class="m"&gt;4326&lt;/span&gt; -I tz_world &lt;span class="p"&gt;|&lt;/span&gt; psql -U foo bar
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;shp2pgsql -S -s &lt;span class="m"&gt;4326&lt;/span&gt; -I tz_world &lt;span class="p"&gt;|&lt;/span&gt; psql -U foo bar
 &lt;/pre&gt;
 
 
 &lt;p&gt;As you might remember from the PostGIS series, this loads in the geometry from the shapefile using only simple geometry (not "MULTI..." types) with a SRID of 4326.&lt;/p&gt;
 &lt;h3&gt;What have we got?&lt;/h3&gt;
 &lt;p&gt;This will take a couple of seconds and will create one table and two indexes. If you describe your database (assuming you have not made any tables yourself):&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;public &lt;span class="p"&gt;|&lt;/span&gt; geography_columns &lt;span class="p"&gt;|&lt;/span&gt; view     &lt;span class="p"&gt;|&lt;/span&gt; postgres
+&lt;pre class="code literal-block"&gt;public &lt;span class="p"&gt;|&lt;/span&gt; geography_columns &lt;span class="p"&gt;|&lt;/span&gt; view     &lt;span class="p"&gt;|&lt;/span&gt; postgres
 public &lt;span class="p"&gt;|&lt;/span&gt; geometry_columns  &lt;span class="p"&gt;|&lt;/span&gt; view     &lt;span class="p"&gt;|&lt;/span&gt; postgres
 public &lt;span class="p"&gt;|&lt;/span&gt; raster_columns    &lt;span class="p"&gt;|&lt;/span&gt; view     &lt;span class="p"&gt;|&lt;/span&gt; postgres
 public &lt;span class="p"&gt;|&lt;/span&gt; raster_overviews  &lt;span class="p"&gt;|&lt;/span&gt; view     &lt;span class="p"&gt;|&lt;/span&gt; postgres
@@ -67,15 +67,15 @@ public &lt;span class="p"&gt;|&lt;/span&gt; tz_world_gid_seq  &lt;span class="p"
 
 &lt;p&gt;You will see the standard PostGIS bookkeeping and you will find the &lt;em&gt;tz_world&lt;/em&gt; table together with a &lt;em&gt;gid&lt;/em&gt; sequence.&lt;/p&gt;
 &lt;p&gt;Let us describe the table:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="n"&gt;tz_world&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt; &lt;span class="n"&gt;tz_world&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And get:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;Column &lt;span class="p"&gt;|&lt;/span&gt;          Type          &lt;span class="p"&gt;|&lt;/span&gt;                       Modifiers                        
+&lt;pre class="code literal-block"&gt;Column &lt;span class="p"&gt;|&lt;/span&gt;          Type          &lt;span class="p"&gt;|&lt;/span&gt;                       Modifiers                        
 --------+------------------------+--------------------------------------------------------
 gid    &lt;span class="p"&gt;|&lt;/span&gt; integer                &lt;span class="p"&gt;|&lt;/span&gt; not null default nextval&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'tz_world_gid_seq'&lt;/span&gt;::regclass&lt;span class="o"&gt;)&lt;/span&gt;
-tzid   &lt;span class="p"&gt;|&lt;/span&gt; character varying&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="m"&gt;30&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;  &lt;span class="p"&gt;|&lt;/span&gt; 
+tzid   &lt;span class="p"&gt;|&lt;/span&gt; character varying&lt;span class="o"&gt;(&lt;/span&gt;30&lt;span class="o"&gt;)&lt;/span&gt;  &lt;span class="p"&gt;|&lt;/span&gt; 
 geom   &lt;span class="p"&gt;|&lt;/span&gt; geometry&lt;span class="o"&gt;(&lt;/span&gt;Polygon,4326&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; 
 Indexes:
     &lt;span class="s2"&gt;"tz_world_pkey"&lt;/span&gt; PRIMARY KEY, btree &lt;span class="o"&gt;(&lt;/span&gt;gid&lt;span class="o"&gt;)&lt;/span&gt;
@@ -84,35 +84,29 @@ Indexes:
 
 
 &lt;p&gt;So we have:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;gid&lt;/em&gt;: an arbitrary id column&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;&lt;em&gt;gid&lt;/em&gt;: an arbitrary id column&lt;/li&gt;
 &lt;li&gt;&lt;em&gt;tzid&lt;/em&gt;: holding the standards compliant textual timezone identification&lt;/li&gt;
 &lt;li&gt;&lt;em&gt;geom&lt;/em&gt;: holding polygons in &lt;em&gt;SRID&lt;/em&gt; 4326.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Also notice we have two indexes made for us:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;em&gt;tz_world_pkey&lt;/em&gt;: a simple B-tree index on our gid&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Also notice we have two indexes made for us:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;&lt;em&gt;tz_world_pkey&lt;/em&gt;: a simple B-tree index on our gid&lt;/li&gt;
 &lt;li&gt;&lt;em&gt;tz_world_geom_gist&lt;/em&gt;: a GiST index on our geometry&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;This is a rather nice set, would you not say?&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;This is a rather nice set, would you not say?&lt;/p&gt;
 &lt;h3&gt;Using the data&lt;/h3&gt;
 &lt;p&gt;So how do we go about using this data?&lt;/p&gt;
 &lt;p&gt;As I have said above, we need to figure out in which polygon (timezone) a certain point resides.&lt;/p&gt;
 &lt;p&gt;Let us take an arbitrary point on the earth:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;latitude: 35.362852&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;latitude: 35.362852&lt;/li&gt;
 &lt;li&gt;longitude: 140.196131&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;This is a spot in the Chiba prefecture, central Japan.&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;This is a spot in the Chiba prefecture, central Japan.&lt;/p&gt;
 &lt;p&gt;Using the &lt;em&gt;Simple Features functions&lt;/em&gt; we have available in PostGIS, it is trivial to find out in which polygon a certain point resides:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;tzid&lt;/span&gt; 
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;tzid&lt;/span&gt; 
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tz_world&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;ST_Intersects&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ST_GeomFromText&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'POINT(140.196131 35.362852)'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4326&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;geom&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;And we get back:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;    tzid    
+&lt;pre class="code literal-block"&gt;    tzid    
 ------------
  Asia/Tokyo
 &lt;/pre&gt;
@@ -121,19 +115,19 @@ Indexes:
 &lt;p&gt;&lt;em&gt;Awesome!&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;In the above query I used the function &lt;em&gt;ST_Intersects&lt;/em&gt; which checks if a given piece of geometry (our point) &lt;em&gt;shares any space&lt;/em&gt; with another piece.
 If we would check the execute plan of this query:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;EXPLAIN&lt;/span&gt; &lt;span class="k"&gt;ANALYZE&lt;/span&gt; &lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;tzid&lt;/span&gt; 
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;EXPLAIN&lt;/span&gt; &lt;span class="k"&gt;ANALYZE&lt;/span&gt; &lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;tzid&lt;/span&gt; 
     &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tz_world&lt;/span&gt;
     &lt;span class="k"&gt;WHERE&lt;/span&gt; &lt;span class="n"&gt;ST_Intersects&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;ST_GeomFromText&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'POINT(140.196131 35.362852)'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;4326&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;geom&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
 &lt;/pre&gt;
 
 
 &lt;p&gt;We get back:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;                                                      QUERY PLAN                                                          
+&lt;pre class="code literal-block"&gt;                                                      QUERY PLAN                                                          
 ------------------------------------------------------------------------------------------------------------------------------
-Index Scan using tz_world_geom_gist on tz_world  &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;cost&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;.28..8.54 &lt;span class="nv"&gt;rows&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="nv"&gt;width&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;15&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;actual &lt;span class="nv"&gt;time&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;.591..0.592 &lt;span class="nv"&gt;rows&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="nv"&gt;loops&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt;&lt;span class="o"&gt;)&lt;/span&gt;
+Index Scan using tz_world_geom_gist on tz_world  &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;cost&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0.28..8.54 &lt;span class="nv"&gt;rows&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="nv"&gt;width&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;15&lt;span class="o"&gt;)&lt;/span&gt; &lt;span class="o"&gt;(&lt;/span&gt;actual &lt;span class="nb"&gt;time&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;0.591..0.592 &lt;span class="nv"&gt;rows&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="nv"&gt;loops&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;1&lt;span class="o"&gt;)&lt;/span&gt;
     Index Cond: &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'0101000020E61000006BD784B446866140E3A430EF71AE4140'&lt;/span&gt;::geometry &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; geom&lt;span class="o"&gt;)&lt;/span&gt;
     Filter: _st_intersects&lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'0101000020E61000006BD784B446866140E3A430EF71AE4140'&lt;/span&gt;::geometry, geom&lt;span class="o"&gt;)&lt;/span&gt;
-Total runtime: &lt;span class="m"&gt;0&lt;/span&gt;.617 ms
+Total runtime: 0.617 ms
 &lt;/pre&gt;
 
 
@@ -152,11 +146,9 @@ Then it performs a more expensive, but more accurate calculation (on a small sub
 &lt;p&gt;Now it is fair to say that we do not wish to perform this calculation every time a user views a post, that would not be very efficient nor smart.&lt;/p&gt;
 &lt;p&gt;Rather, it is a good idea to generate this information at post time, and save it for later use.&lt;/p&gt;
 &lt;p&gt;The way I have setup to save this information is twofold:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;I only save a UTC (GTM) generalized timestamp of when the post was made.&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;I only save a UTC (GTM) generalized timestamp of when the post was made.&lt;/li&gt;
 &lt;li&gt;I made an extra column in my so-called "posts" table where I only save the string that represents the timezone (Asia/Tokyo in the above case).&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;This keeps the date/time information in the database naive of any timezone and makes for easier calculations to give the time in either the clients timezone or in the timezone the post was originally written.
+&lt;/ul&gt;&lt;p&gt;This keeps the date/time information in the database naive of any timezone and makes for easier calculations to give the time in either the clients timezone or in the timezone the post was originally written.
 You simply have one "root" time which you can move around timezones.&lt;/p&gt;
 &lt;p&gt;On every insert of a new post I have created a trigger that fetches the timezone and inserts it into the designated column.
 You could also fetch the timezone and update the post record using Python, but opting for an in-database solution saves you a few extra, unneeded round trips and is most likely a lot faster.&lt;/p&gt;
@@ -168,7 +160,7 @@ Let us thus first start by creating the function that will insert our timezone s
 &lt;p&gt;Creating functions with plain SQL is the most straightforward and most easy way. However, since we want to write a function that is to be used inside a trigger, we have even a better option.
 We could employ the power of the embedded PostgreSQL procedural language to easily access and manipulate our newly insert data.&lt;/p&gt;
 &lt;p&gt;First, let us see which query we would use to fetch the timezone and update our post record:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;posts&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;posts&lt;/span&gt;
   &lt;span class="k"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;tzid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;timezone&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tzid&lt;/span&gt;
   &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;SELECT&lt;/span&gt; &lt;span class="n"&gt;tzid&lt;/span&gt;
           &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;tz_world&lt;/span&gt;
@@ -183,7 +175,7 @@ We could employ the power of the embedded PostgreSQL procedural language to easi
 
 &lt;p&gt;This query will fetch the timezone string using a subquery and then update the correct record (a post with "pid" 1 in this example).&lt;/p&gt;
 &lt;p&gt;How do we pour this into a function?&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;OR&lt;/span&gt; &lt;span class="k"&gt;REPLACE&lt;/span&gt; &lt;span class="k"&gt;FUNCTION&lt;/span&gt; &lt;span class="n"&gt;set_timezone&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;RETURNS&lt;/span&gt; &lt;span class="k"&gt;TRIGGER&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="err"&gt;$$&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;OR&lt;/span&gt; &lt;span class="k"&gt;REPLACE&lt;/span&gt; &lt;span class="k"&gt;FUNCTION&lt;/span&gt; &lt;span class="n"&gt;set_timezone&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;RETURNS&lt;/span&gt; &lt;span class="k"&gt;TRIGGER&lt;/span&gt; &lt;span class="k"&gt;AS&lt;/span&gt; &lt;span class="err"&gt;$$&lt;/span&gt;
 &lt;span class="k"&gt;BEGIN&lt;/span&gt;
     &lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;posts&lt;/span&gt;
     &lt;span class="k"&gt;SET&lt;/span&gt; &lt;span class="n"&gt;tzid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;timezone&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;tzid&lt;/span&gt;
@@ -217,21 +209,17 @@ Using this &lt;em&gt;caching&lt;/em&gt; keyword gives our famous PostgreSQL plan
 &lt;h3&gt;Creating triggers&lt;/h3&gt;
 &lt;p&gt;Now that we have this functionality wrapped into a tiny PLPGSQL function, we can go ahead and create the trigger.&lt;/p&gt;
 &lt;p&gt;First you have the event on which a trigger can execute, these are:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;INSERT&lt;/li&gt;
+&lt;ul&gt;&lt;li&gt;INSERT&lt;/li&gt;
 &lt;li&gt;UPDATE&lt;/li&gt;
 &lt;li&gt;DELETE&lt;/li&gt;
 &lt;li&gt;TRUNCATE&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Next, for each event you can specify at what timing your trigger has to fire:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;BEFORE&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Next, for each event you can specify at what timing your trigger has to fire:&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;BEFORE&lt;/li&gt;
 &lt;li&gt;AFTER&lt;/li&gt;
 &lt;li&gt;INSTEAD OF&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;The last one is a special timing by which you can replace the default behavior of the mentioned events.&lt;/p&gt;
+&lt;/ul&gt;&lt;p&gt;The last one is a special timing by which you can replace the default behavior of the mentioned events.&lt;/p&gt;
 &lt;p&gt;For our use case, we are interested in executing our function &lt;em&gt;AFTER INSERT&lt;/em&gt;.&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TRIGGER&lt;/span&gt; &lt;span class="n"&gt;set_timezone&lt;/span&gt;
+&lt;pre class="code literal-block"&gt;&lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TRIGGER&lt;/span&gt; &lt;span class="n"&gt;set_timezone&lt;/span&gt;
     &lt;span class="k"&gt;AFTER&lt;/span&gt; &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="n"&gt;posts&lt;/span&gt;
     &lt;span class="k"&gt;FOR&lt;/span&gt; &lt;span class="k"&gt;EACH&lt;/span&gt; &lt;span class="k"&gt;ROW&lt;/span&gt;
     &lt;span class="k"&gt;EXECUTE&lt;/span&gt; &lt;span class="k"&gt;PROCEDURE&lt;/span&gt; &lt;span class="n"&gt;set_timezone&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;

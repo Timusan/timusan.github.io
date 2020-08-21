@@ -1,9 +1,76 @@
 <!DOCTYPE html>
-<html><body><div class="postbox">
- Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 3
- <p class="post-date">05/04/2013 <span>-</span> </p>
- <div class="post">
-  <div>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 3 | shisaa.jp">
+<meta name="description" content="">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 3 | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="shortcut icon">
+<link href="../assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-en">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest">web / unix / photography / japan</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="current-lang first"><span>English</span></li>
+        
+          
+            <li class="not-first"><a href="../ja/index.html" rel="alternate" hreflang="ja">日本語</a></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href="../">home</a>
+            </li>
+<li>
+<a href="../stories/about.html">about</a>
+            </li>
+<li>
+<a href="../stories/services.html">services</a>
+            </li>
+<li>
+<a href="../archive.html">blog</a>
+            </li>
+<li>
+<a href="../photography/index.html">photography</a>
+            </li>
+<li>
+<a href="../stories/3d.html">3D</a>
+
+	  
+    </li>
+<li id="flattr">
+<small>Like my material?</small><small>Feel free to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a></small><small id="final-small">She thanks you!</small>
+</li>
+
+      </ul>
+<div id="content">
+	
+    <div class="postbox">
+    
+    <h2><a href="#">Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 3</a></h2>
+
+    <p class="post-date">05/04/2013 <span>-</span> </p>
+    
+    <ul class="tags">
+<li class="tag"><a href="../categories/amavis.html">amavis</a></li>          
+         <li class="tag"><a href="../categories/postfix.html">postfix</a></li>          
+         <li class="tag"><a href="../categories/unix.html">unix</a></li>          
+    </ul>
+<div class="post">
+      <div>
 <h3>Chapter 3 - Milters, the trusty workers</h3>
 <p>Welcome to the third part of our mailserver setup saga.</p>
 <p>If you've missed <a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series">chapter 1</a> or <a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series">chapter 2</a> I recommend reading them first.</p>
@@ -26,18 +93,18 @@ At that conveyor belt are many workers specially trained to check messages for v
 <p>That's actually all you need to know before installing...so lets go ahead and install it!</p>
 <p>By default your CentOS 6 installation does not carry a recent binary package for that in its basic repositories.
 So you will have to add one:</p>
-<pre class="code literal-block"><span></span>$ rpm -Uvh http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
+<pre class="code literal-block"><span class="nv">$ </span>rpm -Uvh http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
 </pre>
 
 
 <p>And install it:</p>
-<pre class="code literal-block"><span></span>$ yum install amavisd-new
+<pre class="code literal-block"><span class="nv">$ </span>yum install amavisd-new
 </pre>
 
 
 <p>You will notice that it installs a bunch of extra Perl modules needed to run Amavis. It also installed Spamassassin by default.
 To make our setup complete, we also need ClamAV, so lets go ahead and install this one too:</p>
-<pre class="code literal-block"><span></span>$ yum install clamd
+<pre class="code literal-block"><span class="nv">$ </span>yum install clamd
 </pre>
 
 
@@ -49,28 +116,28 @@ If you uncomment them, spam and antivirus checking will not happen.</p>
 <p>Then we have to set <em>$mydomain</em> parameter to your domainname.</p>
 <p>Next up are the <em>$daemon_user</em> and the <em>$daemon_group</em> variables. These should match the user and group under which Amavis is allowed to run.
 If all is good, both should have been created during the install of Amavis, but it never hurts to check:</p>
-<pre class="code literal-block"><span></span>$ grep <span class="s2">"amavis"</span> /etc/passwd
+<pre class="code literal-block"><span class="nv">$ </span>grep <span class="s2">"amavis"</span> /etc/passwd
 </pre>
 
 
 <p>If it returns the user, everything went well, now lets check for the group:</p>
-<pre class="code literal-block"><span></span>$ grep <span class="s2">"amavis"</span> /etc/group
+<pre class="code literal-block"><span class="nv">$ </span>grep <span class="s2">"amavis"</span> /etc/group
 </pre>
 
 
 <p>It returned a group? Perfect! Then lets continue!</p>
 <p>Now we can go back to our <em>amavisd.conf</em> file and uncomment the <em>$MYHOME</em> variable and also uncomment and set the <em>$myhostname</em> variable to read your FQDN: mail.example.com.</p>
 <p>We also have to enable the newly installed ClamAV in our <em>amavisd.conf</em> file. There is already an entry for that. Search for ClamAV and uncomment these lines:</p>
-<pre class="code literal-block"><span></span>$ <span class="c1">### http://www.clamav.net/</span>
+<pre class="code literal-block"><span class="nv">$ </span><span class="c">### http://www.clamav.net/</span>
     <span class="o">[</span><span class="s1">'ClamAV-clamd'</span>,
         <span class="se">\&amp;</span>ask_daemon, <span class="o">[</span><span class="s2">"CONTSCAN {}\n"</span>, <span class="s2">"/var/run/clamav/clamd.sock"</span><span class="o">]</span>,
-        qr/<span class="se">\b</span>OK$/, qr/<span class="se">\b</span>FOUND$/,
-        qr/^.*?: <span class="o">(</span>?!Infected Archive<span class="o">)(</span>.*<span class="o">)</span> FOUND$/ <span class="o">]</span>,
-    <span class="c1"># # NOTE: run clamd under the same user as amavisd, or run it under its own</span>
-    <span class="c1"># #   uid such as clamav, add user clamav to the amavis group, and then add</span>
-    <span class="c1"># #   AllowSupplementaryGroups to clamd.conf;</span>
-    <span class="c1"># # NOTE: match socket name (LocalSocket) in clamav.conf to the socket name in</span>
-    <span class="c1"># #   this entry; when running chrooted one may prefer socket "$MYHOME/clamd".</span>
+        qr/<span class="se">\b</span>OK<span class="nv">$/</span>, qr/<span class="se">\b</span>FOUND<span class="nv">$/</span>,
+        qr/^.*?: <span class="o">(</span>?!Infected Archive<span class="o">)(</span>.*<span class="o">)</span> FOUND<span class="nv">$/</span> <span class="o">]</span>,
+    <span class="c"># # NOTE: run clamd under the same user as amavisd, or run it under its own</span>
+    <span class="c"># #   uid such as clamav, add user clamav to the amavis group, and then add</span>
+    <span class="c"># #   AllowSupplementaryGroups to clamd.conf;</span>
+    <span class="c"># # NOTE: match socket name (LocalSocket) in clamav.conf to the socket name in</span>
+    <span class="c"># #   this entry; when running chrooted one may prefer socket "$MYHOME/clamd".</span>
 </pre>
 
 
@@ -79,12 +146,12 @@ To check this, open up the ClamAV configuration file at <em>/etc/clamd.conf</em>
 Make sure that both files have exactly the same path to that socket.</p>
 <p>Also make sure that the path to that socket is accessible to the "clamav" user that was created when installing ClamAV.
 So set the correct ownership:</p>
-<pre class="code literal-block"><span></span>$ chown -R clamav:clamav /var/run/clamav
+<pre class="code literal-block"><span class="nv">$ </span>chown -R clamav:clamav /var/run/clamav
 </pre>
 
 
 <p>Then make sure that the user "clamav" is in the "amavis" group:</p>
-<pre class="code literal-block"><span></span>$ usermod -G amavis clamav
+<pre class="code literal-block"><span class="nv">$ </span>usermod -G amavis clamav
 </pre>
 
 
@@ -92,8 +159,8 @@ So set the correct ownership:</p>
 <p>There are three other variables that you should make mental note of for now: <em>$max_servers</em>, <em>$notify_method</em> and <em>$forward_method</em>. We'll come back here later.</p>
 <p>Good, that was a quick rush through the basics of the Amavis configuration, lets first tell Postfix about Amavis and make them work together before we delve a little bit deeper into our milters.
 Open up our old friend the <em>master.cf</em> file from Postfix and add a new transport daemon to be spawned called <em>Amavisfeed</em>:</p>
-<pre class="code literal-block"><span></span>$ amavisfeed unix -       -       n       -       <span class="m">2</span>       lmtp
-    -o <span class="nv">lmtp_data_done_timeout</span><span class="o">=</span><span class="m">1200</span>
+<pre class="code literal-block"><span class="nv">$ </span>amavisfeed unix -       -       n       -       <span class="m">2</span>       lmtp
+    -o <span class="nv">lmtp_data_done_timeout</span><span class="o">=</span>1200
     -o <span class="nv">lmtp_send_xforward_command</span><span class="o">=</span>yes
 </pre>
 
@@ -101,14 +168,14 @@ Open up our old friend the <em>master.cf</em> file from Postfix and add a new tr
 <p>What did you just do?
 Well, you created a so called <em>dedicated lmtp-client</em> that Postfix can use to communicate with Amavis.
 The overwrites under it do the following:</p>
-<pre class="code literal-block"><span></span>$ -o <span class="nv">lmtp_data_done_timout</span><span class="o">=</span><span class="m">1200</span>
+<pre class="code literal-block"><span class="nv">$ </span>-o <span class="nv">lmtp_data_done_timout</span><span class="o">=</span>1200
 </pre>
 
 
 <p>This line sets a timeout limit in seconds for Postfix to wait to claim successful delivery. If a message is not delivered within this time limit, Postfix will give the message a "deferred" status and alert the sender.
 We have this separate timeout setting, which is larger then the default Postfix timout, because we now add some new processes that the mail has to go through before it can be delivered.
 The workers and the sides of our conveyor belt have just tripled and so has the amount of checking that needs to be done. We have to give these people some more time!</p>
-<pre class="code literal-block"><span></span>$ <span class="nv">lmtp_send_xforward_command</span><span class="o">=</span>yes
+<pre class="code literal-block"><span class="nv">$ lmtp_send_xforward_command</span><span class="o">=</span>yes
 </pre>
 
 
@@ -121,7 +188,7 @@ The specially trained workers then go about there business as instructed by you,
 <p>After the checks are finished, the mail must go back on the conveyor belt so it can be delivered or trashed according to the milters findings.
 The process of putting mail back onto the conveyor belt is called "reinjection". This has to be done by a separate SMTP daemon of which Postfix only accepts mail from Amavis.
 A special entrance to the Postfix conveyor belt, so to say, only to be used by Amavis. Lets set up this new daemon:</p>
-<pre class="code literal-block"><span></span><span class="m">127</span>.0.0.1:10025 inet n    -       n       -       -     smtpd
+<pre class="code literal-block">127.0.0.1:10025 inet n    -       n       -       -     smtpd
     -o <span class="nv">content_filter</span><span class="o">=</span>
     -o <span class="nv">smtpd_delay_reject</span><span class="o">=</span>no
     -o <span class="nv">smtpd_client_restrictions</span><span class="o">=</span>permit_mynetworks,reject
@@ -131,12 +198,12 @@ A special entrance to the Postfix conveyor belt, so to say, only to be used by A
     -o <span class="nv">smtpd_data_restrictions</span><span class="o">=</span>reject_unauth_pipelining
     -o <span class="nv">smtpd_end_of_data_restrictions</span><span class="o">=</span>
     -o <span class="nv">smtpd_restriction_classes</span><span class="o">=</span>
-    -o <span class="nv">mynetworks</span><span class="o">=</span><span class="m">127</span>.0.0.0/8
-    -o <span class="nv">smtpd_error_sleep_time</span><span class="o">=</span><span class="m">0</span>
-    -o <span class="nv">smtpd_soft_error_limit</span><span class="o">=</span><span class="m">1001</span>
-    -o <span class="nv">smtpd_hard_error_limit</span><span class="o">=</span><span class="m">1000</span>
-    -o <span class="nv">smtpd_client_connection_count_limit</span><span class="o">=</span><span class="m">0</span>
-    -o <span class="nv">smtpd_client_connection_rate_limit</span><span class="o">=</span><span class="m">0</span>
+    -o <span class="nv">mynetworks</span><span class="o">=</span>127.0.0.0/8
+    -o <span class="nv">smtpd_error_sleep_time</span><span class="o">=</span>0
+    -o <span class="nv">smtpd_soft_error_limit</span><span class="o">=</span>1001
+    -o <span class="nv">smtpd_hard_error_limit</span><span class="o">=</span>1000
+    -o <span class="nv">smtpd_client_connection_count_limit</span><span class="o">=</span>0
+    -o <span class="nv">smtpd_client_connection_rate_limit</span><span class="o">=</span>0
     -o <span class="nv">receive_override_options</span><span class="o">=</span>no_header_body_checks,no_unknown_recipient_checks,no_milters,no_address_mappings
     -o <span class="nv">local_header_rewrite_clients</span><span class="o">=</span>
     -o <span class="nv">smtpd_milters</span><span class="o">=</span>
@@ -154,59 +221,59 @@ Any mail coming out of Amavis has the correct labeling and we can assume that th
 To do more checking on this deamon would be redundant and would only consume more system resources.</p>
 <p>Save that <em>master.cf</em> file and stop your Postfix daemon (<em>don't restart it</em>). We first have to make sure that our Spamassassin and ClamAV daemons are running and setup to run by default.
 First start the Spamassassin, ClamAV and Amavis daemon:</p>
-<pre class="code literal-block"><span></span>$ /etc/init.d/spamassassin start
-$ /etc/init.d/clamd start
-$ /etc/init.d/amavisd start
+<pre class="code literal-block"><span class="nv">$ </span>/etc/init.d/spamassassin start
+<span class="nv">$ </span>/etc/init.d/clamd start
+<span class="nv">$ </span>/etc/init.d/amavisd start
 </pre>
 
 
 <p>Then make sure that after reboot all daemons are automatically started:</p>
-<pre class="code literal-block"><span></span>$ chkconfig spamassassin on
-$ chkconfig clamd on
-$ chkconfig amavisd on
+<pre class="code literal-block"><span class="nv">$ </span>chkconfig spamassassin on
+<span class="nv">$ </span>chkconfig clamd on
+<span class="nv">$ </span>chkconfig amavisd on
 </pre>
 
 
 <p>Now you can start the Postfix daemon:</p>
-<pre class="code literal-block"><span></span>$ /etc/init.d/postfix start
+<pre class="code literal-block"><span class="nv">$ </span>/etc/init.d/postfix start
 </pre>
 
 
 <p>If all is well, we now should have basic spam and virus protection up and running!
 Check you maillog, it should say all kinds of neat messages about Amavis decoders, AV Scanners, etc.
 Also check if Postfix is still accepting mail by putting a follow tail on your maillog and sending mail from external to one of your mailboxes:</p>
-<pre class="code literal-block"><span></span>$ tail -f /var/log/maillog
+<pre class="code literal-block"><span class="nv">$ </span>tail -f /var/log/maillog
 </pre>
 
 
 <p>When you hit send in your external mail program, the maillog should show some lines ending with "(delivered to maildir)".</p>
 <p>Now lets do some testing before we continue. Lets see if the Amavis service is actually listening:</p>
-<pre class="code literal-block"><span></span>$ telnet localhost <span class="m">10024</span>
+<pre class="code literal-block"><span class="nv">$ </span>telnet localhost 10024
 </pre>
 
 
 <p>This should bring up a telnet interface stating that amavisd-new service is ready.
 Send a "ehlo" command on that telnet interface so see if you get output:</p>
-<pre class="code literal-block"><span></span>$ ehlo localhost
+<pre class="code literal-block"><span class="nv">$ </span>ehlo localhost
 </pre>
 
 
 <p>If it prints a bunch of lines starting with "250" you are in the clear. Type "quit" to exit the telnet.
 Second we want to test if our SMTP daemon we created above, the daemon used for re-injection, is also up and running:</p>
-<pre class="code literal-block"><span></span>$ telnet localhost <span class="m">10025</span>
+<pre class="code literal-block"><span class="nv">$ </span>telnet localhost 10025
 </pre>
 
 
 <p>This should start a new telnet interface with a line reading something like "220 mail.foo.com".
 Again give the ehlo command to see if we get something:</p>
-<pre class="code literal-block"><span></span>$ ehlo localhost
+<pre class="code literal-block"><span class="nv">$ </span>ehlo localhost
 </pre>
 
 
 <p>Another row of 250 lines? Good! Use quit to exit this telnet and lets move on!</p>
 <p>Now its time to tell Postfix to pass all incoming mail to the small conveyor belt of our Amavis workers.
 Open up your main.cf file and at the end, where you inserted the PostgreSQL lines in the previous chapter, add this simple line:</p>
-<pre class="code literal-block"><span></span>$ <span class="nv">content_filter</span> <span class="o">=</span> amavisfeed:<span class="o">[</span><span class="m">127</span>.0.0.1<span class="o">]</span>:10024
+<pre class="code literal-block"><span class="nv">$ content_filter</span> <span class="o">=</span> amavisfeed:<span class="o">[</span>127.0.0.1<span class="o">]</span>:10024
 </pre>
 
 
@@ -214,26 +281,26 @@ Open up your main.cf file and at the end, where you inserted the PostgreSQL line
 <p>Now its time for sending some virusses and spam to our server, the proof of the pudding is in the eating so to speak.
 First, lets see if our Amavis milters catch this virus test string created by the folks over at eircar.org.
 Send the following string as a plain text message from an external mailserver to your mailserver and check your maillog after sending:</p>
-<pre class="code literal-block"><span></span>X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+<pre class="code literal-block"><span class="x">X5O!P%@AP[4\PZX54(P^)7CC)7}</span><span class="p">$</span><span class="nv">EICAR</span><span class="x">-STANDARD-ANTIVIRUS-TEST-FILE!</span><span class="p">$</span><span class="nv">H</span><span class="x">+H*</span>
 </pre>
 
 
 <p>This string is save to send and does not contain a virus, read more about this at <a href="http://www.eicar.org/86-0-Intended-use.html">Eicar</a>.
 This merely triggers Amavis's and in turn ClamAV's warning light and it will alert you of a possible virus in the maillog.
 Your maillog will contain a bunch of new lines about this message where one will say something like:</p>
-<pre class="code literal-block"><span></span>$ mail amavis<span class="o">[</span><span class="m">5112</span><span class="o">]</span>: <span class="o">(</span><span class="m">05112</span>-03<span class="o">)</span> Blocked INFECTED <span class="o">(</span>Eicar-Test-Signature<span class="o">)</span>
+<pre class="code literal-block"><span class="nv">$ </span>mail amavis<span class="o">[</span>5112<span class="o">]</span>: <span class="o">(</span>05112-03<span class="o">)</span> Blocked INFECTED <span class="o">(</span>Eicar-Test-Signature<span class="o">)</span>
 </pre>
 
 
 <p>If you see this, congratulations, Amavis, ClamAV and Postfix are working together nicely! </p>
 <p>Now lets do a spam test. The website of Spamassassin delivers us with a same type of string that will fire your setup's spam warning lights.
 Again, send a plain text email with the following string:</p>
-<pre class="code literal-block"><span></span>XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
+<pre class="code literal-block">XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
 </pre>
 
 
 <p>Now check your maillog, again a bunch of new lines and one of them should say:</p>
-<pre class="code literal-block"><span></span>$ mail amavis<span class="o">[</span><span class="m">5113</span><span class="o">]</span>: <span class="o">(</span><span class="m">05113</span>-03<span class="o">)</span> Blocked SPAM.
+<pre class="code literal-block"><span class="nv">$ </span>mail amavis<span class="o">[</span>5113<span class="o">]</span>: <span class="o">(</span>05113-03<span class="o">)</span> Blocked SPAM.
 </pre>
 
 
@@ -246,14 +313,14 @@ Search for the variable "$virus_admin" and change the "virusalert" part into any
 First lets auto-update Spamassassin. Spamassassin already prepared a cronfile for us that updates its spam rules.
 The cronfile is located in <em>/usr/share/spamassassin/sa-update.cron</em>. During install, Spamassassin already added a cronjob for this file in <em>/etc/cron.d/sa-update</em>.
 Just open the last file and check if the line is not commented:</p>
-<pre class="code literal-block"><span></span>$ <span class="m">10</span> <span class="m">4</span> * * * root /usr/share/spamassassin/sa-update.cron <span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span> <span class="p">|</span> tee -a /var/log/sa-update.log
+<pre class="code literal-block"><span class="nv">$ </span><span class="m">10</span> <span class="m">4</span> * * * root /usr/share/spamassassin/sa-update.cron 2&gt;<span class="p">&amp;</span><span class="m">1</span> <span class="p">|</span> tee -a /var/log/sa-update.log
 </pre>
 
 
 <p>Once a day this will update the spam rules via cron if you have enabled it in your crontab file.
 To enable this in our crontab file, op this file at "/etc/crontab" and make sure that our hourly, daily, weekly and monthly scripts are there.
 By default this file is empty, only with a comment header telling you about how to use the crontab. You can enable the different cronjobs by adding this to your crontab:</p>
-<pre class="code literal-block"><span></span>$ <span class="m">01</span> * * * * root run-parts /etc/cron.hourly 
+<pre class="code literal-block"><span class="nv">$ </span><span class="m">01</span> * * * * root run-parts /etc/cron.hourly 
   <span class="m">02</span> <span class="m">4</span> * * * root run-parts /etc/cron.daily 
   <span class="m">22</span> <span class="m">4</span> * * <span class="m">0</span> root run-parts /etc/cron.weekly 
   <span class="m">42</span> <span class="m">4</span> <span class="m">1</span> * * root run-parts /etc/cron.monthly
@@ -262,18 +329,18 @@ By default this file is empty, only with a comment header telling you about how 
 
 <p>Save this file. Now all the cronjoobs in the various cron.* directories are executed at their set interval.
 Now make sure the cron daemon is running:</p>
-<pre class="code literal-block"><span></span>$ /etc/init.d/crond start
+<pre class="code literal-block"><span class="nv">$ </span>/etc/init.d/crond start
 </pre>
 
 
 <p>And set it to run automatically after reboot:</p>
-<pre class="code literal-block"><span></span>$ chkconfig crond on
+<pre class="code literal-block"><span class="nv">$ </span>chkconfig crond on
 </pre>
 
 
 <p>After the first cron has run, you can check the update log file at <em>/var/log/sa-update.log</em> to see if everything went well.
 You can always call <em>sa-update</em> manually and restart Spamassassin by issuing the following command:</p>
-<pre class="code literal-block"><span></span>$ sa-update <span class="o">&amp;&amp;</span> /etc/init.d/spamassassin restart
+<pre class="code literal-block"><span class="nv">$ </span>sa-update <span class="o">&amp;&amp;</span> /etc/init.d/spamassassin restart
 </pre>
 
 
@@ -281,7 +348,7 @@ You can always call <em>sa-update</em> manually and restart Spamassassin by issu
 It uses a shellscript called "freshclam" which can be found at <em>/etc/cron.daily/freshclam</em> to do the job. Since you already configured your cronjobs to run, everything is setup.
 Also here we can check a log file to see if it is being updated. This file is located here: <em>/var/log/clamav/freshclam.log</em>.
 This update can also be triggered manually by issuing the following command:</p>
-<pre class="code literal-block"><span></span>$ freshclam <span class="o">&amp;&amp;</span> /etc/init.d/clamd restart
+<pre class="code literal-block"><span class="nv">$ </span>freshclam <span class="o">&amp;&amp;</span> /etc/init.d/clamd restart
 </pre>
 
 
@@ -290,5 +357,22 @@ This chapter wasn't to bad, right?</p>
 <p>On to <a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series">chapter 4</a>, where we will setup Dovecot which will connect our beautiful factory to the outside world!</p>
 <p>And as always, thanks for reading!</p>
 </div>
- </div>
-</div></body></html>
+    </div>
+    
+    <ul class="pager">
+<li class="previous">
+            <a href="mailserver-2.html">← Previous post</a>
+        </li>
+        <li class="next">
+            <a href="mailserver-4.html">Next post →</a>
+        </li>
+    </ul>
+</div>
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+    </div>
+    
+        <script src="../assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>

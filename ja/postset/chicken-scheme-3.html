@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="The Scheme programming language AKA The CHICKEN hens nest - Part 3 | shisaa.jp">
+<meta name="description" content="">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>The Scheme programming language AKA The CHICKEN hens nest - Part 3 | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="../../assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="../../assets/img/favicon.ico" rel="shortcut icon">
+<link href="../../assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-ja">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="../../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest ja-interest">ホームページ制作 / Webアプリケーション / Unix</span>
+	  <span class="ja-subtitle">フリーランスのシステムエンジニア（SE）、システム管理者へのソフトウェア開発</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="first"><a href="../../index.html" rel="alternate" hreflang="en">English</a></li>
+        
+          
+            <li class="current-lang not-first"><span>日本語</span></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href="../">ホーム</a>
+            </li>
+<li>
+<a href="../stories/homepage.html">ホームページ制作</a>
+            </li>
+<li>
+<a href="../stories/web-shop.html">Webshop</a>
+            </li>
+<li>
+<a href="../stories/web-application.html">Webアプリケーション</a>
+            </li>
+<li>
+<a href="../archive.html">ブログ (英語)</a>
+            </li>
+<li>
+<a href="../photography/index.html">写真撮影</a>
+            </li>
+<li>
+<a href="../stories/3d.html"></a>
+
+	  
+    <br>
+</li>
+</ul>
+<div id="content">
+	
+    <div class="postbox">
+    
+    <h2><a href="#">The Scheme programming language AKA The CHICKEN hens nest - Part 3</a></h2>
+
+    <p class="post-date">21/09/2013 <span>-</span> </p>
+    
+    <ul class="tags">
+<li class="tag"><a href="../categories/chicken.html">chicken</a></li>          
+         <li class="tag"><a href="../categories/json-rpc.html">json rpc</a></li>          
+         <li class="tag"><a href="../categories/scheme.html">scheme</a></li>          
+    </ul>
+<div class="post">
+      <div>
+<h3>Chapter 3 - Wrapping the egg</h3>
+<p>And here we arrive at the final stage of our egg development.</p>
+<p>If you did not yet do so, please go and read <a href="http://shisaa.jp/postset/chicken-scheme-1.html" title="Chapter 1 of the CHICKEN series.">chapter 1</a> and <a href="http://shisaa.jp/postset/chicken-scheme-2.html" title="Chapter 2 of the CHICKEN series.">chapter 2</a> before you endeavor on this final hop to a published egg in CHICKEN.</p>
+<p>Let us find out what we will be dealing with:</p>
+<ul>
+<li>Explain a little bit about <em>why the hell we need to write tests for our code</em>
+</li>
+<li>Look at how we can actually write basic tests in CHICKEN</li>
+<li>While writing our tests, look at some new items like "let" and "apply"</li>
+<li>Create our setup file to automatically setup our egg when people install it</li>
+<li>Create the needed meta file for the CHICKEN egg system</li>
+<li>Create the release-info file for CHICKEN's code host independent deployment system </li>
+<li>Quickly compile and install our egg</li>
+<li>Submit the egg to CHICKEN</li>
+<li>Write the egg's documentation</li>
+</ul>
+<p>You have got your battle axe ready? Then by all means...dive in!</p>
+<h4>Why tests?</h4>
+<p>First, let me explain to you the importance of writing tests for your code:</p>
+<p><strong>IT IS FRACKING IMPORTANT!</strong></p>
+<p>Ahum...sorry, got carried away there for a bit...let me rephrase that:</p>
+<p>Writing tests is rather smart to do.</p>
+<p>Why?</p>
+<p>Well, it is actually a cultural thing inside a programmers mind or inside a community of programmers. Some (many) programmers find writing tests a cumbersome task, time consuming.</p>
+<p>Their train of thought usually runs past <em>Lazy Ville</em> and stops at <em>I'm Freaking Awesome - Don't Need Tests</em> station.</p>
+<p>Phrases you often hear are: "My code works, screw your tests!" or "I can test my code better then a computer can" or "I wanted to write tests, but then my cat sat on my keyboard, switched on YouTube and watched other cats do silly things. It was awesome so I decided to not write tests tonight...I will do that first thing in the morning <small>after washing the car, letting out my cat, putting out the garbage, reading my awesome Facebook page, ...</small>".</p>
+<p>The problem, however, is that we are all stupid dumb ass bags of watery flesh. Thinking that we never make mistakes and therefor do not need sufficient testing of our work is downright ignorant and even arrogant. We <em>all</em> suck at programming. Some of us less, some of us more. We humans have a tendency of slacking. We let our brains trick ourselves into thinking we always have the whole picture in our minds and therefor know what we are doing.</p>
+<p>In other engineering professions where folks build bridges or airplanes, there is a strong sense of not making the same mistake twice (and thus spare a life or two). People learn from mistakes made in the past and implement a huge amount of time and money into testing their work before releasing it to the public. Somehow, in the programming world we dwell in, we tend to neglect all of these values as if we are some kind of super humans. We are not.</p>
+<p>Good programmers implement the same engineering values as our neighboring colleagues: they learn from others mistakes and they test their work.</p>
+<p>Got it?</p>
+<p>Good...then let us write some tests!</p>
+<h4>Testing in CHICKEN</h4>
+<p>Because testing is so vital for every serious project, the CHICKEN community has put a lot of effort into making this as trivial as possible to setup.
+Especially the work of <a href="http://wiki.call-cc.org/users/alex-shinn" title="CHICKEN User page of Alex Shinn.">Alex Shinn</a> and  <a href="http://wiki.call-cc.org/users/mario-domenech-goulart" title="CHICKEN User page of Mario Domenech Goulart.">Mario Domenech Goulart</a> made our CHICKEN testing lives a lot easier.</p>
+<p>Alex created an egg called "<em>Test</em>" which gives us a bunch of handy procedures to easily write tests for our code. Mario has written an <em>immense</em> egg neatly called "<em>Salmonella</em>" that you can use to automatically test your egg. Once you submit your egg to CHICKEN, the server will run Salmonella automatically every night on all submitted eggs. It will generate a report that you can check at any time to see if you egg fails its tests.</p>
+<p>For my JSON-RPC egg I decided to write two different kind of tests:</p>
+<ul>
+<li>A normal test where we tell CHICKEN which result we except with the given code</li>
+<li>An error test where we explicitly test if something throws an error</li>
+</ul>
+<p>Let the writing commence!</p>
+<p>All of your tests go into one file called <em>run.scm</em> and for Salmonella to find your tests that file has to be placed inside a directory of your egg called <em>tests</em>.</p>
+<p>In the <em>run.scm</em> the first thing you have to put is a line that will actually load the test suite for you:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">use</span> <span class="nv">test</span><span class="p">)</span>
+</pre>
+
+
+<p>Next we need to load in our egg itself, since this is an external test file. Once your egg is compiled you can load it using the <em>use</em> procedure like so:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">use</span> <span class="nv">json-rpc-client</span><span class="p">)</span>
+</pre>
+
+
+<p>We can, of course, pull these two lines together to form:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">use</span> <span class="nv">test</span> <span class="nv">json-rpc-client</span><span class="p">)</span>
+</pre>
+
+
+<p>This will not yet work since we still have to compile and install our egg. First, let us write the test file.</p>
+<p>When testing it is a good idea to divide your tests into groups so that the reports that will roll out later can group your tests to make everything more readable.
+For this we can use <em>test-group</em>:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test-group</span> <span class="s">"A name for your group"</span> <span class="p">(</span><span class="nf">test</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">test</span> <span class="mi">2</span><span class="p">)</span> <span class="o">...</span> <span class="p">)</span>
+</pre>
+
+
+<p>You define a name for the group and then list all the tests you would like to perform.
+In my case, I would like to test if the JSON-RPC call I do gets formatted to correct JSON-RPC. Therefore I named my first group "JSON-RPC string output checks".
+We will first concentrate on writing some tests and later wrap this group around them.</p>
+<p>A normal test is very easy to setup and uses easy to read syntax:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test</span> <span class="s">"Description of the test"</span> <span class="s">"The result you want to see"</span> <span class="p">(</span><span class="nf">procedure</span> <span class="nv">to</span> <span class="nv">test</span><span class="p">))</span>
+</pre>
+
+
+<p>We start a test by using the "test" procedure and we give it a description.
+Next we set the result that we <em>expect</em> to see if our code is correct, this can be a string, a list, anything that could be returned.
+Finally we call the to be tested procedure itself.</p>
+<p>We want to test that the final JSON-RPC string, that will be sent to the server, is correctly formatted.
+Because during testing, we generally do not have access to a real JSON-RPC server to communicate with and thus cannot setup any real world ports to communicate, we need to setup a different kind of port.
+These kind of ports are called <em>string ports</em>:</p>
+<ul>
+<li>An <em>input</em> string port holds a string that you define</li>
+<li>An <em>output</em> string port captures strings written to it that you can read out</li>
+</ul>
+<p>Once we have these string ports setup we can use it to catch the string that normally would be send to a JSON-RPC server and compare it with a string we defined.
+Before testing, we have to define the ports and setup the JSON-RPC connection, in our case called "xbmc":</p>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="nv">input</span> <span class="p">(</span><span class="nf">open-input-string</span> <span class="s">"some-string"</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define </span><span class="nv">output</span> <span class="p">(</span><span class="nf">open-output-string</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define </span><span class="nv">xbmc</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">))</span>
+</pre>
+
+
+<p>Now we can throw something at the simulated server and check how it comes out the other end:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">xbmc</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">test</span> <span class="s">"Call with only a method"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"1\"}"</span> <span class="p">(</span><span class="nf">get-output-string</span> <span class="nv">output</span><span class="p">))</span>
+</pre>
+
+
+<p>We call "xbmc" with only a method. Then we call "test", give it a description, give the string we are expecting and finally read out the output port that our xbmc call used with the build in "get-output-string" procedure.</p>
+<p>While this test works fine, the whole is not very flexible.
+Let me illustrate this by showing you what happens when we create a second test in our "run.scm" file:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">xbmc</span> <span class="s">"Player.PlayPause"</span> <span class="nv">playerid:</span> <span class="mi">0</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">test</span> <span class="s">"Call with a method and a one dimensional params"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"params\":{\"playerid\":0},\"id\":\"1\"}"</span> <span class="p">(</span><span class="nf">get-output-string</span> <span class="nv">output</span><span class="p">))</span>
+</pre>
+
+
+<p>With this test, we not only check the method, but we also give a param and check how that turns out. This is also a perfectly legal and sensible test.</p>
+<p>The problem here is that the <em>output</em> port we defined above will contain both the output of the first <em>and</em> the second test. It is a characteristic of the string output port that it will accumulate the strings that it receives. So when we read from that port we will again receive the result of the first test followed by the result of the second test, which is the one we are actually interested in.</p>
+<p>This, of course, means that our second test will fail, because the string comparison will be #f (false).</p>
+<p>To solve this problem, we need to create our own little test procedure specifically tailored for our JSON-RPC server. This procedure will just be a small wrapper around the normal "test" procedure, but will take care of the accumulating output port problem described above. Let me present the code to you:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">test-server</span> <span class="nv">description</span> <span class="nv">expected</span> <span class="nv">method</span> <span class="o">.</span> <span class="nv">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let </span><span class="p">((</span><span class="nf">output</span> <span class="p">(</span><span class="nf">open-output-string</span><span class="p">)))</span>
+        <span class="p">(</span><span class="nb">apply </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">)</span> <span class="nv">method</span> <span class="nv">params</span><span class="p">)</span>
+        <span class="p">(</span><span class="nf">test</span>
+            <span class="nv">message</span>
+            <span class="nv">expected</span>
+            <span class="p">(</span><span class="nf">get-output-string</span> <span class="nv">output</span><span class="p">))))</span>
+</pre>
+
+
+<p>Okay, there are some new things in here, so let us break this down line by line.</p>
+<p>The first line:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">test-server</span> <span class="nv">description</span> <span class="nv">expected</span> <span class="nv">method</span> <span class="o">.</span> <span class="nv">params</span><span class="p">)</span>
+</pre>
+
+
+<p>This is nothing new, we define a new procedure called "test-server" which takes three mandatory and one optional argument.
+The first argument will be the description we print in our test report, the second argument is the "datum" we except.
+The third and fourth arguments are the familiar method and optional params we use in our testing.</p>
+<p>Next line:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="k">let </span><span class="p">((</span><span class="nf">output</span> <span class="p">(</span><span class="nf">open-output-string</span><span class="p">)))</span> <span class="o">...</span>
+</pre>
+
+
+<p>Here we have a new "thing" in sight: <em>let</em>.</p>
+<p>"Let" is actually not a procedure, but a "special form" that is quite commonly used when programming in CHICKEN and is needed for <em>local scoping</em> of your variables.
+The difference between procedures and special forms is (way) beyond the scope of this chapter, just know there is a difference between the two.</p>
+<h5>Local scoping?</h5>
+<p>In almost all programming languages you have a concept called <em>"scoping"</em> and it is nothing more then the name suggests. It is the process of keeping parts of your code (variables, procedures, ...)  "hidden" from other parts of your code. When you scope variables, you make them available to only a certain part of your program. Other parts of your code do not even know that those variables exists and thus cannot read or overwrite them.</p>
+<p>In CHICKEN, and most other Scheme languages, "let" will do that job for you. How does "let" work? Simple:</p>
+<pre class="code literal-block">(let ((foo "a local string")
+      (bar "another local string"))
+     (cons foo bar))
+</pre>
+
+
+<p>In a "let" you have to define your local variables first, in our case "foo" and "bar". These definitions form the first argument.
+The second argument to "let" is the procedure body; the code that will be executed using your locally stored variables.
+Code that resides outside of the "let" never knows the existence of these local variables "foo" and "bar".</p>
+<p>In our case, "let" can help us by making the output port a local one so that every time the "let" is called, a new output port will be created and thus will only contain one string at a time.</p>
+<p>The next line is the start of the body of the "let":</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">apply </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">)</span> <span class="nv">method</span> <span class="nv">params</span><span class="p">)</span>
+</pre>
+
+
+<p>Here we encounter yet another new player in town: <em>"apply"</em>. This procedure takes an "infinite" amount of arguments; the first always being a procedure and the rest being arguments that the procedure we be applied upon. A very important thing to note about the arguments is that the last argument <em>has</em> to be a list, otherwise "apply" does not work.</p>
+<p>"Apply" will cons the arguments you put in between its first and last argument onto the last argument, before calling the given procedure with those arguments. Let me demonstrate:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">apply </span><span class="nv">some-procedure</span> <span class="o">'</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+</pre>
+
+
+<p>Now "apply" simply has two arguments, a fictional procedure called "some-procedure" and a list of three arguments '(1 2 3). It is allowed to put additional arguments <em>between</em> the two given here:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">apply </span><span class="nv">some-procedure</span> <span class="mi">4</span> <span class="mi">5</span> <span class="s">"string"</span> <span class="o">'</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+</pre>
+
+
+<p>Now three extra arguments will be placed in between the original procedure and the original, last argument '(1 2 3). "Apply" will first cons every argument onto the last list given:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nb">apply </span><span class="nv">some-procedure</span> <span class="o">'</span><span class="p">(</span><span class="mi">4</span> <span class="mi">5</span> <span class="s">"string"</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+</pre>
+
+
+<p>Then it will take that list and call the procedure with every item, as if it where the actual arguments to that function.</p>
+<p>In our case, we have the procedure "json-rpc-server" with its own arguments, one of which is the locally scoped output port. Because this procedure will return a lambda expecting a method and optional params, we can use "apply" to give these arguments to this returned lambda. "Apply" will in turn return the result of the lambda with the method and params applied.</p>
+<p>Next we have the rest of our "let" body:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test</span>
+    <span class="nv">description</span>
+    <span class="nv">expected</span>
+    <span class="p">(</span><span class="nf">get-output-string</span> <span class="nv">output</span><span class="p">))</span>
+</pre>
+
+
+<p>Here we simply do what we did before: we call the "test" procedure, give it a description, tell it what we expect to get and finally read out the local output string port to compare with.</p>
+<p>Let us use this newly created procedure in our test:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test-server</span> <span class="s">"Call with only a method"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"1\"}"</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+</pre>
+
+
+<p>Now we have a piece of code that is a little bit more readable and tailored to our JSON-RPC egg:</p>
+<ul>
+<li>We call the test-server procedure</li>
+<li>First argument is just a description of what we will be testing</li>
+<li>Second is the string we expect to get</li>
+<li>Last is, in this case, the method we want to test our "json-rpc-server" procedure with</li>
+</ul>
+<p>One more thing to note is the escaping that you may have noticed in the string we expect. Because a double quote " means something in CHICKEN (it wraps a string) we need to escape it inside the string by using a backslash. The JSON-RPC valid JSON string we use here normally looks like this:</p>
+<pre class="code literal-block"><span class="p">{</span><span class="nt">"jsonrpc"</span><span class="p">:</span><span class="s2">"2.0"</span><span class="p">,</span><span class="nt">"method"</span><span class="p">:</span><span class="s2">"Player.PlayPause"</span><span class="p">,</span><span class="nt">"id"</span><span class="p">:</span><span class="s2">"1"</span><span class="p">}</span>
+</pre>
+
+
+<p>And with the double quotes escaped in a CHICKEN string becomes this:</p>
+<pre class="code literal-block"><span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"1\"}"</span>
+</pre>
+
+
+<p>Now we have a valid test for the case where we call our procedure with only a method. Let us now write one with a method and a single param:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test-server</span> <span class="s">"Call with a method and a one dimensional params"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"params\":{\"playerid\":0},\"id\":\"1\"}"</span> <span class="s">"Player.PlayPause"</span> <span class="nv">playerid:</span> <span class="mi">0</span><span class="p">)</span>
+</pre>
+
+
+<p>Nothing strange happening here. We give it a different description of course, and we expect a different string, including params this time. And at the end we, of course, include a param in there.</p>
+<p>Let us now put these two tests in a group, like we said we would do a moment ago:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test-group</span> <span class="s">"JSON-RPC string output checks"</span>
+    <span class="p">(</span><span class="nf">test-server</span> <span class="s">"Call with only a method"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"1\"}"</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">test-server</span> <span class="s">"Call with a method and a one dimensional params"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"params\":{\"playerid\":0},\"id\":\"1\"}"</span> <span class="s">"Player.PlayPause"</span> <span class="nv">playerid:</span> <span class="mi">0</span><span class="p">))</span>
+</pre>
+
+
+<p>There, this does not look scary, right? We have a test group called "JSON-RPC string output checks" containing the two tests we just have written.</p>
+<p>You know what? That is all there is to basic testing. We have just written a few simple tests to verify the whole purpose of the JSON-RPC client side egg.</p>
+<p>The full code that we have in our "run.scm" up until now looks like this:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">use</span> <span class="nv">test</span> <span class="nv">json-rpc-client</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">define </span><span class="nv">input</span> <span class="p">(</span><span class="nf">open-input-string</span> <span class="s">"just-a-test-string"</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define </span><span class="nv">output</span> <span class="p">(</span><span class="nf">open-output-string</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define </span><span class="nv">xbmc</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">test-server</span> <span class="nv">description</span> <span class="nv">expected</span> <span class="nv">method</span> <span class="o">.</span> <span class="nv">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let </span><span class="p">((</span><span class="nf">output</span> <span class="p">(</span><span class="nf">open-output-string</span><span class="p">)))</span>
+        <span class="p">(</span><span class="nb">apply </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">)</span> <span class="nv">method</span> <span class="nv">params</span><span class="p">)</span>
+        <span class="p">(</span><span class="nf">test</span>
+            <span class="nv">description</span>
+            <span class="nv">expected</span>
+            <span class="p">(</span><span class="nf">get-output-string</span> <span class="nv">output</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nf">test-group</span> <span class="s">"JSON-RPC string output checks"</span>
+    <span class="p">(</span><span class="nf">test-server</span> <span class="s">"Call with only a method"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"1\"}"</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">test-server</span> <span class="s">"Call with a method and a one dimensional params"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"params\":{\"playerid\":0},\"id\":\"1\"}"</span> <span class="s">"Player.PlayPause"</span> <span class="nv">playerid:</span> <span class="mi">0</span><span class="p">))</span>
+</pre>
+
+
+<p>A few things to note about the above snippet:</p>
+<ul>
+<li>We use "use" in the beginning, but this does not work yet until we actually compile and install our egg.</li>
+<li>We define a <em>global</em> input and output port plus a JSON-RPC connection called xbmc, we will need this later on.</li>
+<li>The input port we defined globally is used in our "test-server" procedure, but the output port is locally scoped in that same procedure.</li>
+</ul>
+<p>The next kind of tests we want to write are error tests. This sort of test does exactly what you would expect, test if something gives an error.
+In our case we need these kind of tests to see if our error handlers work correctly.</p>
+<p>The first error handler we wrote is the one for our main "json-rpc-server" procedure. So to write an error test for this, we simply have to do an erroneous call.
+If we recall our "json-rpc-server" procedure we need three things to correctly setup the connection:</p>
+<ul>
+<li>A valid input port</li>
+<li>A valid output port</li>
+<li>A correct version number (a string that equals "2.0")</li>
+</ul>
+<p>If we would like to test if it fails when we use a faulty input port, we would write the test like so:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test-error</span> <span class="s">"Non port call on input"</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="s">"input"</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">))</span>
+</pre>
+
+
+<p>The syntax looks quite familiar. We call the procedure "test-error" instead of "test" and give it a description. Then we simply call our procedure with some kind of error in it.
+In this case we give the string <em>"input"</em> instead of the defined variable <em>input</em>. This string is not a valid input port of course, so our error handler fires and we get an error.
+Getting an error in this case means that the test will pass!</p>
+<p>In my test I include some more error checks:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test-error</span> <span class="s">"Non port call on output"</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="s">"output"</span> <span class="s">"2.0"</span><span class="p">))</span>
+<span class="p">(</span><span class="nf">test-error</span> <span class="s">"Non correct version number call"</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"3.0"</span><span class="p">)))</span>
+</pre>
+
+
+<p>And of course, this can become a group, giving you this code:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test-group</span> <span class="s">"Non-port or non-version calls"</span>
+    <span class="p">(</span><span class="nf">test-error</span> <span class="s">"Non port call on input"</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="s">"input"</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">))</span>
+    <span class="p">(</span><span class="nf">test-error</span> <span class="s">"Non port call on output"</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="s">"output"</span> <span class="s">"2.0"</span><span class="p">))</span>
+    <span class="p">(</span><span class="nf">test-error</span> <span class="s">"Non correct version number call"</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"3.0"</span><span class="p">)))</span>
+</pre>
+
+
+<p>A tricky thing to note about error tests is that <em>any</em> kind of failure will make the test pass. This can be very misleading because even real errors in your code can cause a failure to occur and the test to pass. To more correctly setup these error tests, I should also check if the error I get back is of the custom type I defined specifically for the JSON-RPC egg. This way I know for sure that it is <em>my</em> custom error handler that raises the situation, and not something else. But that kind of setup is beyond the scope of this chapter. For now just remember to be careful when writing error tests.</p>
+<p>A very important last step in your "run.scm" file is to end the file with the following code:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">test-exit</span><span class="p">)</span>
+</pre>
+
+
+<p>If you omit this line the automated tests on the server will fail, so it is vital you end your file with this one.</p>
+<p>Good, we finished writing our tests!</p>
+<p>To recapitulate, here is the total code we have written so far:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">use</span> <span class="nv">test</span> <span class="nv">json-rpc-client</span><span class="p">)</span>
+
+<span class="p">(</span><span class="k">define </span><span class="nv">input</span> <span class="p">(</span><span class="nf">open-input-string</span> <span class="s">"some-string"</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define </span><span class="nv">output</span> <span class="p">(</span><span class="nf">open-output-string</span><span class="p">))</span>
+<span class="p">(</span><span class="k">define </span><span class="nv">xbmc</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">))</span>
+
+<span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">test-server</span> <span class="nv">description</span> <span class="nv">expected</span> <span class="nv">method</span> <span class="o">.</span> <span class="nv">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">let </span><span class="p">((</span><span class="nf">output</span> <span class="p">(</span><span class="nf">open-output-string</span><span class="p">)))</span>
+        <span class="p">(</span><span class="nb">apply </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">)</span> <span class="nv">method</span> <span class="nv">params</span><span class="p">)</span>
+        <span class="p">(</span><span class="nf">test</span>
+            <span class="nv">description</span>
+            <span class="nv">expected</span>
+            <span class="p">(</span><span class="nf">get-output-string</span> <span class="nv">output</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nf">test-group</span> <span class="s">"JSON-RPC string output checks"</span>
+    <span class="p">(</span><span class="nf">test-server</span> <span class="s">"Call with only a method"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"id\":\"1\"}"</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">test-server</span> <span class="s">"Call with a method and a one dimensional params"</span> <span class="s">"{\"jsonrpc\":\"2.0\",\"method\":\"Player.PlayPause\",\"params\":{\"playerid\":0},\"id\":\"1\"}"</span> <span class="s">"Player.PlayPause"</span> <span class="nv">playerid:</span> <span class="mi">0</span><span class="p">))</span>
+
+<span class="p">(</span><span class="nf">test-group</span> <span class="s">"Non-port or non-version calls"</span>
+    <span class="p">(</span><span class="nf">test-error</span> <span class="s">"Non port call on input"</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="s">"input"</span> <span class="nv">output</span> <span class="s">"2.0"</span><span class="p">))</span>
+    <span class="p">(</span><span class="nf">test-error</span> <span class="s">"Non port call on output"</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="s">"output"</span> <span class="s">"2.0"</span><span class="p">))</span>
+    <span class="p">(</span><span class="nf">test-error</span> <span class="s">"Non correct version number call"</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="s">"3.0"</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nf">test-exit</span><span class="p">)</span>
+</pre>
+
+
+<p>But before we can run our tests, we first have to build some extra files that in total will define our egg and make it able to be compiled.</p>
+<h4>The setup file</h4>
+<p>file: <em>"json-rpc.setup"</em></p>
+<p>This file mainly contains information for the compiler and for the CHICKEN install system. Check the <a href="http://wiki.call-cc.org/eggs%20tutorial#the-setup-file" title="Setup file wiki page on CHICKEN.">wiki page</a> for more information.</p>
+<p>The JSON-RPC eggs setup file looks like this:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">compile</span> <span class="nv">-s</span> <span class="nv">-O2</span> <span class="nv">-d1</span> <span class="nv">json-rpc-client</span><span class="o">.</span><span class="nv">scm</span> <span class="nv">-j</span> <span class="nv">json-rpc-client</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">compile</span> <span class="nv">-s</span> <span class="nv">json-rpc-client</span><span class="o">.</span><span class="nv">import</span><span class="o">.</span><span class="nv">scm</span> <span class="nv">-O2</span> <span class="nv">-d0</span><span class="p">)</span>
+
+<span class="p">(</span><span class="nf">install-extension</span>
+    <span class="ss">'json-rpc</span>
+    <span class="o">'</span><span class="p">(</span><span class="s">"json-rpc-client.so"</span> <span class="s">"json-rpc-client.import.so"</span><span class="p">)</span>
+    <span class="o">'</span><span class="p">((</span><span class="nf">version</span> <span class="s">"0.1.4"</span><span class="p">)</span>
+      <span class="p">(</span><span class="nf">documentation</span> <span class="s">"json-rpc.html"</span><span class="p">)))</span>
+</pre>
+
+
+<p>The first two lines are the lines the compiler will use to compile your "scm" files into actual raw C code.
+The top line contains the CHICKEN file we have been working on in chapter one and two. The flags that are set here are a sensible default, what they mean is beyond the scope of these posts. You can, in most cases, just use these flags as is.</p>
+<p>The second line contains a CHICKEN file called "json-rpc-client.import.scm" which we did not create but which will be automatically created for you.
+This file will contain information for the CHICKEN module system and also needs to be compiled to C.</p>
+<p>The rest of the file is occupied by a list containing some meta data about your egg. Let me break this down for you:</p>
+<ul>
+<li>'json-rpc - This is the actual name of your egg</li>
+<li>'("json-rpc-client.so" "json-rpc-client.import.so") - Will be the compiled files, the two CHICKEN file we mentioned above, but just with the extension "so" instead of "scm"</li>
+<li>'(version "0.1.4") - The version that you wish to compile. Every time you update the version you should <em>change</em> this here as well</li>
+<li>'(documentation "json-rpc.html") - The place where CHICKEN can find your documentation. I have placed my documentation on the CHICKEN Wiki, which is the standard. If you place it on the wiki, all you need to do is to put the name of you egg (in this case "json-rpc") with the extension ".html" in there. Next it is important to also actually create that page on the wiki. We will do this in a bit.</li>
+</ul>
+<h4>The meta file</h4>
+<p>file: <em>"json-rpc.meta"</em></p>
+<p>The meta file contains all kinds of information related to your egg. This information will later be displayed on the CHICKEN egg pages. Check the <a href="http://wiki.call-cc.org/eggs%20tutorial#the-meta-file" title="Meta file wiki page on CHICKEN.">wiki page</a> for more information.
+In the case of my JSON-RPC egg I input the following information:</p>
+<pre class="code literal-block"><span class="p">((</span><span class="nf">egg</span> <span class="s">"json-rpc.egg"</span><span class="p">)</span>
+ <span class="p">(</span><span class="nf">synopsis</span> <span class="s">"JSON RPC client/server implementation"</span><span class="p">)</span>
+ <span class="p">(</span><span class="nf">category</span> <span class="nv">web</span><span class="p">)</span>
+ <span class="p">(</span><span class="nf">needs</span> <span class="nv">medea</span><span class="p">)</span>
+ <span class="p">(</span><span class="nf">test-depends</span> <span class="nv">test</span><span class="p">)</span>
+ <span class="p">(</span><span class="nf">doc-from-wiki</span><span class="p">)</span>
+ <span class="p">(</span><span class="nf">license</span> <span class="s">"BSD"</span><span class="p">)</span>
+ <span class="p">(</span><span class="nf">author</span> <span class="s">"Tim van der Linden"</span><span class="p">))</span>
+</pre>
+
+
+<p>Let us go over them:</p>
+<ul>
+<li>Give the eggs name, together with the extension ".egg"</li>
+<li>Write a short synopsis about the function of your egg</li>
+<li>Say which category the eggs belongs to. The different categories are listed <a href="http://wiki.call-cc.org/eggs%20tutorial#the-setup-file" title="Egg categories wiki page on CHICKEN.">here</a>
+</li>
+<li>Tell CHICKEN which <em>non-core</em> dependencies your egg has. In the case of the JSON-RPC egg, we have "srfi-1", "medea" and "extras", but only "medea" is a non-core dependency.</li>
+<li>Give the type of documentation you have. If your documentation resides on the CHICKEN Wiki, you need to put this line in</li>
+<li>Tell about the license you have included in your ".scm" files</li>
+<li>Tell them who the author is</li>
+</ul>
+<p>That is all that goes in the meta file, save and close it.</p>
+<h4>The release-info file</h4>
+<p>file: <em>"release-info"</em></p>
+<p>CHICKEN has the unique ability to be totally code host independent.</p>
+<p>You can put your code on CHICKEN's own SVN repositories or on your favorite code hosting site and the CHICKEN egg server will pull all information from there.
+The "release-info" file contains information about where your code is hosted and which version numbers you have available.
+Even when your third party code host is down, CHICKEN still has a local copy of the latest available version of your egg, so people installing your egg can still continue their development.</p>
+<p>Depending on which code hosting site you use there are different settings you ave to configure. There is an <a href="http://wiki.call-cc.org/releasing-your-egg#creating-a-release-info-file" title="Release-info file creation on the CHICKEN wiki.">extensive page</a> about how to setup your release-info for your code host.</p>
+<p>I personally resent the hype around GIT (among other things) and chose Mercurial as my version control system and Bitbucket as my host. So the settings in the release-info file became:</p>
+<pre class="code literal-block"><span class="p">(</span><span class="nf">repo</span> <span class="nv">hg</span> <span class="s">"https://bitbucket.org/Timusan/{egg-name}"</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">uri</span> <span class="nv">targz</span> <span class="s">"https://bitbucket.org/Timusan/{egg-name}/get/{egg-release}.tar.gz"</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">release</span> <span class="s">"0.1"</span><span class="p">)</span>
+<span class="p">(</span><span class="nf">release</span> <span class="s">"0.1.1"</span><span class="p">)</span>
+</pre>
+
+
+<p>What is means:</p>
+<ul>
+<li>The first line is the url to the eggs main location</li>
+<li>Then we have the url to the gzipped tar files for each egg release I make (using Mercurial tags)</li>
+<li>And finally we have the different versions listed that are released</li>
+</ul>
+<h4>Doing a test install</h4>
+<p>Okay, we now have the correct environment to install our egg via the <em>chicken-install</em> command we used in chapter one.
+Make sure you are in the main directory of your egg and that you are root. Then simply call "chicken-install" without any arguments:</p>
+<pre class="code literal-block"><span class="nv">$ </span>chicken-install
+</pre>
+
+
+<p>Or if you do not want to become root, simply use the "-s" switch to temporarily sudo the install:</p>
+<pre class="code literal-block"><span class="nv">$ </span>chicken-install -s
+</pre>
+
+
+<p>The installer will now look in the current directory for all the needed files and install your egg.</p>
+<p>If all went well you will have some compiler output and your egg is compiled and installed in your local CHICKEN ecosystem.
+This means you can now run your tests!</p>
+<p>You can either run "Salmonella" that will not only run your "run.scm" tests file, but also will do checks on the availability of the documentation among other things.
+Since our egg is not published yet, those checks would fail. But by simply running the "run.scm" file by itself, we can run our tests without anything interfering.</p>
+<p>So go into your "tests" directory and run your CHICKEN file with "csi":</p>
+<pre class="code literal-block"><span class="nv">$ </span>csi run.scm
+</pre>
+
+
+<p>CHICKEN will now print a neat little report with the results of our tests. Cool!</p>
+<h4>Publishing &amp; Documentation</h4>
+<p>You now what? You are ready!</p>
+<p>The only thing left for you to do now is to first commit your code to your favorite code hosting site, then announce the existence of your egg and finally write the documentation for it.</p>
+<p>Before you can finally publish your egg for the world to see, you <em>have</em> to write some form of documentation.
+Since it is common to write the documentation on the CHICKEN Wiki itself, you will first have to ask for an account so you can properly access the Wiki.</p>
+<p>After committing your code, send an email to the <a href="https://lists.nongnu.org/mailman/listinfo/chicken-users" title="The CHICKEN Users mailing list.">CHICKEN Users</a> mailing list with the location to your egg so the CHICKEN peeps can add your egg into the system.</p>
+<p>Your account details are best mailed to the private address of <a href="http://wiki.call-cc.org/users/mario-domenech-goulart" title="CHICKEN User page of Mario Domenech Goulart.">Mario Domenech Goulart</a>. Check out <a href="http://wiki.call-cc.org/contribute" title="The CHICKEN egg contribute page.">this</a> page to find out his email. Mail him your desired user name and your hashed password. To generate the hash for your password, use the "OpenSSL" program:</p>
+<pre class="code literal-block"><span class="nv">$ </span>openssl passwd -apr1 your-password-here
+</pre>
+
+
+<p>Once you get confirmation of your account creation, you can start writing.</p>
+<p>The way this is usually done is to create a page on the Wiki with the same name as your egg.
+For the JSON-RPC egg, this would be:</p>
+<pre class="code literal-block">http://wiki.call-cc.org/eggref/4/json-rpc
+</pre>
+
+
+<p>Say, for the sake of exampling, that your eggs name is "foo-bar", you would surf to:</p>
+<pre class="code literal-block">http://wiki.call-cc.org/eggref/4/foo-bar
+</pre>
+
+
+<p>The Wiki will tell you that that page does not exist, but it also gives you the chance to create it.
+Create the page and be sure to authenticate with your fresh, new credentials when saving.</p>
+<p>To get inspiration on how to write the documentation for your egg, check out other contributors their documentation pages. Make sure that you always include the following items:</p>
+<ul>
+<li>A clear description of your egg</li>
+<li>The name of the author</li>
+<li>The non-core dependencies your egg has</li>
+<li>A link to the external repository where you eggs code is hosted</li>
+<li>Documentation about the procedure the users of your egg can use</li>
+<li>Some real-world examples</li>
+<li>Version history</li>
+<li>A copy of the license you use</li>
+</ul>
+<h4>The end</h4>
+<p>Okay, that is it folks, we have a working, tested and published egg!</p>
+<p>I hope this three chapter CHICKEN saga has brought you a little bit closer to CHICKEN or Scheme and that you can gradually find out the power behind this tiny language.</p>
+<p>Now go out and create some awesome eggs for the whole community to enjoy! And remember, if you run stuck, have questions or just want a little chat, there is a great CHICKEN community out there ready to help you out. </p>
+<p>And as always...thanks for reading!</p>
+</div>
+    </div>
+    
+    <ul class="pager">
+<li class="previous">
+            <a href="chicken-scheme-2.html">← 前の記事</a>
+        </li>
+        <li class="next">
+            <a href="moving-to-japan.html">次の記事 →</a>
+        </li>
+    </ul>
+</div>
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="../../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+    </div>
+    
+        <script src="../../assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>

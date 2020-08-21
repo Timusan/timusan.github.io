@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.jp (3d)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/ja/categories/3d.xml" type="application/rss+xml" rel="self"></atom:link><language>ja</language><lastBuildDate>Mon, 05 Jan 2015 12:42:49 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Onsen 3d rendering</title><link>http://shisaa.jp/ja/postset/3d-onsen.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;p&gt;Sometimes I can also write really, really short posts. Like this one!&lt;/p&gt;
+&lt;p&gt;I present to you, my latest (and first on Shisaa.jp) 3D rendering.&lt;/p&gt;
+&lt;p&gt;It depicts a traditional Japanese &lt;em&gt;onsen&lt;/em&gt; or "hot tub", if you will.
+These babies are still in use today, mostly in the more expensive (or really countryside) bathhouses.
+In most of the commercial or public bathhouses, they are replaced with stone tiled versions.&lt;/p&gt;
+&lt;p&gt;The tools used for the job where, as always, Blender and Blender's Cycles rendering engine.
+Post-production (though minimal) was done with the Gimp.&lt;/p&gt;
+&lt;p&gt;The render time for this one topped off at about 6 hours and a half, with a total of 1200 Cycles passes. Cheers!&lt;/p&gt;
+&lt;p&gt;Clicking on the image will give you the &lt;em&gt;Full HD&lt;/em&gt; glory, so be warned.&lt;/p&gt;
+&lt;p&gt;&lt;a href="http://shisaa.jp/ja/assets/img/3d/onsen.jpg" class="cboxElement"&gt;
+    &lt;img class="threedee-small" src="http://shisaa.jp/ja/assets/img/3d/onsen-small.jpg"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;script src="http://shisaa.jp/assets/js/jquery-1.9.1.min.js" type="text/javascript"&gt;&lt;/script&gt;&lt;script src="http://shisaa.jp/assets/js/jquery.colorbox-min.js" type="text/javascript"&gt;&lt;/script&gt;&lt;script src="http://shisaa.jp/assets/js/site.js" type="text/javascript"&gt;&lt;/script&gt;&lt;/div&gt;</description><guid>http://shisaa.jp/ja/postset/3d-onsen.html</guid><pubDate>Mon, 22 Jul 2013 19:30:00 GMT</pubDate></item></channel></rss>

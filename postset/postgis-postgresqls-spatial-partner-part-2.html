@@ -1,9 +1,75 @@
 <!DOCTYPE html>
-<html><body><div class="postbox">
- Postgis, PostgreSQL's spatial partner - Part 2
- <p class="post-date">18/06/2014 <span>-</span> </p>
- <div class="post">
-  <div>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="title" content="Postgis, PostgreSQL's spatial partner - Part 2 | shisaa.jp">
+<meta name="description" content="">
+<meta name="author" content="Tim van der Linden">
+<meta name="viewport" content="width=device-width; initial-scale=1.0">
+<title>Postgis, PostgreSQL's spatial partner - Part 2 | shisaa.jp</title>
+<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="icon">
+<link type="image/x-icon" href="../assets/img/favicon.ico" rel="shortcut icon">
+<link href="../assets/css/all.css" rel="stylesheet" type="text/css">
+</head>
+<body id="lang-en">
+    <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
+    <div id="wrapper" class="clearfix">
+      <h1 id="blog-title">
+	<img src="../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
+	  <span class="title">shisaa.jp</span><span class="interest">web / unix / photography / japan</span>
+	  <span class="en-subtitle">Freelance Developer</span>
+	</a>
+      
+    <ul id="translations">
+<li class="current-lang first"><span>English</span></li>
+        
+          
+            <li class="not-first"><a href="../ja/index.html" rel="alternate" hreflang="ja">日本語</a></li>
+        
+    </ul>
+</h1>
+      <input id="mobile-toggle" type="checkbox"><label class="mobile-toggle" onclick="" for="mobile-toggle"></label>
+      <ul id="sidebar">
+<li>
+<a href="../">home</a>
+            </li>
+<li>
+<a href="../stories/about.html">about</a>
+            </li>
+<li>
+<a href="../stories/services.html">services</a>
+            </li>
+<li>
+<a href="../archive.html">blog</a>
+            </li>
+<li>
+<a href="../photography/index.html">photography</a>
+            </li>
+<li>
+<a href="../stories/3d.html">3D</a>
+
+	  
+    </li>
+<li id="flattr">
+<small>Like my material?</small><small>Feel free to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a></small><small id="final-small">She thanks you!</small>
+</li>
+
+      </ul>
+<div id="content">
+	
+    <div class="postbox">
+    
+    <h2><a href="#">Postgis, PostgreSQL's spatial partner - Part 2</a></h2>
+
+    <p class="post-date">18/06/2014 <span>-</span> </p>
+    
+    <ul class="tags">
+<li class="tag"><a href="../categories/postgis.html">postgis</a></li>          
+         <li class="tag"><a href="../categories/postgresql.html">postgresql</a></li>          
+    </ul>
+<div class="post">
+      <div>
 <p>Welcome to the secoflynd part of our spatial story. If you have not done so, I advise you to go and read <a href="http://shisaa.jp/postset/postgis-postgresqls-spatial-partner-part-1.html" title="Part one of this series.">part one</a> first.</p>
 <p>The first part of this series gives you some basic knowledge about the GIS world (GIS Objects, WKT, Projections, ...).
 This knowledge will come in handy in this chapter.</p>
@@ -20,27 +86,27 @@ This knowledge will come in handy in this chapter.</p>
 <p>Before we can do anything else, we need to make sure that we have the PostGIS extension installed.
 PostGIS is most of the time packaged as a PostgreSQL contribution package.
 On a Debian system, it can be installed as follows:</p>
-<pre class="code literal-block"><span></span>apt-get install postgresql-9.3-postgis-2.1
+<pre class="code literal-block">apt-get install postgresql-9.3-postgis-2.1
 </pre>
 
 
 <p>This will install PostGIS version 2.1 for the PostgreSQL 9.3 database.</p>
 <p>Next, fire up your database console and let us first create a new user and database:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">user</span> <span class="n">gis</span> <span class="k">WITH</span> <span class="n">PASSWORD</span> <span class="s1">'10gis10'</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">user</span> <span class="n">gis</span> <span class="k">WITH</span> <span class="n">PASSWORD</span> <span class="s1">'10gis10'</span><span class="p">;</span>
 <span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">gis</span> <span class="k">WITH</span> <span class="k">OWNER</span> <span class="n">gis</span><span class="p">;</span>
 </pre>
 
 
 <p>Not very original names, I know, but it states its purpose.
 Next, connect to the <em>gis</em> database and enable the PostGIS extension:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="k">c</span> <span class="n">gis</span>
+<pre class="code literal-block"><span class="err">\</span><span class="k">c</span> <span class="n">gis</span>
 <span class="k">CREATE</span> <span class="n">EXTENSION</span> <span class="n">postgis</span><span class="p">;</span>
 </pre>
 
 
 <p>Now our database is PostGIS aware, and we are ready to get our hands dirty!</p>
 <p>Notice that if you now describe your database:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">d</span>
+<pre class="code literal-block"><span class="err">\</span><span class="n">d</span>
 </pre>
 
 
@@ -48,7 +114,7 @@ Next, connect to the <em>gis</em> database and enable the PostGIS extension:</p>
 <h3>Fun with Polygons</h3>
 <p>Let us begin this adventure with creating a polygon that has one interior ring, similar to the one we saw in the previous chapter.</p>
 <p>Before we can create them, though, we have to create a table that will hold their geometrical data:</p>
-<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">shapes</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">CREATE</span> <span class="k">TABLE</span> <span class="n">shapes</span> <span class="p">(</span>
     <span class="n">name</span> <span class="nb">VARCHAR</span>
 <span class="p">);</span>
 </pre>
@@ -56,7 +122,7 @@ Next, connect to the <em>gis</em> database and enable the PostGIS extension:</p>
 
 <p>Now we have a table named "shapes" with only a column to store its name. But where do we store the geometry?</p>
 <p>Because of the new data types that PostGIS introduces (geometry and geography) and to keep its bookkeeping up to date, you can create this column with a PostGIS function named <em>AddGeometryColum()</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">AddGeometryColumn</span><span class="p">(</span><span class="s1">'shapes'</span><span class="p">,</span> <span class="s1">'shape'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'POLYGON'</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">AddGeometryColumn</span><span class="p">(</span><span class="s1">'shapes'</span><span class="p">,</span> <span class="s1">'shape'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'POLYGON'</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
 </pre>
 
 
@@ -88,7 +154,7 @@ These entries refer to <em>defined</em> and <em>official</em> projections, prima
 Other projections (not maintained by the EPSG) are also accepted into the OGC SRID list as are your own projections (if you would feel the need).</p>
 <p>Let us poke the spatial reference table and see if we can get a more clear picture.</p>
 <p>If we would query our table (sorry for the wildcard) and ask for a famous SRID (more on this one later):</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">spatial_ref_sys</span> <span class="k">WHERE</span> <span class="n">srid</span> <span class="o">=</span> <span class="mi">4326</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">spatial_ref_sys</span> <span class="k">WHERE</span> <span class="n">srid</span> <span class="o">=</span> <span class="mi">4326</span><span class="p">;</span>
 </pre>
 
 
@@ -122,14 +188,14 @@ There are hundreds of these local projections that only make sense when used in 
 To see a list of all of the functions and their categories, I advise you to visit the PostGIS reference, <a href="http://postgis.net/docs/reference.html">section 8</a>.</p>
 <p>Let us now do some fun manipulations and use some of the functions from these categories, just to get a bit more familiar with how it all works together.</p>
 <p>If you inserted the last SQL command which makes the geometry column, you should have gotten back the following result:</p>
-<pre class="code literal-block"><span></span><span class="k">public</span><span class="p">.</span><span class="n">shapes</span><span class="p">.</span><span class="n">shape</span> <span class="n">SRID</span><span class="p">:</span><span class="mi">0</span> <span class="k">TYPE</span><span class="p">:</span><span class="n">POLYGON</span> <span class="n">DIMS</span><span class="p">:</span><span class="mi">2</span>
+<pre class="code literal-block"><span class="k">public</span><span class="p">.</span><span class="n">shapes</span><span class="p">.</span><span class="n">shape</span> <span class="n">SRID</span><span class="p">:</span><span class="mi">0</span> <span class="k">TYPE</span><span class="p">:</span><span class="n">POLYGON</span> <span class="n">DIMS</span><span class="p">:</span><span class="mi">2</span>
 </pre>
 
 
 <p>This tells us we created the "shape" column in the "shapes" table and set the SRID to 0.
 SRID 0 is a convention used to tell a GIS system that you currently do not care about the SRID and simply want to store geometry with an arbitrary X and Y value.</p>
 <p>Let us now insert the shape of our square. To insert a polygon into your column, you could use various functions. One of these functions is <em>ST_GeomFromText()</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span>
     <span class="s1">'Square with hole'</span><span class="p">,</span>
     <span class="n">ST_GeomFromText</span><span class="p">(</span><span class="s1">'POLYGON ((8 1, 8 8, 1 8, 1 1, 8 1), (6 3, 6 6, 3 6, 3 3, 6 3))'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="p">);</span>
@@ -140,56 +206,56 @@ SRID 0 is a convention used to tell a GIS system that you currently do not care 
 This function also accepts a second, optional parameter which is the SRID by which we wish to work.
 The category of this function is called <em>Geometry Constructors</em>.</p>
 <p>You know this polygon has two rings, the exterior and the interior. Let us now ask PostGIS to return only the line that represents the exterior ring:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_ExteriorRing</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_ExteriorRing</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span>
     <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'Square with hole'</span><span class="p">;</span>
 </pre>
 
 
 <p>And we get back:</p>
-<pre class="code literal-block"><span></span><span class="mi">0102000020</span><span class="n">E6100000050000000000000000002040000000000000F03F00000000000020400000000000002040000000000000F03F0000000000002040000000000000F03F000000000000F03F0000000000002040000000000000F03F</span>
+<pre class="code literal-block"><span class="mi">0102000020</span><span class="n">E6100000050000000000000000002040000000000000F03F00000000000020400000000000002040000000000000F03F0000000000002040000000000000F03F000000000000F03F0000000000002040000000000000F03F</span>
 </pre>
 
 
 <p>Oh my...that is not what we expected. But yet it is correct. This is how PostgreSQL stores geometry/geography.
 The result is correct, yet unreadable to us humans. </p>
 <p>If we wish to get back a readable WKT string, we have to convert it using one of the conversion functions:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_AsText</span><span class="p">(</span><span class="n">ST_ExteriorRing</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_AsText</span><span class="p">(</span><span class="n">ST_ExteriorRing</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
     <span class="k">FROM</span> <span class="n">shapes</span>
     <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'Square with hole'</span><span class="p">;</span>
 </pre>
 
 
 <p>And we get:</p>
-<pre class="code literal-block"><span></span><span class="n">LINESTRING</span><span class="p">(</span><span class="mi">8</span> <span class="mi">1</span><span class="p">,</span><span class="mi">8</span> <span class="mi">8</span><span class="p">,</span><span class="mi">1</span> <span class="mi">8</span><span class="p">,</span><span class="mi">1</span> <span class="mi">1</span><span class="p">,</span><span class="mi">8</span> <span class="mi">1</span><span class="p">)</span>
+<pre class="code literal-block"><span class="n">LINESTRING</span><span class="p">(</span><span class="mi">8</span> <span class="mi">1</span><span class="p">,</span><span class="mi">8</span> <span class="mi">8</span><span class="p">,</span><span class="mi">1</span> <span class="mi">8</span><span class="p">,</span><span class="mi">1</span> <span class="mi">1</span><span class="p">,</span><span class="mi">8</span> <span class="mi">1</span><span class="p">)</span>
 </pre>
 
 
 <p>Aha, that is more like it! This we can read!</p>
 <p>We used the <em>ST_ExteriorRing()</em> which falls under the <em>Geometry Accessors</em> category and the <em>ST_AsText()</em> function which resides in the category <em>Geometry Outputs</em>.</p>
 <p>Okay, now we wish to know the interior ring:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_AsText</span><span class="p">(</span><span class="n">ST_InteriorRingN</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_AsText</span><span class="p">(</span><span class="n">ST_InteriorRingN</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
     <span class="k">FROM</span> <span class="n">shapes</span>
     <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'Square with hole'</span><span class="p">;</span>
 </pre>
 
 
 <p>The result:</p>
-<pre class="code literal-block"><span></span><span class="n">LINESTRING</span><span class="p">(</span><span class="mi">6</span> <span class="mi">3</span><span class="p">,</span><span class="mi">6</span> <span class="mi">6</span><span class="p">,</span><span class="mi">3</span> <span class="mi">6</span><span class="p">,</span><span class="mi">3</span> <span class="mi">3</span><span class="p">,</span><span class="mi">6</span> <span class="mi">3</span><span class="p">)</span>
+<pre class="code literal-block"><span class="n">LINESTRING</span><span class="p">(</span><span class="mi">6</span> <span class="mi">3</span><span class="p">,</span><span class="mi">6</span> <span class="mi">6</span><span class="p">,</span><span class="mi">3</span> <span class="mi">6</span><span class="p">,</span><span class="mi">3</span> <span class="mi">3</span><span class="p">,</span><span class="mi">6</span> <span class="mi">3</span><span class="p">)</span>
 </pre>
 
 
 <p>Notice that the function <em>ST_InteriorRingN()</em> requires you to give the integer of which ring you wish to get, starting from 1.
 As we have seen before, polygon objects can have multiple interior rings, but only a single exterior one.</p>
 <p>Next let us ask all the information about what makes up the shape:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Summary</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Summary</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span>
     <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'Square with hole'</span><span class="p">;</span>
 </pre>
 
 
 <p>And get back:</p>
-<pre class="code literal-block"><span></span><span class="n">Polygon</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="k">with</span> <span class="mi">2</span> <span class="n">rings</span><span class="o">+</span>
+<pre class="code literal-block"><span class="n">Polygon</span><span class="p">[</span><span class="n">B</span><span class="p">]</span> <span class="k">with</span> <span class="mi">2</span> <span class="n">rings</span><span class="o">+</span>
   <span class="n">ring</span> <span class="mi">0</span> <span class="n">has</span> <span class="mi">5</span> <span class="n">points</span>  <span class="o">+</span>
   <span class="n">ring</span> <span class="mi">1</span> <span class="n">has</span> <span class="mi">5</span> <span class="n">points</span>
 </pre>
@@ -197,7 +263,7 @@ As we have seen before, polygon objects can have multiple interior rings, but on
 
 <p>Ohh, that is pretty cool. We get back a human readable string that explains to us how this particular piece of geometry is build.</p>
 <p>Let us now add another polygon:</p>
-<pre class="code literal-block"><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span>
     <span class="s1">'The intersecting one'</span><span class="p">,</span>
     <span class="n">ST_GeomFromText</span><span class="p">(</span><span class="s1">'POLYGON ((14 1, 15 8, 7 8, 7 1, 14 1))'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="p">);</span>
@@ -206,7 +272,7 @@ As we have seen before, polygon objects can have multiple interior rings, but on
 
 <p>This is a polygon that will <em>intersect</em> with part of our previous polygon.
 Let us ask PostGIS if these polygons really intersect each other:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Intersects</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Intersects</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Square with hole'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'The intersecting one'</span><span class="p">;</span>
 </pre>
@@ -214,7 +280,7 @@ Let us ask PostGIS if these polygons really intersect each other:</p>
 
 <p>If all is well, this will simply return <em>TRUE</em> if they intersect and <em>FALSE</em> if they do not. In this case, it will return <em>TRUE</em>.</p>
 <p>The counterpart of our intersect function is <em>ST_Disjoint()</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Disjoint</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Disjoint</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Square with hole'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'The intersecting one'</span><span class="p">;</span>
 </pre>
@@ -222,7 +288,7 @@ Let us ask PostGIS if these polygons really intersect each other:</p>
 
 <p>Which will return <em>FALSE</em> in our case.</p>
 <p>Let us now add a third polygon which does not intersect our previous two:</p>
-<pre class="code literal-block"><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span>
+<pre class="code literal-block"><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span>
     <span class="s1">'The solitary one'</span><span class="p">,</span>
     <span class="n">ST_GeomFromText</span><span class="p">(</span><span class="s1">'POLYGON ((20 20, 20 40, 1 40, 1 20 ,20 20))'</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 <span class="p">);</span>
@@ -231,7 +297,7 @@ Let us ask PostGIS if these polygons really intersect each other:</p>
 
 <p>This polygon will reside well "above" the other two and does not share any space.
 Let us now see how far this polygon resides from our first polygon, the one with the hole:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Square with hole'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'The solitary one'</span><span class="p">;</span>
 </pre>
@@ -243,7 +309,7 @@ This indeed leaves a gap of 12.</p>
 <p>Nice! We have just measured the distance between two objects in a spatial database!</p>
 <p>Hmmm, this may mean we are getting closer to knowing the distance to Tokyo...but not yet, we need to play a bit more first.</p>
 <p>PostGIS also has the ability to manipulate geometry. Let us, for example, try to move our solitary polygon even further away using the <em>ST_Translate()</em> function under the <em>Geometry Editors</em> category:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Translate</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Translate</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span>
     <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'The solitary one'</span><span class="p">;</span>
 </pre>
@@ -253,52 +319,52 @@ This indeed leaves a gap of 12.</p>
 <p>Running this query will give us a binary representation of a <em>new</em> piece of geometry. The original geometry is not altered.
 So how can we actually move the geometry that resided in the database?</p>
 <p>Simply by using SQL:</p>
-<pre class="code literal-block"><span></span><span class="k">UPDATE</span> <span class="n">shapes</span>
+<pre class="code literal-block"><span class="k">UPDATE</span> <span class="n">shapes</span>
     <span class="k">SET</span> <span class="n">shape</span> <span class="o">=</span> <span class="n">ST_Translate</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
     <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'The solitary one'</span><span class="p">;</span>
 </pre>
 
 
 <p>Let us now check the new distance:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Square with hole'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'The solitary one'</span><span class="p">;</span>
 </pre>
 
 
 <p>And get back:</p>
-<pre class="code literal-block"><span></span><span class="mi">22</span>
+<pre class="code literal-block"><span class="mi">22</span>
 </pre>
 
 
 <p>Aha! Nice! It has now moved ten units upwards.</p>
 <p>Now let us alter the distance once again, but this time we will scale the polygon down:</p>
-<pre class="code literal-block"><span></span><span class="k">UPDATE</span> <span class="n">shapes</span>
+<pre class="code literal-block"><span class="k">UPDATE</span> <span class="n">shapes</span>
     <span class="k">SET</span> <span class="n">shape</span> <span class="o">=</span> <span class="n">ST_Scale</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">.</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">.</span><span class="mi">5</span><span class="p">)</span>
     <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'The solitary one'</span><span class="p">;</span>
 </pre>
 
 
 <p>If we now check the distance, we will get back:</p>
-<pre class="code literal-block"><span></span><span class="mi">7</span>
+<pre class="code literal-block"><span class="mi">7</span>
 </pre>
 
 
 <p>Wow, we have gone from 22 to 7, how did that happen?</p>
 <p>Well, it is important to know that the <em>ST_Scale()</em> function currently only supports scaling by multiplying each coordinate. This means that the polygon will not only become smaller or bigger, but will also translate as a result. To know exactly how our new, scaled version of our polygon looks, we can use the <em>ST_Boundary()</em> function which shows us the outer most linestring:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_AsText</span><span class="p">(</span><span class="n">ST_Boundary</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_AsText</span><span class="p">(</span><span class="n">ST_Boundary</span><span class="p">(</span><span class="n">shape</span><span class="p">))</span>
     <span class="k">FROM</span> <span class="n">shapes</span>
     <span class="k">WHERE</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">'The solitary one'</span><span class="p">;</span>
 </pre>
 
 
 <p>And we will get:</p>
-<pre class="code literal-block"><span></span><span class="n">LINESTRING</span><span class="p">(</span><span class="mi">10</span> <span class="mi">15</span><span class="p">,</span><span class="mi">10</span> <span class="mi">25</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">5</span> <span class="mi">25</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">5</span> <span class="mi">15</span><span class="p">,</span><span class="mi">10</span> <span class="mi">15</span><span class="p">)</span>
+<pre class="code literal-block"><span class="n">LINESTRING</span><span class="p">(</span><span class="mi">10</span> <span class="mi">15</span><span class="p">,</span><span class="mi">10</span> <span class="mi">25</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">5</span> <span class="mi">25</span><span class="p">,</span><span class="mi">0</span><span class="p">.</span><span class="mi">5</span> <span class="mi">15</span><span class="p">,</span><span class="mi">10</span> <span class="mi">15</span><span class="p">)</span>
 </pre>
 
 
 <p>If we compare that to the same result before scaling (which I handily made ready for you):</p>
-<pre class="code literal-block"><span></span><span class="n">LINESTRING</span><span class="p">(</span><span class="mi">20</span> <span class="mi">30</span><span class="p">,</span><span class="mi">20</span> <span class="mi">50</span><span class="p">,</span><span class="mi">1</span> <span class="mi">50</span><span class="p">,</span><span class="mi">1</span> <span class="mi">30</span><span class="p">,</span><span class="mi">20</span> <span class="mi">30</span><span class="p">)</span>
+<pre class="code literal-block"><span class="n">LINESTRING</span><span class="p">(</span><span class="mi">20</span> <span class="mi">30</span><span class="p">,</span><span class="mi">20</span> <span class="mi">50</span><span class="p">,</span><span class="mi">1</span> <span class="mi">50</span><span class="p">,</span><span class="mi">1</span> <span class="mi">30</span><span class="p">,</span><span class="mi">20</span> <span class="mi">30</span><span class="p">)</span>
 </pre>
 
 
@@ -338,17 +404,17 @@ As we have seen before, such a calculation is more expensive and unconventional.
 This is done automatically when you ask PostGIS to measure distance using one of the more common geometrical functions.
 When projecting, all GIS systems will use the <em>Plate Carrée</em> projection which means they will use the stored latitude and longitude coordinates directly as an X and Y value.</p>
 <p>Let us see this story in action. First we can take a look at the more native geography data. Let us clean our shape table first:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">DropGeometryColumn</span><span class="p">(</span><span class="s1">'shapes'</span><span class="p">,</span> <span class="s1">'shape'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">DropGeometryColumn</span><span class="p">(</span><span class="s1">'shapes'</span><span class="p">,</span> <span class="s1">'shape'</span><span class="p">);</span>
 </pre>
 
 
 <p>Here we use the <em>DropGeometryColumn()</em> to remove this column from out "shapes" table. Now clear the table:</p>
-<pre class="code literal-block"><span></span><span class="k">TRUNCATE</span> <span class="n">shapes</span><span class="p">;</span>
+<pre class="code literal-block"><span class="k">TRUNCATE</span> <span class="n">shapes</span><span class="p">;</span>
 </pre>
 
 
 <p>Next add a new geography column:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">shapes</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="k">location</span> <span class="n">geography</span><span class="p">(</span><span class="s1">'POINT'</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">shapes</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="k">location</span> <span class="n">geography</span><span class="p">(</span><span class="s1">'POINT'</span><span class="p">);</span>
 </pre>
 
 
@@ -356,18 +422,18 @@ When projecting, all GIS systems will use the <em>Plate Carrée</em> projection 
 <p>Notice that the syntax is different and that here we use plain SQL as opposed to the <em>AddGeometryColumn()</em> function from before.
 Since PostGIS 2 it is possible to create and drop both geometry and geography columns with standard SQL syntax.</p>
 <p>If you wish to rewrite our "shape" column addition from the beginning of this chapter, you could write it like this:</p>
-<pre class="code literal-block"><span></span><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">shapes</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">shape</span> <span class="n">geometry</span><span class="p">(</span><span class="s1">'POLYGON'</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
+<pre class="code literal-block"><span class="k">ALTER</span> <span class="k">TABLE</span> <span class="n">shapes</span> <span class="k">ADD</span> <span class="k">COLUMN</span> <span class="n">shape</span> <span class="n">geometry</span><span class="p">(</span><span class="s1">'POLYGON'</span><span class="p">,</span><span class="mi">0</span><span class="p">);</span>
 </pre>
 
 
 <p>Looks more native and simple, no? Sorry to tell you this so late in the adventure, but now you know the existence of both the functions and the more native SQL syntax. Both will also keep the PostGIS bookkeeping in sync.</p>
 <p>Also, for fun, you could do a describe on the table:</p>
-<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">d</span> <span class="n">shapes</span>
+<pre class="code literal-block"><span class="err">\</span><span class="n">d</span> <span class="n">shapes</span>
 </pre>
 
 
 <p>And get back:</p>
-<pre class="code literal-block"><span></span> Column  <span class="p">|</span>         Type          <span class="p">|</span> Modifiers 
+<pre class="code literal-block"> Column  <span class="p">|</span>         Type          <span class="p">|</span> Modifiers 
 ----------+-----------------------+-----------
 name     <span class="p">|</span> character varying     <span class="p">|</span> 
 location <span class="p">|</span> geography<span class="o">(</span>Point,4326<span class="o">)</span> <span class="p">|</span>
@@ -385,27 +451,27 @@ I will choose the latter and will be using OpenStreetMap (what else?) to locate 
 <p>Open up your favorite web browser and surf to <a href="http://openstreetmap.org">openstreetmap.org</a>.
 Once there, punch in your address or use the "Where Am I" function. This would give you a point on the map and in the search bar on the left your latitude and longitude coordinate.
 Take this coordinate and save is as point data into your fresh column:</p>
-<pre class="code literal-block"><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'My location'</span><span class="p">,</span> <span class="n">ST_GeographyFromText</span><span class="p">(</span><span class="s1">'POINT(127.6791949 26.2124702)'</span><span class="p">));</span>
+<pre class="code literal-block"><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'My location'</span><span class="p">,</span> <span class="n">ST_GeographyFromText</span><span class="p">(</span><span class="s1">'POINT(127.6791949 26.2124702)'</span><span class="p">));</span>
 </pre>
 
 
 <p>The point I am inserting reflects central Naha, the main city of the Okinawa prefecture. Not my current location, but it serves as an illustrative point.</p>
 <p><em>Note</em> that PostGIS expects a longitude as X and latitude as Y. This is many times reversed as what you get back from other sources.</p>
 <p>Now you can insert the location of Tokyo, which I conveniently looked up for you:</p>
-<pre class="code literal-block"><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'Tokyo'</span><span class="p">,</span> <span class="n">ST_GeographyFromText</span><span class="p">(</span><span class="s1">'POINT(139.7530053 35.6823815)'</span><span class="p">));</span>
+<pre class="code literal-block"><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'Tokyo'</span><span class="p">,</span> <span class="n">ST_GeographyFromText</span><span class="p">(</span><span class="s1">'POINT(139.7530053 35.6823815)'</span><span class="p">));</span>
 </pre>
 
 
 <p>Ah, nice! Okay, are you ready to finally, after all the rambling we went through, know the distance?
 You already know the syntax, punch in the magic:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'My location'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Tokyo'</span><span class="p">;</span>
 </pre>
 
 
 <p>In the case you would live in the exact cartographic center of Naha, you will get back:</p>
-<pre class="code literal-block"><span></span>   <span class="n">st_distance</span>    
+<pre class="code literal-block">   <span class="n">st_distance</span>    
 <span class="c1">------------------</span>
  <span class="mi">1557506</span><span class="p">.</span><span class="mi">28103692</span>
 </pre>
@@ -419,14 +485,14 @@ You already know the syntax, punch in the magic:</p>
 <p>There is an "in-between" solution before we jump to geometry. PostGIS gives us the ability to replace our spheroid datum with the more classical sphere.
 The latter has much simpler calculations, but can still return more accurate results them some of the projections.</p>
 <p>To redo our calculation from above with a sphere, simply set the spheroid Boolean, a third and optional parameter to the <em>ST_Distance()</em> function, to <em>False</em>:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="k">False</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="k">False</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'My location'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Tokyo'</span><span class="p">;</span>
 </pre>
 
 
 <p>The result:</p>
-<pre class="code literal-block"><span></span>   <span class="n">st_distance</span>    
+<pre class="code literal-block">   <span class="n">st_distance</span>    
 <span class="c1">------------------</span>
 <span class="mi">1557886</span><span class="p">.</span><span class="mi">68227339</span>
 </pre>
@@ -440,7 +506,7 @@ So without recreating anything, we could simply cast our geography data into geo
 <p><em>Note</em> that casting, while very convenient for quick checks, can render an index totally mute.
 It is therefor important to think ahead and decide if you want to work with geometry or geography, then create the correct column type and use this <em>without</em> casting.</p>
 <p>But for our quick and dirty queries, this is fine. Let us continue:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'My location'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Tokyo'</span><span class="p">;</span>
 </pre>
@@ -448,7 +514,7 @@ It is therefor important to think ahead and decide if you want to work with geom
 
 <p>In this query, we cast (<em>::</em>) the geography data inside the "location" columns into geometry.
 Now we get back:</p>
-<pre class="code literal-block"><span></span>   <span class="n">st_distance</span>    
+<pre class="code literal-block">   <span class="n">st_distance</span>    
 <span class="c1">------------------</span>
 <span class="mi">15</span><span class="p">.</span><span class="mi">3445794209231</span>
 </pre>
@@ -466,14 +532,14 @@ That is a difference of about 145 Kilometers. </p>
 <p>So let us poke this projection mechanism and try a different, more accurate one, the Lambert, which carries SRID <em>3587</em>.</p>
 <p>To change the projection PostGIS will use, we can use the <em>ST_Transform()</em> function which casts objects to different SRIDs.
 Note that <em>ST_Transform()</em> only works for geometry objects, so we have to continue to cast our geography location to be able to use them in this function.</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">ST_Transform</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="mi">3587</span><span class="p">),</span> <span class="n">ST_Transform</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="mi">3587</span><span class="p">))</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">ST_Transform</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="mi">3587</span><span class="p">),</span> <span class="n">ST_Transform</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="mi">3587</span><span class="p">))</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'My location'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Tokyo'</span><span class="p">;</span>
 </pre>
 
 
 <p>This will gives us:</p>
-<pre class="code literal-block"><span></span>   <span class="n">st_distance</span>    
+<pre class="code literal-block">   <span class="n">st_distance</span>    
 <span class="c1">------------------</span>
 <span class="mi">1602392</span><span class="p">.</span><span class="mi">18109279</span>
 </pre>
@@ -486,20 +552,20 @@ This kind of projection is thus not fit for measuring distance on such a large s
 <p>Let us therefor take this one step further before I leave you to rest. Let us do a measurement with such a UTM projection.
 We will make a measurement inside of Japan's mainland UTM zone: <em>54N</em> which has an SRID of <em>3095</em>.</p>
 <p>First we will have to make another point in our database:</p>
-<pre class="code literal-block"><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'Aomori'</span><span class="p">,</span> <span class="n">ST_GeographyFromText</span><span class="p">(</span><span class="s1">'POINT(140.750616 40.788079)'</span><span class="p">));</span>
+<pre class="code literal-block"><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">shapes</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">'Aomori'</span><span class="p">,</span> <span class="n">ST_GeographyFromText</span><span class="p">(</span><span class="s1">'POINT(140.750616 40.788079)'</span><span class="p">));</span>
 </pre>
 
 
 <p>This point represents the city of Aomori in northern Japan, famous for its huge lantern parades.</p>
 <p>First let us measure with the native geographical calculations:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Aomori'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Tokyo'</span><span class="p">;</span>
 </pre>
 
 
 <p>This returns:</p>
-<pre class="code literal-block"><span></span><span class="n">st_distance</span>    
+<pre class="code literal-block"><span class="n">st_distance</span>    
 <span class="c1">------------------</span>
 <span class="mi">573416</span><span class="p">.</span><span class="mi">203868172</span>
 </pre>
@@ -507,14 +573,14 @@ We will make a measurement inside of Japan's mainland UTM zone: <em>54N</em> whi
 
 <p>Or <em>573.416 Kilometers</em>, which is most accurate.</p>
 <p>Next, let us throw the good old <em>Plate Carrée</em> projection at it:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">)</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">)</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Aomori'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Tokyo'</span><span class="p">;</span>
 </pre>
 
 
 <p>This will yield</p>
-<pre class="code literal-block"><span></span>    <span class="n">st_distance</span>    
+<pre class="code literal-block">    <span class="n">st_distance</span>    
 <span class="c1">------------------</span>
 <span class="mi">5</span><span class="p">.</span><span class="mi">20224702126502</span>
 </pre>
@@ -522,14 +588,14 @@ We will make a measurement inside of Japan's mainland UTM zone: <em>54N</em> whi
 
 <p>Which is in degrees again, doing this times 111 Kilometers will yield a total distance of <em>577.444 Kilometers</em>. </p>
 <p>Then let us measure using the correct UTM projection:</p>
-<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">ST_Transform</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="mi">3095</span><span class="p">),</span> <span class="n">ST_Transform</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="mi">3095</span><span class="p">))</span>
+<pre class="code literal-block"><span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">ST_Transform</span><span class="p">(</span><span class="n">a</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="mi">3095</span><span class="p">),</span> <span class="n">ST_Transform</span><span class="p">(</span><span class="n">b</span><span class="p">.</span><span class="k">location</span><span class="p">::</span><span class="n">geometry</span><span class="p">,</span> <span class="mi">3095</span><span class="p">))</span>
     <span class="k">FROM</span> <span class="n">shapes</span> <span class="n">a</span><span class="p">,</span> <span class="n">shapes</span> <span class="n">b</span> 
     <span class="k">WHERE</span> <span class="n">a</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Aomori'</span> <span class="k">AND</span> <span class="n">b</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Tokyo'</span><span class="p">;</span>
 </pre>
 
 
 <p>This will give us:</p>
-<pre class="code literal-block"><span></span>  <span class="n">st_distance</span>    
+<pre class="code literal-block">  <span class="n">st_distance</span>    
 <span class="c1">------------------</span>
 <span class="mi">573228</span><span class="p">.</span><span class="mi">002047378</span>
 </pre>
@@ -546,5 +612,22 @@ Some are better used on a local scale, like we just did for Japan, others are be
 <!--  LocalWords:  PostGIS PostgreSQL GIS
  -->
 </div>
- </div>
-</div></body></html>
+    </div>
+    
+    <ul class="pager">
+<li class="previous">
+            <a href="postgis-postgresqls-spatial-partner-part-1.html">← Previous post</a>
+        </li>
+        <li class="next">
+            <a href="postgis-postgresqls-spatial-partner-part-3.html">Next post →</a>
+        </li>
+    </ul>
+</div>
+
+      </div>
+      <div id="footer">Feel free to drop me a line or to <a href="../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+    </div>
+    
+        <script src="../assets/js/all.js" type="text/javascript"></script>
+</body>
+</html>
