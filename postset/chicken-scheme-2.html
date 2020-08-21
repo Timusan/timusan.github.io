@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html><body><div class="postbox">
+ The Scheme programming language AKA The CHICKEN hens nest - Part 2
+ <p class="post-date">05/09/2013 <span>-</span> </p>
+ <div class="post">
+  <div>
+<h3>Chapter 2 - Laying the egg</h3>
+<p>Welcome to the second installment of this introduction into the CHICKEN programming language.</p>
+<p>If you haven't done so, I encourage you to go and read <a href="http://shisaa.jp/postset/chicken-scheme-1.html" title="Chapter 1 of the CHICKEN series.">chapter 1</a> before you continue.</p>
+<p>In the first chapter we talked about the programming language CHICKEN, which is a Scheme implementation. To introduce you to this language I decided to guide you trough making your own egg.
+This egg will become a translator to talk to a JSON-RPC server so you could send over commands and invoke remote procedure calls trough JSON right out of CHICKEN.</p>
+<p>I left you with the beginning of our main procedure called <em>json-rpc-server</em> which would do two things:</p>
+<ul>
+<li>It would setup the connection to the server</li>
+<li>It would then be used to translate the commands into JSON and send them over</li>
+</ul>
+<p>Before we dive in, let me give you a quick perspective of what we will be dealing with today:</p>
+<ul>
+<li>Create an exception handler for the arguments of the lambda</li>
+<li>See how we can abstract out positional and named params in the arguments</li>
+<li>Build the actual list that will hold the CHICKEN JSON-RPC request object we wish to send</li>
+<li>While building this, we can see a little bit about proper and improper lists</li>
+<li>Still while building, we can also dive into recursion in CHICKEN for building the params list</li>
+<li>After the request object is build, actually send it over to Medea</li>
+<li>Make sure we export only the needed procedures</li>
+<li>Setting the correct license for our egg</li>
+<li>Take a small peek at what lies ahead in chapter three.</li>
+</ul>
+<h4>Let us dive in!</h4>
+<p>We where busy writing the second part of our procedure. Once the connection was setup we would return a <em>lambda</em> or <em>anonymous procedure</em> to the user which she or he could then use to send commands with.
+This is how we left our procedure:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
+  <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
+         <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
+         <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"version"</span> <span class="s">"2.0"</span> <span class="nv">version</span><span class="p">))</span>
+         <span class="p">(</span><span class="nf">else</span>
+           <span class="p">(</span><span class="k">lambda </span><span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="nv">params</span><span class="p">)</span> <span class="o">...</span> <span class="p">))))</span>
+</pre>
+
+
+<p>As you can see, we started to return a lambda that accepts two arguments: <em>method</em> and <em>params</em>.</p>
+<p>As we have seen in the previous chapter, params are <em>optional</em>. We thus want them to be optional too in our CHICKEN implementation.
+To give optional arguments to a procedure we can use the <em>dot notation</em>: everything left of the dot is required and right of the dot is optional.</p>
+<p>And as you remember from the first chapter, we have to help the user when they input wrong information. In this case it means we have to check two arguments. But since both method and params are completely custom to our egg, we will have to build the predicates ourselves and then build a custom exception handler that will inform the user about her or his mistake.</p>
+<p>We know that the "method" argument must be a string, so the first predicate is quite simple:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">is-valid-method?</span> <span class="nv">method</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">string? </span><span class="nv">method</span><span class="p">))</span>
+</pre>
+
+
+<p>The "params" argument is a little bit different. Since we are implementing JSON-RPC in CHICKEN, we have the chance of also making some aspects more abstract, more easy to use.
+As we have seen in the JSON-RPC spec, params can be <em>positional</em>, which in CHICKEN becomes a <em>vector</em> or they can be <em>named</em> which is an <em>alist</em>.
+So we could opt for the situation where the user has to input either an alist or a vector as a "params" argument, or we could try and find a more simple way of input.</p>
+<p>I chose the latter and opted to let the user either input <em>symbol arguments</em> (positional params) or <em>keyword arguments</em> (named params):</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="ss">'these</span> <span class="ss">'are</span> <span class="ss">'five</span> <span class="ss">'positional</span> <span class="ss">'params</span><span class="p">)</span> <span class="c1">;symbols</span>
+<span class="p">(</span><span class="nf">these:</span> <span class="nv">are</span> <span class="nv">keyword:</span> <span class="nv">params</span><span class="p">)</span> <span class="c1">;keywords</span>
+</pre>
+
+
+<p>Inside the procedure body which implements the params, both keywords and symbols become lists we can use, just as the example above.
+So to make the predicate for checking valid params input the only thing we really have to do is to check if the given params are a list.
+Even when we do not give any params, they will be considered <em>null</em>. And as we have seen in the previous chapter, <em>null</em> in CHICKEN is the same as the <em>empty list</em> or <em>'()</em>, which, of course, is also a list!</p>
+<p>Cool, right?</p>
+<p>So our params predicate would look like this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">are-valid-params?</span> <span class="nv">params</span><span class="p">)</span>
+  <span class="p">(</span><span class="nb">list? </span><span class="nv">params</span><span class="p">))</span>
+</pre>
+
+
+<p>Next we have to make a new exception handler. This one we will call <em>server-setup-data-error</em> and it will be called if one of the predicates fail or in other words, when the method or the params are invalid:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">server-setup-data-error</span> <span class="nv">type</span> <span class="nv">message</span><span class="p">)</span>
+  <span class="p">(</span><span class="nf">signal</span>
+    <span class="p">(</span><span class="nf">make-property-condition</span>
+      <span class="ss">'exn</span> <span class="ss">'message</span>
+      <span class="p">(</span><span class="nf">sprintf</span> <span class="s">"Cannot setup connection, the given ~S data is invalid. The ~S ~A"</span>
+      <span class="nv">type</span> <span class="nv">type</span> <span class="nv">message</span><span class="p">))))</span>
+</pre>
+
+
+<p>Looks quite the same as the first one we wrote in chapter 1, no?</p>
+<p>The only difference is the message we print and the arguments we give to this procedure.
+We can now implement the predicates and the exception handling the same way we did before, so this becomes:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
+  <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
+         <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
+         <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"version"</span> <span class="s">"2.0"</span> <span class="nv">version</span><span class="p">))</span>
+         <span class="p">(</span><span class="nf">else</span>
+           <span class="p">(</span><span class="k">lambda </span><span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="nv">params</span><span class="p">)</span>
+             <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-method?</span> <span class="nv">method</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-data-error</span> <span class="s">"method"</span> <span class="s">"can only be a string."</span><span class="p">))</span>
+                    <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">are-valid-params?</span> <span class="nv">params</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-data-error</span> <span class="s">"params"</span> <span class="s">"can only be a vector or an alist."</span><span class="p">))</span>
+                    <span class="p">(</span><span class="k">else </span><span class="o">...</span> <span class="p">))))))</span>
+</pre>
+
+
+<p>I also added the <em>else</em> statement at the end which will carry the code that will be executed when the given arguments are correct.</p>
+<p>What's next?</p>
+<p>We now have to start looking at actually building the JSON-RPC request object in CHICKEN and sending it to server.
+First let us concentrate on the building part:</p>
+<h4>Building the request object</h4>
+<p>Let us assume that we already finished our egg and we define a connection to the "XBMC" box I described in the first chapter, we would call our <em>json-rpc-server</em> procedure as follows (assuming we have a valid input-port and output-port):</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="nv">xbmc</span> <span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span><span class="p">))</span>
+</pre>
+
+
+<p>When we now call "xbmc" we will get a new procedure (the lambda we are writing now) that excepts a method and optional params.
+Given the example from chapter 1 (Player.PlayPause), let us see how we would call "xbmc" to send this to the server:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">xbmc</span> <span class="s">"Player.PlayPause"</span> <span class="nv">playerid:</span> <span class="mi">0</span><span class="p">)</span>
+</pre>
+
+
+<p><em>Player.PlayPause</em> is the method, which is a string and <em>playerid: 0</em> is a <em>keyword</em> param where <em>playerid:</em> is the keyword and <em>0</em> the value of that keyword.
+We now have to write the code that will take that and turn it into this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span>
+  <span class="p">(</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)</span>
+  <span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+  <span class="p">(</span><span class="nf">params</span>
+    <span class="p">(</span><span class="nf">playerid</span> <span class="o">.</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">)</span>
+  <span class="p">(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">)</span>
+</pre>
+
+
+<p>The above code is a list, so we can also say that we want to <em>build</em> a list containing the <em>"Player.PlayPause"</em> and <em>playerid: 0</em>.</p>
+<p>In chapter one we have seen that the <em>jsonrpc</em> version is always <em>2.0</em>.</p>
+<p>On top of that, we can always keep the <em>id</em> at a fixed number.</p>
+<p>The reasoning behind the <em>id</em> in a JSON-RPC call is that the server can use the same <em>id</em> in its <em>response</em> or <em>error</em> object it returns so you know the server's feedback belongs to your <em>request</em>. But because we only send one request at a time, it is overkill to generate a unique <em>id</em> for each <em>request</em> we send. In our egg, we will keep this <em>id</em> at <em>1</em>.</p>
+<p>Let us concentrate on building the request object from only the <em>version</em> and the <em>id</em> for now. The <em>method</em> and the <em>params</em> will need some further attention later on.</p>
+<p>So the first thing we encounter in the <em>s-expression</em> above is the <em>cons cell</em>:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)</span>
+</pre>
+
+
+<p>The "version" is an argument to the "json-rpc-server procedure", so to create this cons cell we can use <em>cons</em>:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+</pre>
+
+
+<p>Mind the <em>'</em> or <em>quote</em> before "jsonrpc". This is needed for otherwise CHICKEN will see this as <em>code</em> instead of <em>data</em> and try to execute it.
+The last cons cell is our "id", the same idea applies here:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">)</span>
+</pre>
+
+
+<p>Again, mind the <em>'</em> in front of "id". We use the <em>number</em> 1 here without any quoting because we want CHICKEN to treat this as an actual <em>number</em> data type and not as a <em>symbol</em> or <em>string</em>.</p>
+<p>How can we put these two <em>cons cells</em> together?</p>
+<p>Let us try it with cons and see what happens. Remember that cons only accepts two arguments and <em>conses</em> them on to each other. So if we want to put the two cons cells together, it will look something like this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">cons</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>This code will result in:</p>
+<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="nv">version</span><span class="p">)</span> <span class="nv">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">)</span>
+</pre>
+
+
+<p>Hmm, that is not really what we want, is it? It has now become a list containing one <em>cons cell</em> and two <em>atoms</em> separated by a dot.
+Why is this happening and why do we not get the following code?</p>
+<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="nv">version</span><span class="p">)(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>Good question, the answer is: You have just created an <em>improper list</em>.</p>
+<p>Improper list?</p>
+<p>To explain this we have to take another look at the primitive <em>cons</em> procedure we saw in chapter 1. There we learned that <em>cons</em> is used to <em>cons</em>truct pairs, just as we did above. And with pairs, we can eventually construct <em>lists</em>. But there was also one important detail we saw, the <em>null</em>, <em>'()</em> or <em>the empty list</em>. I showed you that when we look at a list, we are actually looking at cons cells and the last item in the list is actually a cons cell that contains the empty list at the end. You do not <em>see</em> the empty list, but it is there.</p>
+<p>An improper list, as opposed to a proper list, does <em>not</em> end in the empty list. In the example above, we ended with the cons cell:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="ss">'id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">)</span>
+</pre>
+
+
+<p>This is considered wrong, it is even said that an improper list is not a list at all. To turn this into a proper list, we simply have to add the empty list into our consing adventure:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">cons</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">cons</span>
+        <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">)</span> <span class="o">'</span><span class="p">()))</span>
+</pre>
+
+
+<p>And this will give as a proper list and thus the result we are after:</p>
+<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)</span> <span class="p">(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>Nice!</p>
+<p>There is one annoying thing about building lists this way: its verbose. Luckily for us, CHICKEN has a shorthand for building lists, amazingly called <em>list</em>.
+The above example would thus be translated to:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">list</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>That is a little bit less to type, and maybe even more easy to read. The procedure <em>list</em> can take an infinite amount of arguments and construct a proper list for you which means that it will always automatically add the <em>empty list</em> at the end.</p>
+<p>Let us now take this one step further and include a <em>method</em> in our construction. If we would use <em>cons</em>, the construction would look like this</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">cons</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">cons</span>
+        <span class="p">(</span><span class="nb">cons </span><span class="ss">'method</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+        <span class="p">(</span><span class="nf">cons</span>
+            <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">)</span> <span class="o">'</span><span class="p">())))</span>
+</pre>
+
+
+<p>And if we used <em>list</em>:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">list</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="ss">'method</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>Both approaches give us:</p>
+<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)</span> <span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span> <span class="p">(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>You are of course free to choose if you want to use "cons" or "list", the take-home message here is that you know <em>how</em> to cons together a proper list and that you understand how "list" will create a <em>proper list</em> for you by adding the empty list at the final cons cell.</p>
+<p>The next bit we have to deal with are our <em>optional</em> params. The fact that they are optional means that we cannot simply add them in our consing goodness. We have to take the process of putting together our final list apart and build in the necessary checks to see if the params are given or not.</p>
+<p>One way to do this is to simply go about and check if there are any params present and if they are, just cons them onto the list we already build. While this would work fine, there is still a theoretical problem that could stick its head up. When we would cons the params onto the existing list, the params will end up at the <em>beginning</em> of the list. You would get something like this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span>
+  <span class="p">(</span><span class="nf">params</span>
+    <span class="p">(</span><span class="nf">playerid</span> <span class="o">.</span> <span class="mi">0</span><span class="p">)</span>
+  <span class="p">)</span>
+  <span class="p">(</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="s">"2.0"</span><span class="p">)</span>
+  <span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+  <span class="p">(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">)</span>
+</pre>
+
+
+<p>This is actually perfectly fine. The order of the <em>jsonrpc</em>, <em>method</em>, <em>params</em> and <em>id</em> is arbitrary. In the final JSON string the order of these keywords does not matter and the server you are sending your string to will perfectly understand your call. So the above CHICKEN code is correct.</p>
+<p>However, like I said, there is a theoretical problem. In the JSON-RPC specification they use <em>exactly</em> the same order throughout the documentation. The <em>jsonrpc</em> version is first, then the <em>method</em>, then optionally the <em>params</em> and finally the <em>id</em>. They do this for clarity, of course, but somebody building a JSON-RPC server could interpreted this as part of the spec and only accept JSON-RPC calls that are formatted in that exact order.</p>
+<p>As assuming a particular order would be a wrong interpretation of the JSON-RPC spec, you could ignore this. If somebody would use your egg to communicate to such a faulty JSON-RPC server, you simply could blame the programmer who build the server. You would be perfectly correct. Or not...?</p>
+<p>You could also think about it from a slightly different perspective. If 99 percent of the JSON-RPC servers do not care about the order, you could as well provide the same order as the spec demonstrated. This way even the faulty servers would still work and the users of your egg will have one frustration less to worry about.</p>
+<p>The latter is the path I choose with my egg, I construct my JSON-RPC call in exactly the same order as demonstrated in the specification.</p>
+<p>But by choosing this path, we bring forth another interesting challenge. In the order of the examples, the <em>params</em> come not at the end, not at the beginning but in the middle of our list.</p>
+<p>Luckily for us we are using CHICKEN and this problem is actually quite trivial. We can simply put an <em>if</em> condition around our <em>param</em> while putting our string together. Let me demonstrate:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">list </span><span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">cons </span><span class="ss">'method</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span> <span class="o">'</span><span class="p">()</span> <span class="p">(</span><span class="nb">cons </span><span class="ss">'params</span> <span class="ss">'theparams</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>As you can see, we put a simple <em>if</em> procedure around our <em>params</em> cons cell. When we do not give any <em>params</em> we simply return the empty list. When we do have <em>params</em> we return those. Note that in the example above I used <em>'theparams</em> to substitute for the actual <em>params</em> that we have to build later on.</p>
+<p>If you would like to try this example in the REPL, we first have to define <em>params</em>, otherwise our <em>if</em> procedure will fail stating that it does not know <em>params</em>. So first, for the sake of testing, define <em>params</em> in the REPL:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="nv">params</span> <span class="no">#t</span><span class="p">)</span>
+</pre>
+
+
+<p>We now defined it as <em>#t</em> or <em>true</em> which means it is <em>not empty</em>. If you now type in "params" in the REPL, you will get back <em>#t</em>.
+Now, let us input our slightly modified statement into the REPL:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">list </span><span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="ss">'version</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">cons </span><span class="ss">'method</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span> <span class="o">'</span><span class="p">()</span> <span class="p">(</span><span class="nb">cons </span><span class="ss">'params</span> <span class="ss">'theparams</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>Notice that I quoted <em>version</em> also, because this is still unknown for the REPL in this stage of development.
+If you punch this in, you will get the following output:</p>
+<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="nv">version</span><span class="p">)</span> <span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span> <span class="p">(</span><span class="nf">params</span> <span class="o">.</span> <span class="nv">theparams</span><span class="p">)</span> <span class="p">(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>Neat! We have four <em>cons cells</em>, including our params. Seems to work so far, no?</p>
+<p>Okay, now let us try it when <em>params</em> are not given.
+We first need to redefine <em>params</em> to not be <em>#t</em> but be <em>the empty list</em>:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="nv">params</span> <span class="o">'</span><span class="p">())</span>
+</pre>
+
+
+<p>And now run our code again:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">list </span><span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="ss">'version</span><span class="p">)</span>
+      <span class="p">(</span><span class="nb">cons </span><span class="ss">'method</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+      <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span> <span class="o">'</span><span class="p">()</span> <span class="p">(</span><span class="nb">cons </span><span class="ss">'params</span> <span class="ss">'theparams</span><span class="p">))</span>
+      <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>The output will now read:</p>
+<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="nv">version</span><span class="p">)</span> <span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span> <span class="p">()</span> <span class="p">(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>Hmmm, you notice the problem? There is an empty list right in the middle of our list.</p>
+<p>This, of course, makes perfect sense, since we told CHICKEN to input the empty list if we had no <em>params</em>.
+But if we would later go and convert this into a <em>JSON-RPC</em> valid call, we would run into trouble.</p>
+<p>We have to find a way to <em>remove</em> this empty list from our resulting list.</p>
+<p>How?</p>
+<p>With <em>remove</em> of course! <em>Remove</em> is a procedure that is delivered by the so-called <em>SRFI-1</em> and is in CHIKCKEN core.</p>
+<p>What is <em>SRFI-1</em> you ask?</p>
+<p><em>SRFI</em> stands for <em>S</em>cheme <em>R</em>equests <em>f</em>or <em>I</em>mplementation and are well defined Scheme libraries. The reasoning is that Schemers can use these libraries to extend the functionality of their Scheme. Somebody building a Scheme implementation can choose which SRFI's he or she would include or implement in its core. If a library proves to be useful enough it even makes a tiny chance of being included into a new RnRS spec. You can check out <a href="http://srfi.schemers.org/" title="The official SRFI repository.">the SRFI website</a> containing all the available SRFI's.</p>
+<p><em>SRFI-1</em>, aka the <em>List Library</em>, contains several useful procedures for working with lists. One of these procedures is called <em>remove</em>.</p>
+<p><em>Remove</em> accepts two arguments, a predicate and a list. Whatever matches the predicate will be, well, removed. So in our case, we want to remove everything that is <em>null</em> or <em>the empty list</em>.
+In the previous chapter we already saw that we have a <em>null?</em> predicate. Now we can add the procedure <em>remove</em> together with that predicate to get rid of our <em>empty list</em>:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">remove</span>
+    <span class="nv">null?</span>
+    <span class="p">(</span><span class="nf">list</span>
+        <span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="ss">'version</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">cons </span><span class="ss">'method</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span>
+        <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span>
+            <span class="o">'</span><span class="p">()</span>
+            <span class="p">(</span><span class="nb">cons </span><span class="ss">'params</span> <span class="ss">'theparams</span><span class="p">))</span>
+        <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="mi">1</span><span class="p">)))</span>
+</pre>
+
+
+<p>Which will result in:</p>
+<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">jsonrpc</span> <span class="o">.</span> <span class="nv">version</span><span class="p">)</span> <span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="s">"Player.PlayPause"</span><span class="p">)</span> <span class="p">(</span><span class="nf">id</span> <span class="o">.</span> <span class="mi">1</span><span class="p">))</span>
+</pre>
+
+
+<p>Good! The empty list is now gone!</p>
+<p>But before we can use stuff from SRFI-1 in our egg, we will have to <em>load in</em> its procedures the same way we loaded in <em>Extras</em> in chapter one.
+To load in multiple libraries or eggs at once, simply list the names as arguments to <em>use</em>:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">use</span> <span class="nv">extras</span> <span class="nv">srfi-1</span><span class="p">)</span>
+</pre>
+
+
+<p>Let us take a look at the full code we have now for our <em>json-rpc-server</em> procedure:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
+  <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
+         <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
+         <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"version"</span> <span class="s">"2.0"</span> <span class="nv">version</span><span class="p">))</span>
+         <span class="p">(</span><span class="nf">else</span>
+           <span class="p">(</span><span class="k">lambda </span><span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="nv">params</span><span class="p">)(</span>
+            <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-method?</span> <span class="nv">method</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-data-error</span> <span class="s">"method"</span> <span class="s">"can only be a string."</span><span class="p">))</span>
+                  <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">are-valid-params?</span> <span class="nv">params</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-data-error</span> <span class="s">"params"</span> <span class="s">"can only be a vector or an alist."</span><span class="p">))</span>
+                  <span class="p">(</span><span class="nf">else</span>
+                    <span class="p">(</span><span class="nf">remove</span>
+                        <span class="nv">null?</span>
+                        <span class="p">(</span><span class="nf">list</span>
+                            <span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+                            <span class="p">(</span><span class="nb">cons </span><span class="ss">'method</span> <span class="nv">method</span><span class="p">)</span>
+                            <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span> <span class="o">'</span><span class="p">()</span> <span class="p">(</span><span class="nb">cons </span><span class="ss">'params</span> <span class="ss">'theparams</span><span class="p">))</span>
+                            <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="s">"1"</span><span class="p">))))))))))</span>
+</pre>
+
+
+<p>That starts to look like a nice little program!</p>
+<p>But as you can notice, we still have <em>'theparams</em> in there, which needs to be replaced with the actual params the user inputs.
+In the beginning of the chapter I explained that the <em>params</em> can be either an <em>alist</em> or a <em>vector</em> so that they can later be converted correctly into JSON.But we also saw that we don't want to bother the user with that. We want the user to input simple keywords or symbols.
+This means we have to make a translation from keywords/symbols to alists/vectors.</p>
+<p>The first thing we need to do is to check what the user has input for <em>params</em>. Are it keywords? Or are it symbols? After we know what the user has input, we can build either an <em>alist</em> or a <em>vector</em>. This calls for three small procedures, one that checks the input, one that builds an <em>alist</em> and one that builds a <em>vector</em>.</p>
+<p>Let us begin with the input checker. This procedure will check the input and call the appropriate procedure, then it will return that result. So let us call this procedure <em>build-params</em>. It will take one argument: the params that the user has input. This little fellow will look something like this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">build-params</span> <span class="nv">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">keyword?</span> <span class="p">(</span><span class="nb">car </span><span class="nv">params</span><span class="p">))</span> 
+        <span class="p">(</span><span class="nf">build-alist</span> <span class="nv">params</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">list-&gt;vector </span><span class="p">(</span><span class="nf">build-vector</span> <span class="nv">params</span><span class="p">))))</span>
+</pre>
+
+
+<p>As you can see, we have an <em>if</em> procedure that checks the <em>car</em> of the <em>params</em> to be a <em>keyword</em>. The <em>keyword?</em> procedure is a build in predicate that we have at our disposal. If the <em>car</em> is a keyword we have to build an <em>alist</em>. So it calls a custom procedure <em>build-alist</em>.</p>
+<p>Let us forget the rest for a moment and see how we can put together <em>build-alist</em>.
+Before we start writing code, let us do it in our minds first.</p>
+<p>If the user has input keywords, we can safely assume they will be in the following form:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">first:</span> <span class="s">"string"</span> <span class="nv">second:</span> <span class="s">"string"</span> <span class="nv">third:</span> <span class="s">"string"</span><span class="p">)</span>
+</pre>
+
+
+<p>And we also know the resulting alist we would like to see:</p>
+<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">first</span> <span class="o">.</span> <span class="s">"string"</span><span class="p">)</span> <span class="p">(</span><span class="nf">second</span> <span class="o">.</span> <span class="s">"string"</span><span class="p">)</span> <span class="p">(</span><span class="nf">third</span> <span class="o">.</span> <span class="s">"string"</span><span class="p">))</span>
+</pre>
+
+
+<p>What we need to do is take the keywords (first:, second: and third:) and make them the car of each pair, then take the value of the keywords and make them the cdr of each pair.</p>
+<p>We have already seen almost every tool we need to do this job of putting together these pairs. If we had, for example, three keywords like in the above example, the code to put this together would look something like this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">cons</span>
+    <span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">car </span><span class="nv">params</span><span class="p">)</span> <span class="p">(</span><span class="nb">car </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nf">cons</span>
+        <span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">car </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))</span> <span class="p">(</span><span class="nb">car </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))))</span>
+        <span class="p">(</span><span class="nf">cons</span>
+            <span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">car </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))))(</span><span class="nb">car </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))))))</span>
+            <span class="o">'</span><span class="p">())))</span>
+</pre>
+
+
+<p>Wow...that seems quite verbose, no? Look at all the car, cdr and cons procedures, not to mention the unscalability of such code. If we get, for example, four or five keywords, this gets twice as long! So we have to be a bit more lazy and let CHICKEN do that heavy lifting for us. We need some kind of loop.</p>
+<h4>Recursion</h4>
+<p>A loop in CHICKEN or any other Scheme is not like your average loop in Python or C, in CHICKEN there actually is <em>no</em> loop. Instead of a loop there exists an idea that is called <em>recursion</em>. This is quite a simple idea where you do something over and over again until a certain condition is met. Let me demonstrate:</p>
+<p>Say for example, we have a list with three numbers:</p>
+<pre class="code literal-block"><span></span><span class="o">'</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">)</span>
+</pre>
+
+
+<p>And we want to do the quite useless exercises of adding one to each of the numbers.</p>
+<p>We could do this by writing a tiny procedure that takes the first number, adds one to it, go over to the next number and do this over and over until there are no numbers left.</p>
+<p>In code, this tiny <em>recursive</em> procedure looks like this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">addone</span> <span class="nv">list</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">list</span><span class="p">)</span>
+        <span class="o">'</span><span class="p">()</span>
+        <span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="p">(</span><span class="nb">car </span><span class="nv">list</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="p">(</span><span class="nb">cdr </span><span class="nv">list</span><span class="p">)))))</span>
+</pre>
+
+
+<p>The + sign we use here is a build-in procedure that adds up numbers, just so you know. Remember, in CHICKEN you can use almost any character as a variable or procedure name.</p>
+<p>Then we call this newly made procedure:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">addone</span> <span class="o">'</span><span class="p">(</span><span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span><span class="p">))</span>
+</pre>
+
+
+<p>And we get back:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+</pre>
+
+
+<p>You have just seen recursion in action!</p>
+<p>To fully understand what just happened we have to dig in a little bit deeper and take a look at how the <em>recursion</em> is happening behind the curtains.</p>
+<p>We created the procedure called "addone" that calls <em>itself</em> until the so-called <em>base case</em> is reached. The base case here being:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">list</span><span class="p">))</span>
+</pre>
+
+
+<p>An important detail to know is that every time the procedure calls itself it will be put on a waiting list and wait for the newly called procedure to finish and give back its result.
+When the base case is reached, the final procedure call returns its result (in this case the <em>empty list</em>) and this empty list will be given to the second last procedure which can cons its result on to that.
+This second last procedure then finishes and gives its result to the third last procedure that was waiting. This continues until the first, original procedure gets its result and returns this to you (or the procedure that called it in the first place).</p>
+<p>You can think of it as having a big box right in front of you, you open the box only to find another box, you open that one and you find yet another box.
+This goes on until there are no boxes in boxes left (the base case is reached). But before you can close the big, original box, you will have to close every box, starting with the most smallest inner box working your way back to the big, original box.</p>
+<p>Let us look at each step of the recursion for our "addone" procedure.</p>
+<p><em>1</em> - We call "addone" for the first time, the argument is not null, so the base case is not reached. This means we continue with the final cons line.</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="p">(</span><span class="nb">car </span><span class="nv">list</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="p">(</span><span class="nb">cdr </span><span class="nv">list</span><span class="p">)))</span>
+</pre>
+
+
+<p>which translates to</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="mi">1</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="o">'</span><span class="p">(</span><span class="mi">2</span> <span class="mi">3</span><span class="p">)))</span>
+</pre>
+
+
+<p>You can notice that the "addone" procedure is now called with the argument '(2 3).</p>
+<p><em>2</em> - The base case is still not reached, because '(2 3) is not null, we continue again with the last line.</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="p">(</span><span class="nb">car </span><span class="nv">list</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="p">(</span><span class="nb">cdr </span><span class="nv">list</span><span class="p">)))</span>
+</pre>
+
+
+<p>which translates to</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="mi">2</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="o">'</span><span class="p">(</span><span class="mi">3</span><span class="p">)))</span>
+</pre>
+
+
+<p>The procedure "addone" is now called again, with the '(3) as the argument.</p>
+<p><em>3</em> - The base case is still not reached, because '(3) is not null, we continue again with the last line.</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="p">(</span><span class="nb">car </span><span class="nv">list</span><span class="p">)</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="p">(</span><span class="nb">cdr </span><span class="nv">list</span><span class="p">)))</span>
+</pre>
+
+
+<p>which translates to</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="mi">3</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="o">'</span><span class="p">()))</span>
+</pre>
+
+
+<p>Now "addone" is called with the argument '(), because that is the <em>cdr</em> of '(3).</p>
+<p><em>4</em> - Aha! Now the base case <em>is</em> reached  because the argument is '() or in other words: null.</p>
+<p>So the base case condition is executed:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span> <span class="o">'</span><span class="p">())</span>
+</pre>
+
+
+<p>which simply translates to:</p>
+<pre class="code literal-block"><span></span><span class="o">'</span><span class="p">()</span>
+</pre>
+
+
+<p>As you can see, this time we don't call the "addone" procedure again, but we return a value instead.
+This means we now can walk back up the tree and start to give back a value to each procedure waiting.</p>
+<p>The procedure waiting for its result was the previous one before our base case was met:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="mi">3</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="o">'</span><span class="p">()))</span>
+</pre>
+
+
+<p>We can now fill in the result of the <em>addone</em>:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="mi">3</span> <span class="mi">1</span><span class="p">)</span> <span class="o">'</span><span class="p">())</span>
+</pre>
+
+
+<p>And the result of the sum:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="mi">4</span> <span class="o">'</span><span class="p">())</span>
+</pre>
+
+
+<p>Now this procedure also has a value, being the cons cell <em>(4 . '())</em>, we can go one more up.
+The one procedure waiting now is this one:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="mi">2</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="o">'</span><span class="p">(</span><span class="mi">3</span><span class="p">)))</span>
+</pre>
+
+
+<p>So this one now becomes:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="mi">3</span> <span class="p">(</span><span class="mi">4</span> <span class="o">.</span> <span class="o">'</span><span class="p">()))</span>
+</pre>
+
+
+<p>We have yet another value, up to the next, final procedure:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span><span class="p">(</span><span class="nb">+ </span><span class="mi">1</span> <span class="mi">1</span><span class="p">)</span> <span class="p">(</span><span class="nf">addone</span> <span class="o">'</span><span class="p">(</span><span class="mi">2</span> <span class="mi">3</span><span class="p">)))</span>
+</pre>
+
+
+<p>Which now becomes:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nb">cons </span> <span class="mi">2</span> <span class="o">'</span><span class="p">(</span><span class="mi">3</span> <span class="mi">4</span> <span class="o">'</span><span class="p">()))</span>
+</pre>
+
+
+<p>This is the final, top most procedure, so this one simply can return its value, becoming:</p>
+<pre class="code literal-block"><span></span><span class="o">'</span><span class="p">(</span><span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span><span class="p">)</span>
+</pre>
+
+
+<p>And there we have our result!</p>
+<h4>Back to our egg</h4>
+<p>So let us put this recursion idea into practice with our <em>alist</em> builder. The procedure <em>build-alist</em> would look like this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">build-alist</span> <span class="nv">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span> 
+    <span class="o">'</span><span class="p">()</span>
+    <span class="p">(</span><span class="nf">cons</span>
+        <span class="p">(</span><span class="nf">cons</span>
+            <span class="p">(</span><span class="nb">car </span><span class="nv">params</span><span class="p">)</span>
+            <span class="p">(</span><span class="nb">car </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))</span>
+        <span class="p">(</span><span class="nf">build-alist</span> <span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">))))))</span>
+</pre>
+
+
+<p>This looks much like the simple <em>addone</em> procedure, does it not? Okay, the last part is different of course, but the principle is the same.</p>
+<p>First we put in our <em>base case</em>, which in many cases is to check for the empty list with the <em>null?</em> predicate. If the given <em>params</em> are not empty, the base case is not met and we perform a <em>cons</em>.
+Let us take this cons line apart and see where the recursion happens:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">cons</span>
+    <span class="p">(</span><span class="nf">cons</span>
+        <span class="p">(</span><span class="nb">car </span><span class="nv">params</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">car </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))</span>
+    <span class="p">(</span><span class="nf">build-alist</span> <span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">))))</span>
+</pre>
+
+
+<p>We are consing two things together:</p>
+<ul>
+<li>A <em>cons cell</em> containing the <em>car</em> of the params (the first keyword) and the <em>car of the cdr</em> of the params (the value of the first keyword)</li>
+<li>A call to the <em>same procedure</em> but with the first keyword and the value of the first keyword stripped off (cdr (cdr params))</li>
+</ul>
+<p>If we call this procedure with a list of keyword arguments:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">build-alist</span> <span class="o">'</span><span class="p">(</span><span class="nv">first:</span> <span class="s">"string"</span> <span class="nv">second:</span> <span class="s">"string"</span> <span class="nv">third:</span> <span class="s">"string"</span><span class="p">))</span>
+</pre>
+
+
+<p>CHICKEN will return us:</p>
+<pre class="code literal-block"><span></span><span class="p">((</span><span class="nf">first:</span> <span class="o">.</span> <span class="s">"string"</span><span class="p">)</span> <span class="p">(</span><span class="nf">second:</span> <span class="o">.</span> <span class="s">"string"</span><span class="p">)</span> <span class="p">(</span><span class="nf">third:</span> <span class="o">.</span> <span class="s">"string"</span><span class="p">))</span>
+</pre>
+
+
+<p>Which is a list of cons cells instead of a list of keyword arguments, that is exactly what we want!</p>
+<p>When the recursion ends, this procedure can return its value to the procedure that called it in the first place: our "build-params":</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">build-params</span> <span class="nv">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">keyword?</span> <span class="p">(</span><span class="nb">car </span><span class="nv">params</span><span class="p">))</span> 
+        <span class="p">(</span><span class="nf">build-alist</span> <span class="nv">params</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">list-&gt;vector </span><span class="p">(</span><span class="nf">build-vector</span> <span class="nv">params</span><span class="p">))))</span>
+</pre>
+
+
+<p>Which does nothing more then give this result back to the procedure that called it, the <em>if</em> condition we where using to check if params existed while building our request object.</p>
+<p>That is all there is to it for building an alist, but what if we have to build a vector using the "build-vector" procedure? Well, this turns out to be very much the same.</p>
+<p>Let me present to you the code for "build-vector":</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">build-vector</span> <span class="nv">params</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span>
+      <span class="o">'</span><span class="p">()</span>
+      <span class="p">(</span><span class="nf">cons</span>
+        <span class="p">(</span><span class="nf">symbol-&gt;string</span><span class="p">(</span><span class="nb">car </span><span class="nv">params</span><span class="p">))</span>
+        <span class="p">(</span><span class="nf">build-vector</span> <span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))))</span>
+</pre>
+
+
+<p>Pretty much the same, right? The only difference here is, again, the consing line at the end.
+Since it is a vector we are building we do not need a keyword and its value, we simply have to build a list of items, one by one.</p>
+<p>So the recursion here is the fact that we cons together the <em>car</em> of the params and call the procedure again with the <em>cdr</em>.
+One odd thing you might notice is the <em>symbol-&gt;string</em> procedure that I have put in front of the <em>(car params)</em>.</p>
+<p>This is needed to convert the symbols we input as arguments to the lambda to be converted into real strings.
+If we would not do this, we would build a list containing symbol types which would make no sense at all to a JSON-RPC call.</p>
+<p>Good. We now have our code almost completely finished, the full code for our "json-rpc-server" procedure and the procedures for building alists or vectors looks like this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
+<span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
+  <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
+  <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"version"</span> <span class="s">"2.0"</span> <span class="nv">version</span><span class="p">))</span>
+  <span class="p">(</span><span class="nf">else</span>
+   <span class="p">(</span><span class="k">lambda </span><span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="nv">params</span><span class="p">)</span>
+     <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-method?</span> <span class="nv">method</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-data-error</span> <span class="s">"method"</span> <span class="s">"can only be a string."</span><span class="p">))</span>
+       <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">are-valid-params?</span> <span class="nv">params</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-data-error</span> <span class="s">"params"</span> <span class="s">"can only be a vector or an alist."</span><span class="p">))</span>
+       <span class="p">(</span><span class="nf">else</span>
+        <span class="p">(</span><span class="nf">remove</span> <span class="nv">null?</span> <span class="p">(</span><span class="nb">list </span><span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+                        <span class="p">(</span><span class="nb">cons </span><span class="ss">'method</span> <span class="nv">method</span><span class="p">)</span>
+                        <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span> <span class="o">'</span><span class="p">()</span>
+                            <span class="p">(</span><span class="nb">cons </span><span class="ss">'params</span> <span class="p">(</span><span class="nf">build-params</span> <span class="nv">params</span><span class="p">)))</span>
+                            <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="s">"1"</span><span class="p">)))</span>
+              <span class="nv">input</span> 
+              <span class="nv">output</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">build-params</span> <span class="nv">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">keyword?</span> <span class="p">(</span><span class="nb">car </span><span class="nv">params</span><span class="p">))</span> 
+        <span class="p">(</span><span class="nf">build-alist</span> <span class="nv">params</span><span class="p">)</span>
+        <span class="p">(</span><span class="nb">list-&gt;vector </span><span class="p">(</span><span class="nf">build-vector</span> <span class="nv">params</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">build-alist</span> <span class="nv">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span> 
+        <span class="o">'</span><span class="p">()</span>
+        <span class="p">(</span><span class="nf">cons</span>
+            <span class="p">(</span><span class="nf">cons</span>
+                <span class="p">(</span><span class="nb">car </span><span class="nv">params</span><span class="p">)</span>
+                <span class="p">(</span><span class="nb">car </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))</span>
+            <span class="p">(</span><span class="nf">build-alist</span> <span class="p">(</span><span class="nb">cdr </span><span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">))))))</span>
+
+<span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">build-vector</span> <span class="nv">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span>
+        <span class="o">'</span><span class="p">()</span>
+        <span class="p">(</span><span class="nf">cons</span>
+            <span class="p">(</span><span class="nf">symbol-&gt;string</span><span class="p">(</span><span class="nb">car </span><span class="nv">params</span><span class="p">))</span>
+            <span class="p">(</span><span class="nf">build-vector</span> <span class="p">(</span><span class="nb">cdr </span><span class="nv">params</span><span class="p">)))))</span>
+</pre>
+
+
+<p>There we have our whole mechanism for creating our request object. We have the procedure that sets up a connection and returns another procedure that builds the actually object using the small recursive procedures we just wrote.</p>
+<p>The only problem now is that this code build the request object...and that is it. We still need to hand it over to Medea, the JSON&lt;-&gt;CHICKEN converter we saw in chapter one.
+Luckily for us (and thanks to <a href="http://wiki.call-cc.org/users/moritz-heidkamp" title="Moritz Heidkamp user page on the CHICKEN wiki">Moritz Heidkamp</a> who made the Medea egg), this is yet another trivial task.</p>
+<h4>Sending over the data</h4>
+<p>All we need to do is to call the sending procedure of Medea with our build request object and the output port we set when creating our connection with "json-rpc-server".
+So first thing to do is to make sure we load in the Medea egg using the same <em>use</em> procedure as we did when loading in the SRFI-1 and Extras:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">use</span> <span class="nv">extras</span> <span class="nv">srfi-1</span> <span class="nv">medea</span><span class="p">)</span>
+</pre>
+
+
+<p>As we are now used to doing, let us create a small procedure that will send the data over to Medea:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">send-request</span> <span class="nv">request</span> <span class="nv">output</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">write-json</span> <span class="nv">request</span> <span class="nv">output</span><span class="p">))</span>
+</pre>
+
+
+<p>That is how simple it works. The "write-json" is a procedure from Medea that, well, takes the given object or "datum", converts it into JSON and sends it over to the output port given.</p>
+<p>And now we need to call this procedure in our lambda, where the "request" argument will become the whole building process we have been seeing in this chapter:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="k">define </span><span class="p">(</span><span class="nf">json-rpc-server</span> <span class="nv">input</span> <span class="nv">output</span> <span class="o">#</span><span class="nv">!key</span> <span class="p">(</span><span class="nf">version</span> <span class="s">"2.0"</span><span class="p">))</span>
+<span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">input-port? </span><span class="nv">input</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"input port"</span> <span class="s">"input-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">input</span><span class="p">)))</span>
+  <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nb">output-port? </span><span class="nv">output</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"output port"</span> <span class="s">"ouput-port"</span> <span class="p">(</span><span class="nf">get-type</span> <span class="nv">output</span><span class="p">)))</span>
+  <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-version?</span> <span class="nv">version</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-arguments-error</span> <span class="s">"version"</span> <span class="s">"2.0"</span> <span class="nv">version</span><span class="p">))</span>
+  <span class="p">(</span><span class="nf">else</span>
+   <span class="p">(</span><span class="k">lambda </span><span class="p">(</span><span class="nf">method</span> <span class="o">.</span> <span class="nv">params</span><span class="p">)</span>
+     <span class="p">(</span><span class="k">cond </span><span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">is-valid-method?</span> <span class="nv">method</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-data-error</span> <span class="s">"method"</span> <span class="s">"can only be a string."</span><span class="p">))</span>
+       <span class="p">((</span><span class="nb">not </span><span class="p">(</span><span class="nf">are-valid-params?</span> <span class="nv">params</span><span class="p">))</span> <span class="p">(</span><span class="nf">server-setup-data-error</span> <span class="s">"params"</span> <span class="s">"can only be a vector or an alist."</span><span class="p">))</span>
+       <span class="p">(</span><span class="nf">else</span>
+        <span class="p">(</span><span class="nf">send-request</span> <span class="p">(</span><span class="nf">remove</span> <span class="nv">null?</span> <span class="p">(</span><span class="nb">list </span><span class="p">(</span><span class="nb">cons </span><span class="ss">'jsonrpc</span> <span class="nv">version</span><span class="p">)</span>
+                        <span class="p">(</span><span class="nb">cons </span><span class="ss">'method</span> <span class="nv">method</span><span class="p">)</span>
+                        <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nb">null? </span><span class="nv">params</span><span class="p">)</span> <span class="o">'</span><span class="p">()</span>
+                            <span class="p">(</span><span class="nb">cons </span><span class="ss">'params</span> <span class="p">(</span><span class="nf">build-params</span> <span class="nv">params</span><span class="p">)))</span>
+                            <span class="p">(</span><span class="nb">cons </span><span class="ss">'id</span> <span class="s">"1"</span><span class="p">)))</span>
+                        <span class="nv">output</span><span class="p">)))))))</span>
+</pre>
+
+
+<p>Voila, we now call the procedure "send-request" where its first argument is the <em>whole</em> request object building process and the output port is the second argument.</p>
+<h4>Defining and exporting</h4>
+<p>Good, we finished up the total code, <em>congratulations</em>!</p>
+<p>Next up is to actually tell CHICKEN that this file is the source code of an egg.</p>
+<p>First we load in the actual CHICKEN core at the beginning of our file:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">import</span> <span class="nv">chicken</span> <span class="nv">scheme</span><span class="p">)</span>
+</pre>
+
+
+<p>Next we have to give this file a place inside our egg (eggs can consist of multiple source code files).</p>
+<p>This is done trough the <em>module</em> procedure. This procedure takes several arguments, the first being the actual name of the module. In our case, the file we have been creating the past two chapters will contains the code for the <em>client</em> implementation. So I choose <em>json-rpc-client</em> as the name for this module file.</p>
+<p>The next argument is the procedures you wish to export. When creating an egg with one or multiple files, you can choose to which of the procedures the user of your egg has access to. In our case, the users does need to use our predicate procedures or anything like that. There is only one procedure that they will need to use: our <em>json-rpc-server</em> procedure. So to scope their access, we can set this procedure to be exported.</p>
+<p>The third argument is the <em>whole code</em> of our egg. Everything we have been writing up to this point goes into that procedure.</p>
+<p>So, in the top of our egg file, we will end up with this:</p>
+<pre class="code literal-block"><span></span><span class="p">(</span><span class="nf">module</span> <span class="nv">json-rpc-client</span>
+    <span class="p">(</span><span class="nf">json-rpc-server</span><span class="p">)</span>
+    <span class="p">(</span><span class="nf">import</span> <span class="nv">chicken</span> <span class="nv">scheme</span><span class="p">)</span>
+
+    <span class="o">...</span> <span class="c1">; the whole egg code ; ...</span>
+
+<span class="p">)</span>
+</pre>
+
+
+<p>Mind the ending parenthesis at the end of your CHICKEN file to close off the last argument.</p>
+<h4>Licensing</h4>
+<p>There is one more thing left before we can start dreaming of chapter three: setting the correct license.</p>
+<p>It is important to set a correct license on your work, for protecting it, but also for making it possible for people to know if they can include it in <em>their</em> work.
+The CHICKEN website has <a href="http://wiki.call-cc.org/eggs-licensing" title="Licensing page on the CHICKEN website.">a page</a> containing all sorts of licenses you can use. Pick one carefully and put it in the top of your CHICKEN files.</p>
+<h4>Looking ahead</h4>
+<p>While we probably have a functioning CHICKEN Scheme file, it is still not a real egg, it is merely one file containing a bunch of CHICKEN code and a module wrapper to give it a name and export the needed procedures.
+As we have seen in chapter one, we now need to create some extra files so that CHICKEN will recognize this as a real module.</p>
+<p>And one other <em>very important</em> thing we have to setup before you can release an egg is a <em>testing suite</em>.
+It is not mandatory for releasing an egg, but it is highly recommended.
+<em>Always</em> write tests for your code, this takes a little bit of your time, but can be a huge benefit in further development of your code.</p>
+<p>Okay, I will leave you to rest now, take a deep breath and relax.</p>
+<p>And as always...thanks for reading!</p>
+</div>
+ </div>
+</div></body></html>

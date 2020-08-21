@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html><body><div class="postbox">
+ Postgis, PostgreSQL's spatial partner - Part 3
+ <p class="post-date">25/06/2014 <span>-</span> </p>
+ <div class="post">
+  <div>
+<p>You have arrived at the final chapter of this PostGIS introduction  series. Before continuing, I recommend you read <a href="http://shisaa.jp/postset/postgis-postgresqls-spatial-partner-part-1.html" title="Part one of this series.">chapter one</a> and <a href="http://shisaa.jp/postset/postgis-postgresqls-spatial-partner-part-2.html" title="Part one of this series.">chapter two</a> first.</p>
+<p>In the last chapter we finished by doing some real world distance measuring and we saw how different projections pushed forward different results.</p>
+<p>Today I would like to take this practical approach a bit further and continue our work with real world data by showing you around the town of Kin in Okinawa. The town where I live.</p>
+<h3>A word before we start</h3>
+<p>In this chapter I want to do a few experiments together with you on real world data.
+To gather this data, I would like to use OpenStreetMap because it is not only <em>open</em> but also gives us handy tools to export map information.</p>
+<p>We will use a tool called <em>osm2pgsql</em> to load our OSM data into PostGIS enable tables.</p>
+<p>However, it is more common to import and export real world GIS data by using the semi-closed ESRI standard <em>shapefile</em> format.
+OpenStreetMap does not support exporting to this shapefile format directly, but exports to a more open XML file (.osm) instead.</p>
+<p>Therefor, near the end of this post, we will briefly cover these shapefiles as well and see how we could import them into our PostgreSQL database.
+But for the majority of our work today, I will focus on the OpenStreetMap approach.</p>
+<h3>The preparation</h3>
+<p>Let us commence with this adventure by first getting all the GIS data related to the whole of Okinawa.
+We will only be interested in the data related to Kin town, but I need you to pull in a data set that is large enough (but still tiny in PostgreSQL terms) for us to experiment with indexing.</p>
+<p>Hop online and download the file being served at the following URL: <a href="http://overpass-api.de/api/map?bbox=126.079,25.596,130.852,28.898">openstreetmap.org Okinawa island</a>
+It is a file of roughly 180 Mb and covers most of the Okinawan main island. Save the presented "map" file.</p>
+<p>Next we will need to install a third party tool which is specifically designed to import this OSM file into PostGIS.
+This tool is called <em>osm2pgsql</em> and is available in many Linux distributions.</p>
+<p>On a Debian system:</p>
+<pre class="code literal-block"><span></span>apt-get install osm2pgsql
+</pre>
+
+
+<h3>Loading foreign data</h3>
+<p>Now we are ready to load in this data. But first, let us clean our "gis" database we used before.</p>
+<p>Since all these import tools will create their own PostGIS enabled tables, we can delete our "shapes" table. Connect to your "gis" database and drop this table:</p>
+<pre class="code literal-block"><span></span><span class="k">DROP</span> <span class="k">TABLE</span> <span class="n">shapes</span><span class="p">;</span>
+</pre>
+
+
+<p>Using this new tool, repopulate the "gis" database with the data you just downloaded:</p>
+<pre class="code literal-block"><span></span>osm2pgsql -s -U postgres -d gis map
+</pre>
+
+
+<p>If everything went okay, you will get a small report containing the information about all the tables <em>and</em> indexes that where created.</p>
+<p>Let us see what we just did. </p>
+<p>First we ran <em>osm2pgsql</em> with the <em>-s</em> flag. This flag enabled <em>slim</em> mode, which means it will use a database on disk, rather then processing all the GIS data in RAM.
+The latter does not only potentially slow down your machine for larger data sets, but it enables less features to be available.</p>
+<p>Next we tell the tool to connect as the user "postgres" and load the data into the "gis" database. The final argument is the "map" file you just downloaded.</p>
+<h3>What do we have now?</h3>
+<p>Open up a database console and let us describe our database to see what this tool just did:</p>
+<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">d</span>
+</pre>
+
+
+<p>As you can see, it inserted 7 new tables:</p>
+<pre class="code literal-block"><span></span>Schema <span class="p">|</span>        Name        <span class="p">|</span> Type  <span class="p">|</span>  Owner   
+--------+--------------------+-------+----------
+public <span class="p">|</span> geography_columns  <span class="p">|</span> view  <span class="p">|</span> postgres
+public <span class="p">|</span> geometry_columns   <span class="p">|</span> view  <span class="p">|</span> postgres
+public <span class="p">|</span> planet_osm_line    <span class="p">|</span> table <span class="p">|</span> postgres
+public <span class="p">|</span> planet_osm_nodes   <span class="p">|</span> table <span class="p">|</span> postgres
+public <span class="p">|</span> planet_osm_point   <span class="p">|</span> table <span class="p">|</span> postgres
+public <span class="p">|</span> planet_osm_polygon <span class="p">|</span> table <span class="p">|</span> postgres
+public <span class="p">|</span> planet_osm_rels    <span class="p">|</span> table <span class="p">|</span> postgres
+public <span class="p">|</span> planet_osm_roads   <span class="p">|</span> table <span class="p">|</span> postgres
+public <span class="p">|</span> planet_osm_ways    <span class="p">|</span> table <span class="p">|</span> postgres
+public <span class="p">|</span> raster_columns     <span class="p">|</span> view  <span class="p">|</span> postgres
+public <span class="p">|</span> raster_overviews   <span class="p">|</span> view  <span class="p">|</span> postgres
+public <span class="p">|</span> spatial_ref_sys    <span class="p">|</span> table <span class="p">|</span> postgres
+</pre>
+
+
+<p>The other 5 views and tables are the good old PostGIS bookkeeping.</p>
+<p>It is also important, yet less relevant for our work here today, to know that these tables, or rather the way <em>osm2pgsql</em> imports, is optimized to work with <em>Mapnik</em>.
+Mapnik is an open-source map rendering software package used for both web and offline usage.</p>
+<p>The tables that are imported contain many different types of information. Let me quickly go over them to give you a basic feeling of how the import happened:</p>
+<ul>
+<li>planet_osm_line: holds all non-closed pieces of geometry (called <em>ways</em>) at a high resolution. They mostly represent actual roads and are used when looking at a small, zoomed-in detail of a map.</li>
+<li>planet_osm_nodes: an intermediate table that holds the raw point data (points in lat/long) with a corresponding "osm_id" to map them to other tables</li>
+<li>planet_osm_point: holds all points-of-interest together with their OSM tags - tags that describe what they represent</li>
+<li>planet_osm_polygon: holds all closed piece of geometry (also called <em>ways</em>) like buildings, parks, lakes, areas, ...</li>
+<li>planet_osm_rels: an intermediate table that holds extra connecting information about polygons</li>
+<li>planet_osm_roads: holds lower resolution, non-closed piece of geometry in contrast with "planet_osm_line". This data is used when looking at a greater distance, covering much area and thus not much detail about smaller, local roads.</li>
+<li>planet_osm_ways: an intermediate table which holds non-closed geometry in raw format</li>
+</ul>
+<p>We will now continue working with a small subset of this data.</p>
+<p>Let us take a peek at the Polygons tables for example. First, let us see what we have available:</p>
+<pre class="code literal-block"><span></span><span class="err">\</span><span class="n">d</span> <span class="n">planet_osm_polygon</span>
+</pre>
+
+
+<p>That is quite a big list, but the major part of these columns are of mere TEXT type and contain human information about the geometry stored.
+These columns corresponds with the way OpenStreetMap categorizes their data and with the way you could use the Mapnik software described above.</p>
+<p>Let us do a targeted query:</p>
+<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">name</span><span class="p">,</span> <span class="n">building</span><span class="p">,</span> <span class="n">ST_AsText</span><span class="p">(</span><span class="n">way</span><span class="p">)</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_polygon</span>
+    <span class="k">WHERE</span> <span class="n">building</span> <span class="o">=</span> <span class="s1">'industrial'</span><span class="p">;</span>
+</pre>
+
+
+<p>Notice that I use the <em>output</em> function <em>ST_AsText()</em> to convert to a human readable WKT string.
+Also, I am only interested in some of the industrial buildings, so I set the building type to <em>industrial</em>.</p>
+<p>The result:</p>
+<pre class="code literal-block"><span></span>                    name                      <span class="p">|</span>  building  <span class="p">|</span>                                                                     st_astext                                                                   
+----------------------------------------------+------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 沖ハム <span class="o">(</span>Okiham<span class="o">)</span>                               <span class="p">|</span> industrial <span class="p">|</span> POLYGON<span class="o">((</span><span class="m">14221927</span>.83 <span class="m">3049797</span>.01,14222009.77 <span class="m">3049839</span>.68,14222074.84 <span class="m">3049714</span>.68,14222028.9 <span class="m">3049690</span>.76,14221996.33 <span class="m">3049753</span>.33,14221960.34 <span class="m">3049734</span>.58,14221927.83 <span class="m">3049797</span>.01<span class="o">))</span>
+Kin Thermal Power Plant Coal storage building <span class="p">|</span> industrial <span class="p">|</span> POLYGON<span class="o">((</span><span class="m">14239931</span>.42 <span class="m">3054117</span>.72,14239990.49 <span class="m">3054224</span>.25,14240230.15 <span class="m">3054091</span>.38,14240171.08 <span class="m">3053984</span>.84,14239931.42 <span class="m">3054117</span>.72<span class="o">))</span>
+Kin Thermal Power Plant Exhaust tower         <span class="p">|</span> industrial <span class="p">|</span> POLYGON<span class="o">((</span><span class="m">14240167</span>.1 <span class="m">3054497</span>.14,14240172.26 <span class="m">3054507</span>.93,14240176.04 <span class="m">3054515</span>.82,14240195.76 <span class="m">3054506</span>.39,14240186.84 <span class="m">3054487</span>.7,14240167.1 <span class="m">3054497</span>.14<span class="o">))</span>
+</pre>
+
+
+<p>We get back three records containing one industrial building each, described with a closed polygon. Cool.</p>
+<p>Now, I can assure you that Okinawa has more then three industrial buildings, but do remember that we are looking at a rather rural island.
+OpenStreetMap relies greatly on user generated content and there simply are not many users who have felt the need to index the industrial buildings here in this neck of the woods.</p>
+<p>The <em>planet_osm_polygon</em> table does contain little over 6000 buildings of various types, which is still a small number, but for our purpose today I am only interested in the latter two, which both lie here in Kin town.</p>
+<p>Also, if you would, for example, take a chunk of Tokyo, where there are hundreds of active OpenStreetMap contributors, you will find that many buildings are present and are sometimes even more accurately represented then some other online proprietary mapping solutions offered by some famous search engines. Ahum.</p>
+<p>Before continuing, though, I would like to delete two GiST indexes that "osm2pgsql" made for us, purely to be able to demonstrate the importance of an index.</p>
+<p>For now, just take my word and delete the indexes on all the geometry columns of the tables we will use today:</p>
+<pre class="code literal-block"><span></span><span class="k">DROP</span> <span class="k">INDEX</span> <span class="n">planet_osm_line_index</span><span class="p">;</span>
+<span class="k">DROP</span> <span class="k">INDEX</span> <span class="n">planet_osm_polygon_index</span><span class="p">;</span>
+</pre>
+
+
+<p>Then perform a VACUUM:</p>
+<pre class="code literal-block"><span></span><span class="k">VACUUM</span> <span class="k">ANALYZE</span> <span class="n">planet_osm_line</span><span class="p">;</span>
+<span class="k">VACUUM</span> <span class="k">ANALYZE</span> <span class="n">planet_osm_polygon</span><span class="p">;</span>
+</pre>
+
+
+<p><em>VACUUM</em> together with <em>ANALYZE</em> will force PostgreSQL to recheck the whole table for any changed conditions, as is the case since we removed the index.</p>
+<p>The first thing I would like to find out is how large these building actually are.
+We cannot measure how tall they are, for we are working with two dimensional data here, but we can measure their footprint on the map.</p>
+<p>Since PostGIS makes all of our work easy, we could simply employ a function to tell us this information:</p>
+<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_Area</span><span class="p">(</span><span class="n">way</span><span class="p">)</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_polygon</span>
+    <span class="k">WHERE</span> <span class="n">building</span> <span class="o">=</span> <span class="s1">'industrial'</span><span class="p">;</span>
+</pre>
+
+
+<p>And get back:</p>
+<pre class="code literal-block"><span></span>    st_area      
+------------------
+<span class="m">10155</span>.3935499731
+<span class="m">33381</span>.1043500491
+<span class="m">452</span>.9464999972
+</pre>
+
+
+<p>As we know from the previous chapter, to be able to know what these numbers mean, we have to find out in which SRID this data was saved.
+You could either describe the table again and look at the geometry column description, or use an <em>accessor</em> function <em>ST_SRID()</em>, to find it:</p>
+<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">ST_SRID</span><span class="p">(</span><span class="n">way</span><span class="p">)</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_polygon</span><span class="p">;</span>
+    <span class="k">WHERE</span> <span class="n">building</span> <span class="o">=</span> <span class="s1">'industrial'</span><span class="p">;</span>
+</pre>
+
+
+<p>And get back:</p>
+<pre class="code literal-block"><span></span> <span class="n">st_srid</span> 
+<span class="c1">---------</span>
+<span class="mi">900913</span>
+<span class="mi">900913</span>
+<span class="mi">900913</span>
+</pre>
+
+
+<p>You could also query the PostGIS bookkeeping directly and look in the <em>geometry_columns</em> view:</p>
+<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">f_tablename</span><span class="p">,</span> <span class="n">f_geometry_column</span><span class="p">,</span> <span class="n">coord_dimension</span><span class="p">,</span> <span class="n">srid</span><span class="p">,</span> <span class="k">type</span>
+    <span class="k">FROM</span> <span class="n">geometry_columns</span><span class="p">;</span>
+</pre>
+
+
+<p>This view holds information about all the geometry columns in our PostGIS enabled database.
+Our above query will return a list containing all the GIS describing information we saw in the previous chapter.</p>
+<p>Nice. Both our buildings are stored in a geometry column and have an SRID of <em>900913</em>. We can now use our <em>spatial_ref_sys</em> table to look up this ID:</p>
+<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">srid</span><span class="p">,</span> <span class="n">auth_name</span><span class="p">,</span> <span class="n">auth_srid</span><span class="p">,</span> <span class="n">srtext</span><span class="p">,</span> <span class="n">proj4text</span>
+    <span class="k">FROM</span> <span class="n">spatial_ref_sys</span>
+    <span class="k">WHERE</span> <span class="n">srid</span> <span class="o">=</span> <span class="mi">900913</span><span class="p">;</span>
+</pre>
+
+
+<p>As you can see, this is basically a Mercator projection used by OpenStreetMap.
+In the "proj4text" column we can see that its units are meters.</p>
+<p>This thus means that the information we get back is in <em>square Meters</em>.</p>
+<p>In this map (only looking at the latter two Kin buildings) we thus have a building with a total area of 33 <em>square Kilometers</em> and a more modest building of around 452 <em>square Meters</em>.
+The former is a coal storage facility belonging to the <em>Kin Thermal Power Plant</em> and is indeed <em>huge</em>.
+The second building represents the exhaust tower of that same plant.</p>
+<p>You have just measured the area these buildings occupy, very neat right?</p>
+<p>Now, let us find out which road runs next to this power plant, just in case we wish to drive to there.
+It is important to note that OSM (and many other mapping solutions) divide roads into different types.</p>
+<p>You have trunk roads, highways, secondary roads, tertiary roads, etc.
+I am now interested to find the nearest <em>secondary</em> road.</p>
+<p>To get a list of all the secondary roads in Okinawa, simply query the <em>planet_osm_roads</em> table:</p>
+<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="k">ref</span><span class="p">,</span> <span class="n">ST_AsText</span><span class="p">(</span><span class="n">way</span><span class="p">)</span> 
+    <span class="k">FROM</span> <span class="n">planet_osm_line</span>
+    <span class="k">WHERE</span> <span class="n">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span><span class="p">;</span>
+</pre>
+
+
+<p>We now get back all the linestring objects together with their reference inside of OSM.
+The reference refers to the actual route number each road has.</p>
+<p>The total count should be around <em>3215</em> pieces of geometry, which is already a nice list to work with.</p>
+<p>Let us now see which of these roads is closest to our coal storage building.</p>
+<p>To find out how far something is (nearest neighbor search) we could use our <em>ST_Distance()</em> function we used in the previous chapter and perform the following lookup:</p>
+<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">road</span><span class="p">.</span><span class="n">highway</span><span class="p">,</span> <span class="n">road</span><span class="p">.</span><span class="k">ref</span><span class="p">,</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">road</span><span class="p">.</span><span class="n">way</span><span class="p">,</span> <span class="n">building</span><span class="p">.</span><span class="n">way</span><span class="p">)</span> <span class="k">AS</span> <span class="n">distance</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_polygon</span> <span class="k">AS</span> <span class="n">building</span><span class="p">,</span> <span class="n">planet_osm_line</span> <span class="k">AS</span> <span class="n">road</span>
+    <span class="k">WHERE</span> <span class="n">road</span><span class="p">.</span><span class="n">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span> <span class="k">AND</span> <span class="n">building</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Kin Thermal Power Plant Coal storage building'</span>
+    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">distance</span><span class="p">;</span>
+</pre>
+
+
+<p>This will bring us:</p>
+<pre class="code literal-block"><span></span> highway  <span class="p">|</span> ref <span class="p">|</span>     distance     
+-----------+-----+------------------
+secondary <span class="p">|</span> <span class="m">329</span> <span class="p">|</span> <span class="m">417</span>.374986575458
+secondary <span class="p">|</span> <span class="m">104</span> <span class="p">|</span> <span class="m">2258</span>.90394593648
+secondary <span class="p">|</span> <span class="m">104</span> <span class="p">|</span> <span class="m">2709</span>.00178089638
+secondary <span class="p">|</span> <span class="m">104</span> <span class="p">|</span> <span class="m">2745</span>.76782385198
+secondary <span class="p">|</span> <span class="m">234</span> <span class="p">|</span> <span class="m">5897</span>.78205314507
+...
+</pre>
+
+
+<p>Cool, secondary route 329 is the closest to our coal storage building with a distance of <em>417 meters.</em></p>
+<p>While this will return quite accurate results, there is one problem with this query. Indexes are not being used.
+And every time an index is potentially left alone, you should start to worry, especially with larger data sets.</p>
+<p>How do I know they are ignored? Simple, we did not make any indexes (and we deleted the ones made by "osm2pgsql")...which makes me pretty sure we cannot use them.</p>
+<p>I refer you to <a href="http://shisaa.jp/postset/postgresql-full-text-search-part-3.html">chapter three</a> of my PostgreSQL Full Text series where I talk a bit more about GiST and B-Tree index types.
+And, as I also say in that chapter, I highly recommend reading Markus Winand's <a href="http://use-the-index-luke.com/" title="Use The Index, Luke series written by Markus Winand.">Use The Index, Luke</a> series, which explains in great detail how database indexes work.</p>
+<p>The first thing to realize is that an index will only be used if the data set on which it is build is of sufficient size.
+PostgreSQL has an AI build in, called the <em>query planner</em>, which will make a decision on whether or not to use an index.</p>
+<p>If your data set is small enough a more traditional <em>Sequential Scan</em> will be faster or equal.</p>
+<p>To know what is going on <em>exactly</em> and to know <em>how fast</em> our query runs, we have the <em>EXPLAIN</em> command at our disposal.</p>
+<h3>Speeding things up</h3>
+<p>Let us <em>EXPLAIN</em> the query we have just run:</p>
+<pre class="code literal-block"><span></span><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> <span class="k">SELECT</span> <span class="n">road</span><span class="p">.</span><span class="n">highway</span><span class="p">,</span> <span class="n">road</span><span class="p">.</span><span class="k">ref</span><span class="p">,</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">road</span><span class="p">.</span><span class="n">way</span><span class="p">,</span> <span class="n">building</span><span class="p">.</span><span class="n">way</span><span class="p">)</span> <span class="k">AS</span> <span class="n">distance</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_polygon</span> <span class="k">AS</span> <span class="n">building</span><span class="p">,</span> <span class="n">planet_osm_line</span> <span class="k">AS</span> <span class="n">road</span>
+    <span class="k">WHERE</span> <span class="n">road</span><span class="p">.</span><span class="n">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span> <span class="k">AND</span> <span class="n">building</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Kin Thermal Power Plant Coal storage building'</span>
+    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">distance</span><span class="p">;</span>
+</pre>
+
+
+<p>We simply put the keyword <em>EXPLAIN</em> (and <em>ANALYZE</em> to give us total runtime) right in front of our normal query.</p>
+<p>The result:</p>
+<pre class="code literal-block"><span></span>Sort  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">5047</span>.50..5055.32 <span class="nv">rows</span><span class="o">=</span><span class="m">3129</span> <span class="nv">width</span><span class="o">=</span><span class="m">391</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">41</span>.481..41.815 <span class="nv">rows</span><span class="o">=</span><span class="m">3215</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+    Sort Key: <span class="o">(</span>st_distance<span class="o">(</span>road.way, building.way<span class="o">))</span>
+    Sort Method: quicksort  Memory: 348kB
+    -&gt;  Nested Loop  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.00..4309.34 <span class="nv">rows</span><span class="o">=</span><span class="m">3129</span> <span class="nv">width</span><span class="o">=</span><span class="m">391</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">1</span>.188..38.617 <span class="nv">rows</span><span class="o">=</span><span class="m">3215</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+        -&gt;  Seq Scan on planet_osm_polygon building  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.00..279.01 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">width</span><span class="o">=</span><span class="m">207</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.981..1.409 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+            Filter: <span class="o">(</span><span class="nv">name</span> <span class="o">=</span> <span class="s1">'Kin Thermal Power Plant Coal storage building'</span>::text<span class="o">)</span>
+            Rows Removed by Filter: <span class="m">6320</span>
+        -&gt;  Seq Scan on planet_osm_line road  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.00..3216.79 <span class="nv">rows</span><span class="o">=</span><span class="m">3129</span> <span class="nv">width</span><span class="o">=</span><span class="m">184</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.166..26.524 <span class="nv">rows</span><span class="o">=</span><span class="m">3215</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+            Filter: <span class="o">(</span><span class="nv">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span>::text<span class="o">)</span>
+            Rows Removed by Filter: <span class="m">73488</span>
+Total runtime: <span class="m">42</span>.153 ms
+</pre>
+
+
+<p>That is a lot of output, but it shows you how the internal planner executes our query and which decisions it makes along the way.</p>
+<p>To fully interpret a query plan (this is still a simple one), a lot more knowledge is needed and this would easily deserve its own <em>series</em>.
+I am by far not an expert in the query planner (though it is an interesting study topic), but I will do my best to extract the important bits we need for our direct performance tuning.</p>
+<p>A query plan is always made up out of nested nodes, the parent node containing all the accumulated information (costs, rows, ...) of its child nodes.</p>
+<p>Inside the nested loop parent node we see above, we can find that the planner decided to use two filters, which correspond to the <em>WHERE</em> clause conditions of our query (building.name and road.highway).
+You can see that both child nodes are of <em>Seq Scan</em> type, which means <em>Sequential Scan</em>. These types of nodes scan the whole table, simply from top to bottom, directly from disk.</p>
+<p>Another important thing to note is the total time this query costs, which is <em>42.153 ms</em>.
+The time reported here is the time on my local machine, depending on how decent your computer is, this time could vary.</p>
+<p>A detail not to forget when looking at this timing, is the fact that it is slightly skewed if compared to real-world application use:</p>
+<ul>
+<li>We neglect network/client traffic. This query now runs internally and does not need to communicate with a client driver (which almost always brings extra overhead)</li>
+<li>The time measurement itself also introduces overhead.</li>
+</ul>
+<p>The total runtime from our above plan does not sound as a big number, but we are working with a rather small data set - the area of Okinawa is large, but the geometry is rather sparse.</p>
+<p>So our first reaction should be: this can be better.</p>
+<p>First, let us try to get rid of these sequential scans, for they are a clear indication that the planner does not use an index.</p>
+<h4>Creating indexes</h4>
+<p>In our case we want to make two types of indexes:</p>
+<ul>
+<li>Indexes on our "meta" data, the names and other attributes describing out geometrical data</li>
+<li>Indexes that actually index our geometrical data itself</li>
+</ul>
+<p>Let us start with our attributes columns.</p>
+<p>These are all simple VARCHAR, TEXT or INT columns, so the good old Balanced Tree or <em>B-Tree</em> can be used here.
+In our query above we use "road.highway" and "building.name" in our lookup, so let us make a couple of indexes that adhere to this query.
+Remember, an index only makes sense if it is built the same way your queries question your data.</p>
+<p>First, the "highway" column of the "planet_osm_line" table:</p>
+<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">planet_osm_line_highway_index</span> <span class="k">ON</span> <span class="n">planet_osm_line</span><span class="p">(</span><span class="n">highway</span><span class="p">);</span>
+</pre>
+
+
+<p>The syntax is trivial. You simply tell PostgreSQL to create an index, give it a name, and tell it on which column(s) of which table you want it to be built.
+PostgreSQL will always default to the <em>B-Tree</em> index type.</p>
+<p>Next, the name column:</p>
+<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">planet_osm_polygon_name_index</span> <span class="k">ON</span> <span class="n">planet_osm_polygon</span><span class="p">(</span><span class="n">name</span><span class="p">);</span>
+</pre>
+
+
+<p>Now perform another <em>VACUUM ANALYZE</em> on both tables:</p>
+<pre class="code literal-block"><span></span><span class="k">VACUUM</span> <span class="k">ANALYZE</span> <span class="n">planet_osm_line</span><span class="p">;</span>
+<span class="k">VACUUM</span> <span class="k">ANALYZE</span> <span class="n">planet_osm_polygon</span><span class="p">;</span>
+</pre>
+
+
+<p>Let us run explain again on the exact same query:</p>
+<pre class="code literal-block"><span></span><span class="n">Sort</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">4058</span><span class="p">.</span><span class="mi">73</span><span class="p">..</span><span class="mi">4066</span><span class="p">.</span><span class="mi">56</span> <span class="k">rows</span><span class="o">=</span><span class="mi">3129</span> <span class="n">width</span><span class="o">=</span><span class="mi">394</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="n">time</span><span class="o">=</span><span class="mi">20</span><span class="p">.</span><span class="mi">817</span><span class="p">..</span><span class="mi">21</span><span class="p">.</span><span class="mi">149</span> <span class="k">rows</span><span class="o">=</span><span class="mi">3215</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">Sort</span> <span class="k">Key</span><span class="p">:</span> <span class="p">(</span><span class="n">st_distance</span><span class="p">(</span><span class="n">road</span><span class="p">.</span><span class="n">way</span><span class="p">,</span> <span class="n">building</span><span class="p">.</span><span class="n">way</span><span class="p">))</span>
+    <span class="n">Sort</span> <span class="k">Method</span><span class="p">:</span> <span class="n">quicksort</span>  <span class="n">Memory</span><span class="p">:</span> <span class="mi">348</span><span class="n">kB</span>
+    <span class="o">-&gt;</span>  <span class="n">Nested</span> <span class="n">Loop</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">72</span><span class="p">.</span><span class="mi">95</span><span class="p">..</span><span class="mi">3310</span><span class="p">.</span><span class="mi">07</span> <span class="k">rows</span><span class="o">=</span><span class="mi">3129</span> <span class="n">width</span><span class="o">=</span><span class="mi">394</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="n">time</span><span class="o">=</span><span class="mi">1</span><span class="p">.</span><span class="mi">356</span><span class="p">..</span><span class="mi">17</span><span class="p">.</span><span class="mi">743</span> <span class="k">rows</span><span class="o">=</span><span class="mi">3215</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="o">-&gt;</span>  <span class="k">Index</span> <span class="n">Scan</span> <span class="k">using</span> <span class="n">planet_osm_polygon_name_index</span> <span class="k">on</span> <span class="n">planet_osm_polygon</span> <span class="n">building</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">28</span><span class="p">..</span><span class="mi">8</span><span class="p">.</span><span class="mi">30</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span> <span class="n">width</span><span class="o">=</span><span class="mi">207</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">054</span><span class="p">..</span><span class="mi">0</span><span class="p">.</span><span class="mi">056</span> <span class="k">rows</span><span class="o">=</span><span class="mi">1</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">Index</span> <span class="n">Cond</span><span class="p">:</span> <span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Kin Thermal Power Plant Coal storage building'</span><span class="p">::</span><span class="nb">text</span><span class="p">)</span>
+        <span class="o">-&gt;</span>  <span class="n">Bitmap</span> <span class="n">Heap</span> <span class="n">Scan</span> <span class="k">on</span> <span class="n">planet_osm_line</span> <span class="n">road</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">72</span><span class="p">.</span><span class="mi">67</span><span class="p">..</span><span class="mi">2488</span><span class="p">.</span><span class="mi">23</span> <span class="k">rows</span><span class="o">=</span><span class="mi">3129</span> <span class="n">width</span><span class="o">=</span><span class="mi">187</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="n">time</span><span class="o">=</span><span class="mi">1</span><span class="p">.</span><span class="mi">258</span><span class="p">..</span><span class="mi">4</span><span class="p">.</span><span class="mi">661</span> <span class="k">rows</span><span class="o">=</span><span class="mi">3215</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">Recheck</span> <span class="n">Cond</span><span class="p">:</span> <span class="p">(</span><span class="n">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span><span class="p">::</span><span class="nb">text</span><span class="p">)</span>
+            <span class="o">-&gt;</span>  <span class="n">Bitmap</span> <span class="k">Index</span> <span class="n">Scan</span> <span class="k">on</span> <span class="n">planet_osm_line_highway_index</span>  <span class="p">(</span><span class="n">cost</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">00</span><span class="p">..</span><span class="mi">71</span><span class="p">.</span><span class="mi">89</span> <span class="k">rows</span><span class="o">=</span><span class="mi">3129</span> <span class="n">width</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="p">(</span><span class="n">actual</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">.</span><span class="mi">864</span><span class="p">..</span><span class="mi">0</span><span class="p">.</span><span class="mi">864</span> <span class="k">rows</span><span class="o">=</span><span class="mi">3215</span> <span class="n">loops</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                   <span class="k">Index</span> <span class="n">Cond</span><span class="p">:</span> <span class="p">(</span><span class="n">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span><span class="p">::</span><span class="nb">text</span><span class="p">)</span>
+<span class="n">Total</span> <span class="n">runtime</span><span class="p">:</span> <span class="mi">21</span><span class="p">.</span><span class="mi">527</span> <span class="n">ms</span>
+</pre>
+
+
+<p>You can see that we now traded our <em>Seq Scan</em> for <em>Index Scan</em> and <em>Bitmap Heap Scan</em>, which indicates that our attribute indexes are being used, yay!</p>
+<p>The so-called <em>Bitmap Heap Scan</em>, instead of a <em>Sequential Scan</em>, is performed when the planner decides it can use the index to gather all the rows it thinks it needs, sort them in logical order and then fetch the data from the table on disk in the most optimized way possible (trying to open each disk page only once).</p>
+<p>The order by which the <em>Bitmap Heap Scan</em> arranges the data is directed by the child node aka the <em>Bitmap Index Scan</em>. This latter type of node is the one doing the actual searching <em>inside</em> the index. Because in our <em>WHERE</em> clause we have a condition which tells PostgreSQL to limit the rows to the ones of "highway" type "secondary", the <em>Bitmap Index Scan</em> fetches the needed rows from our <em>B-Tree</em> index we just made and passes them to its parent, the <em>Bitmap Heap Scan</em>, which then goes on to order the geometry rows to be fetched.</p>
+<p>This already helped much, for our query runtime dropped to half. Now, let us make the indexes for our actual geometry, and see the effect:</p>
+<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">planet_osm_line_way</span> <span class="k">ON</span> <span class="n">planet_osm_line</span> <span class="k">USING</span> <span class="n">gist</span><span class="p">(</span><span class="n">way</span><span class="p">);</span>
+<span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">planet_osm_polygon_way</span> <span class="k">ON</span> <span class="n">planet_osm_polygon</span> <span class="k">USING</span> <span class="n">gist</span><span class="p">(</span><span class="n">way</span><span class="p">);</span>
+</pre>
+
+
+<p>Creating a <em>GiST</em> index is quite similar to a normal <em>B-Tree</em> index. The only difference here is that you specify the index to be build with <em>GiST</em>.</p>
+<p>Vacuum:</p>
+<pre class="code literal-block"><span></span><span class="k">VACUUM</span> <span class="k">ANALYZE</span> <span class="n">planet_osm_line</span><span class="p">;</span>
+<span class="k">VACUUM</span> <span class="k">ANALYZE</span> <span class="n">planet_osm_polygon</span><span class="p">;</span>
+</pre>
+
+
+<p>Now poke it again with the same query and see our new plan:</p>
+<pre class="code literal-block"><span></span>Sort  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">4038</span>.82..4046.54 <span class="nv">rows</span><span class="o">=</span><span class="m">3089</span> <span class="nv">width</span><span class="o">=</span><span class="m">395</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">21</span>.137..21.479 <span class="nv">rows</span><span class="o">=</span><span class="m">3215</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+    Sort Key: <span class="o">(</span>st_distance<span class="o">(</span>road.way, building.way<span class="o">))</span>
+    Sort Method: quicksort  Memory: 348kB
+    -&gt;  Nested Loop  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">72</span>.64..3299.76 <span class="nv">rows</span><span class="o">=</span><span class="m">3089</span> <span class="nv">width</span><span class="o">=</span><span class="m">395</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">1</span>.382..17.858 <span class="nv">rows</span><span class="o">=</span><span class="m">3215</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+        -&gt;  Index Scan using planet_osm_polygon_name_index on planet_osm_polygon building  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.28..8.30 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">width</span><span class="o">=</span><span class="m">207</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.041..0.044 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+            Index Cond: <span class="o">(</span><span class="nv">name</span> <span class="o">=</span> <span class="s1">'Kin Thermal Power Plant Coal storage building'</span>::text<span class="o">)</span>
+        -&gt;  Bitmap Heap Scan on planet_osm_line road  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">72</span>.36..2488.32 <span class="nv">rows</span><span class="o">=</span><span class="m">3089</span> <span class="nv">width</span><span class="o">=</span><span class="m">188</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">1</span>.297..4.726 <span class="nv">rows</span><span class="o">=</span><span class="m">3215</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+            Recheck Cond: <span class="o">(</span><span class="nv">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span>::text<span class="o">)</span>
+            -&gt;  Bitmap Index Scan on planet_osm_line_highway_index  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.00..71.59 <span class="nv">rows</span><span class="o">=</span><span class="m">3089</span> <span class="nv">width</span><span class="o">=</span><span class="m">0</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.866..0.866 <span class="nv">rows</span><span class="o">=</span><span class="m">3215</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+                  Index Cond: <span class="o">(</span><span class="nv">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span>::text<span class="o">)</span>
+Total runtime: <span class="m">21</span>.873 ms
+</pre>
+
+
+<p>Hmm, the plan did not change at all, and our runtime is roughly identical. Why is our performance still the same?</p>
+<p>The culprit here is <em>ST_Distance()</em>.</p>
+<p>As it turns out, this function is unable to use the <em>GiST</em> index and is therefor not a good candidate to set loose on your whole result set. The same goes for the <em>ST_Area()</em> function, by the way.</p>
+<p>So we need a way to limit the amount of records we do this expensive calculation on.</p>
+<h4>ST_DWithin()</h4>
+<p>We introduce a new function: <em>ST_DWithin()</em>. This function could be our savior in this case, for it does use the <em>GiST</em> index.</p>
+<p>Whether or not a function (or operator) can use the <em>GiST</em> index, depends on if it uses <em>bounding boxes</em> when performing calculations.
+The reason why is because <em>GiST</em> indexes mainly store bounding box information and not the exact geometry itself.</p>
+<p><em>ST_DWithin()</em> checks if given geometry is within a radius of another piece of geometry and simply returns <em>TRUE</em> or <em>FALSE</em>.
+We can thus use it in our <em>WHERE</em> clause to filter out geometry for which it returns <em>FALSE</em> (and thus not falls within the radius).
+It performs this check using bounding boxes, and thus is able to retrieve this information from our <em>GiST</em> index.</p>
+<p>Let me present you with a query that limits the result set based on what <em>ST_DWithin()</em> finds:</p>
+<pre class="code literal-block"><span></span><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> <span class="k">SELECT</span> <span class="n">road</span><span class="p">.</span><span class="n">highway</span><span class="p">,</span> <span class="n">road</span><span class="p">.</span><span class="k">ref</span><span class="p">,</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">road</span><span class="p">.</span><span class="n">way</span><span class="p">,</span> <span class="n">building</span><span class="p">.</span><span class="n">way</span><span class="p">)</span> <span class="k">AS</span> <span class="n">distance</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_polygon</span> <span class="k">AS</span> <span class="n">building</span><span class="p">,</span> <span class="n">planet_osm_line</span> <span class="k">AS</span> <span class="n">road</span>
+    <span class="k">WHERE</span> <span class="n">road</span><span class="p">.</span><span class="n">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span>
+        <span class="k">AND</span> <span class="n">building</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'Kin Thermal Power Plant Coal storage building'</span>
+        <span class="k">AND</span> <span class="n">ST_DWithin</span><span class="p">(</span><span class="n">road</span><span class="p">.</span><span class="n">way</span><span class="p">,</span> <span class="n">building</span><span class="p">.</span><span class="n">way</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">distance</span><span class="p">;</span>
+</pre>
+
+
+<p>As you can see we simply added one more <em>WHERE</em> clause to limit the returned geometry by radius.
+This will result in the following plan:</p>
+<pre class="code literal-block"><span></span>Sort  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">45</span>.66..45.67 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">width</span><span class="o">=</span><span class="m">395</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">6</span>.048..6.052 <span class="nv">rows</span><span class="o">=</span><span class="m">27</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+    Sort Key: <span class="o">(</span>st_distance<span class="o">(</span>road.way, building.way<span class="o">))</span>
+    Sort Method: quicksort  Memory: 27kB
+    -&gt;  Nested Loop  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">4</span>.63..45.65 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">width</span><span class="o">=</span><span class="m">395</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">3</span>.157..6.005 <span class="nv">rows</span><span class="o">=</span><span class="m">27</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+        -&gt;  Index Scan using planet_osm_polygon_name_index on planet_osm_polygon building  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.28..8.30 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">width</span><span class="o">=</span><span class="m">207</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.051..0.054 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+            Index Cond: <span class="o">(</span><span class="nv">name</span> <span class="o">=</span> <span class="s1">'Kin Thermal Power Plant Coal storage building'</span>::text<span class="o">)</span>
+        -&gt;  Bitmap Heap Scan on planet_osm_line road  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">4</span>.34..37.09 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">width</span><span class="o">=</span><span class="m">188</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">3</span>.090..5.771 <span class="nv">rows</span><span class="o">=</span><span class="m">27</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+            Recheck Cond: <span class="o">(</span>way <span class="o">&amp;&amp;</span> st_expand<span class="o">(</span>building.way, <span class="m">10000</span>::double precision<span class="o">))</span>
+            Filter: <span class="o">((</span><span class="nv">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span>::text<span class="o">)</span> AND <span class="o">(</span>building.way <span class="o">&amp;&amp;</span> st_expand<span class="o">(</span>way, <span class="m">10000</span>::double precision<span class="o">))</span> AND _st_dwithin<span class="o">(</span>way, building.way, <span class="m">10000</span>::double precision<span class="o">))</span>
+            Rows Removed by Filter: <span class="m">4838</span>
+                -&gt;  Bitmap Index Scan on planet_osm_line_way  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.00..4.34 <span class="nv">rows</span><span class="o">=</span><span class="m">8</span> <span class="nv">width</span><span class="o">=</span><span class="m">0</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">1</span>.978..1.978 <span class="nv">rows</span><span class="o">=</span><span class="m">4865</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+                    Index Cond: <span class="o">(</span>way <span class="o">&amp;&amp;</span> st_expand<span class="o">(</span>building.way, <span class="m">10000</span>::double precision<span class="o">))</span>
+Total runtime: <span class="m">6</span>.181 ms
+</pre>
+
+
+<p>Good. We have just gone down to only <em>6.181 ms</em>, That seems to be much more efficient.</p>
+<p>As you can see, our query plan got a few new rows. The main thing to notice is the fact that our <em>Bitmap Heap Scan</em> got another <em>Recheck Cond</em>, our expanded <em>ST_DWithin()</em> condition.
+More to the bottom, you can see that the condition is being pulled from the <em>GiST</em> index:</p>
+<pre class="code literal-block"><span></span>Index Cond: <span class="o">(</span>way <span class="o">&amp;&amp;</span> st_expand<span class="o">(</span>building.way, <span class="m">10000</span>::double precision<span class="o">))</span>
+</pre>
+
+
+<p>This seems to be a much more desirable and scalable query.</p>
+<p>But there is a drawback, though <em>ST_DWithin()</em> will make for speedy results, it works only by giving it a fixed radius.</p>
+<p>As you can see from our usage, we call the function as follows: ST_DWithin(road.way, building.way, 10000).
+The last argument, "10000", tells us how big the search radius is. In this case our geometry is in meters, so this means we search in a radius of 10 Km.</p>
+<p>This static radius number is quite arbitrary and might not always be desirable. What other options do we have without compromising performance too much?</p>
+<h4>Operators</h4>
+<p>Another addition of PostGIS we have not talked about much up until now are the spatial <em>operators</em> we have available.
+You have a total of 16 operators you can use to perform matches on your GIS data.</p>
+<p>You have straightforward operators like <em>&amp;&amp;</em>, which returns <em>TRUE</em> if one piece of geometry intersects with another (bounding box calculation) or the <em>&lt;&lt;</em> which returns <em>TRUE</em> if one object is fully to the left of another object.</p>
+<p>But there are more interesting ones like the <em>&lt;-&gt;</em> and the <em>&lt;#&gt;</em> operators.</p>
+<p>The first operator, <em>&lt;-&gt;</em>, returns the distance between two points. If you feed it other types of geometry (like a linestring of polygon) it will first draw a bounding box around that geometry and perform a point calculation by using the bounding box <em>centroids</em>. A centroid is the calculated center of a piece of geometry (the drawn bounding box in our case).</p>
+<p>The second, <em>&lt;#&gt;</em>, acts completely the same, but works directly on bounding boxes of given geometry. In our case, since we are not working with points, it would make more sense to use this operator.</p>
+<p>The big advantage of this distance calculation operator is, once more, the fact that it too calculates using a bounding box and is thus able to use a <em>GiST</em> index.
+However, the <em>ST_Distance()</em> function calculates distances by finding two points on the given geometry most close to each other, which serves the most <em>accurate</em> result.
+The <em>&lt;#&gt;</em> operator, as said before, stretches a <em>bounding box</em> around each piece of geometry and therefor deforms our objects, making for less accurate distance measuring.</p>
+<p>It is therefor not wise to use <em>&lt;#&gt;</em> to calculate accurate distances, but it is a life saver to <em>sort away</em> geometry that is too far away for our interest.</p>
+<p>So a proper usage would be to first <em>roughly</em> limit the result set using the <em>&lt;#&gt;</em> operator and then more accurately measure the distance of, say, the first 50 matches with our famous <em>ST_Distance()</em>.</p>
+<p>Before we can continue, it is important to point out that both the <em>&lt;-&gt;</em> and <em>&lt;#&gt;</em> operator can only use the <em>GiST</em> index when either the left or right hand side of the operator is a <em>constant</em> or <em>fixed</em> piece of geometry. This means we have to provide actual geometry using a constructor function.</p>
+<p>There are other ways around this limitation by, for example as Alexandre Neto points out on the PostGIS mailing list, providing your own function which converts our "dynamic" geometry into a constant.</p>
+<p>But this would make this post run way past its initial focus.
+Let us simply try by providing a fixed piece of geometry.
+The fixed piece is, of course, still our "Kin Thermal Power Plant Coal storage building", but converted into WKT:</p>
+<pre class="code literal-block"><span></span><span class="k">EXPLAIN</span> <span class="k">ANALYZE</span> <span class="k">WITH</span> <span class="n">distance</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="n">way</span> <span class="k">AS</span> <span class="n">road</span><span class="p">,</span> <span class="k">ref</span> <span class="k">AS</span> <span class="n">route</span>
+        <span class="k">FROM</span> <span class="n">planet_osm_line</span>
+        <span class="k">WHERE</span> <span class="n">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span>
+        <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">ST_GeomFromText</span><span class="p">(</span><span class="s1">'POLYGON((14239931.42 3054117.72,14239990.49 3054224.25,14240230.15 3054091.38,14240171.08 3053984.84,14239931.42 3054117.72))'</span><span class="p">,</span> <span class="mi">900913</span><span class="p">)</span> <span class="o">&lt;#&gt;</span> <span class="n">way</span>
+        <span class="k">LIMIT</span> <span class="mi">50</span>
+        <span class="p">)</span>
+<span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">ST_GeomFromText</span><span class="p">(</span><span class="s1">'POLYGON((14239931.42 3054117.72,14239990.49 3054224.25,14240230.15 3054091.38,14240171.08 3053984.84,14239931.42 3054117.72))'</span><span class="p">,</span> <span class="mi">900913</span><span class="p">),</span> <span class="n">road</span><span class="p">)</span> <span class="k">AS</span> <span class="n">true_distance</span><span class="p">,</span> <span class="n">route</span>
+    <span class="k">FROM</span> <span class="n">distance</span>
+    <span class="k">ORDER</span> <span class="k">BY</span> <span class="n">true_distance</span>
+    <span class="k">LIMIT</span> <span class="mi">1</span><span class="p">;</span>
+</pre>
+
+
+<p>This query uses a <em>Common Table Expression</em> or <em>CTE</em> (you could also use a simpler subquery) to first get a rough result set of about 50 rows based on what <em>&lt;#&gt;</em> finds.
+Then <em>only</em> on those 50 rows do we perform our more expensive, index-agnostic distance calculation.</p>
+<p>This results in the following plan and runtime:</p>
+<pre class="code literal-block"><span></span>Limit  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">274</span>.57..274.57 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">width</span><span class="o">=</span><span class="m">64</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">11</span>.236..11.237 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+    CTE distance
+        -&gt;  Limit  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.28..260.82 <span class="nv">rows</span><span class="o">=</span><span class="m">50</span> <span class="nv">width</span><span class="o">=</span><span class="m">173</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.389..10.764 <span class="nv">rows</span><span class="o">=</span><span class="m">50</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+            -&gt;  Index Scan using planet_osm_line_way on planet_osm_line  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.28..16362.19 <span class="nv">rows</span><span class="o">=</span><span class="m">3140</span> <span class="nv">width</span><span class="o">=</span><span class="m">173</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.389..10.745 <span class="nv">rows</span><span class="o">=</span><span class="m">50</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+                Order By: <span class="o">(</span>way &lt;<span class="c1">#&gt; '010300002031BF0D000100000005000000D7A3706D17296B41C3F528DC124D47417B14AECF1E296B4100000020484D4741CDCCCCC43C296B410AD7A3B0054D4741295C8F6235296B41B81E856BD04C4741D7A3706D17296B41C3F528DC124D4741'::geometry)</span>
+                Filter: <span class="o">(</span><span class="nv">highway</span> <span class="o">=</span> <span class="s1">'secondary'</span>::text<span class="o">)</span>
+                Rows Removed by Filter: <span class="m">4562</span>
+            -&gt;  Sort  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">13</span>.75..13.88 <span class="nv">rows</span><span class="o">=</span><span class="m">50</span> <span class="nv">width</span><span class="o">=</span><span class="m">64</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">11</span>.234..11.234 <span class="nv">rows</span><span class="o">=</span><span class="m">1</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+                Sort Key: <span class="o">(</span>st_distance<span class="o">(</span><span class="s1">'010300002031BF0D000100000005000000D7A3706D17296B41C3F528DC124D47417B14AECF1E296B4100000020484D4741CDCCCCC43C296B410AD7A3B0054D4741295C8F6235296B41B81E856BD04C4741D7A3706D17296B41C3F528DC124D4741'</span>::geometry, distance.road<span class="o">))</span>
+                Sort Method: top-N heapsort  Memory: 25kB
+    -&gt;  CTE Scan on distance  <span class="o">(</span><span class="nv">cost</span><span class="o">=</span><span class="m">0</span>.00..13.50 <span class="nv">rows</span><span class="o">=</span><span class="m">50</span> <span class="nv">width</span><span class="o">=</span><span class="m">64</span><span class="o">)</span> <span class="o">(</span>actual <span class="nv">time</span><span class="o">=</span><span class="m">0</span>.412..11.188 <span class="nv">rows</span><span class="o">=</span><span class="m">50</span> <span class="nv">loops</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+Total runtime: <span class="m">11</span>.268 ms
+</pre>
+
+
+<p>As you can see, we are now using the <em>GiST</em> index "planet_osm_line_way", which was what we were after.</p>
+<p>This yields roughly the same runtime as with our <em>ST_DWithin()</em>, but without the arbitrary distance setting.
+We indeed have a somewhat arbitrary limiter of 50, but this is much less severe then a distance limiter.</p>
+<p>Even if the closest secondary road is 100 Km from our building, the above query would still find it whereas our previous query would return nothing.</p>
+<h3>One more for the road home</h3>
+<p>Let us do a few more fun calculations on our Okinawa data, before I let you off the island.</p>
+<p>Next I would like to find the longest <em>trunk</em> road that runs through this prefecture:</p>
+<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="k">ref</span><span class="p">,</span> <span class="n">highway</span><span class="p">,</span> <span class="n">ST_Length</span><span class="p">(</span><span class="n">way</span><span class="p">)</span> <span class="k">as</span> <span class="k">length</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_line</span> 
+    <span class="k">WHERE</span> <span class="n">highway</span> <span class="o">=</span> <span class="s1">'trunk'</span>
+    <span class="k">ORDER</span> <span class="k">BY</span> <span class="k">length</span> <span class="k">DESC</span><span class="p">;</span>
+</pre>
+
+
+<p>We have a new function <em>ST_Length()</em> which simply returns the length, given that the geometry is a linestring or multilinestring.
+The only index that will be used is our "planet_osm_line_highway_index" <em>B-Tree</em> index to perform our <em>Bitmap Index Scan</em>.</p>
+<p><em>ST_Length()</em> does obviously not work with bounding boxes and therefor cannot use the geometrical <em>GiST</em> index. This is yet another function you should use carefully.</p>
+<p>When looking at the result set that was returned to us, you will see that some routes show up multiple times.
+Take route <em>58</em>, which is the longest and most famous route in Okinawa. It shows up around <em>769</em> times. Why?</p>
+<p>This is because, especially for a database prepared for mapping, these pieces of geometry are divided over different tiles.</p>
+<p>We thus need to accumulate the length of all the linestrings we find that represent pieces of route 58.
+First, we could try to accomplish this with plain SQL:</p>
+<pre class="code literal-block"><span></span><span class="k">WITH</span> <span class="n">road_pieces</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="n">ST_Length</span><span class="p">(</span><span class="n">way</span><span class="p">)</span> <span class="k">AS</span> <span class="k">length</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_line</span>
+    <span class="k">WHERE</span> <span class="k">ref</span> <span class="o">=</span> <span class="s1">'58'</span>
+    <span class="p">)</span>
+<span class="k">SELECT</span> <span class="k">sum</span><span class="p">(</span><span class="k">length</span><span class="p">)</span> <span class="k">AS</span> <span class="n">total_length</span>
+<span class="k">FROM</span> <span class="n">road_pieces</span><span class="p">;</span>
+</pre>
+
+
+<p>This will return:</p>
+<pre class="code literal-block"><span></span><span class="m">536468</span>.804010367
+</pre>
+
+
+<p>Meaning a total length of <em>536.486 Kilometers</em>. This query will run in about <em>19.375 ms</em>.
+Let us add an index to our "ref" column:</p>
+<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">INDEX</span> <span class="n">planet_osm_line_ref_index</span> <span class="k">ON</span> <span class="n">planet_osm_line</span><span class="p">(</span><span class="k">ref</span><span class="p">);</span>
+</pre>
+
+
+<p>Perform vacuum:</p>
+<pre class="code literal-block"><span></span><span class="k">VACUUM</span> <span class="k">ANALYZE</span> <span class="n">planet_osm_line</span><span class="p">;</span>
+</pre>
+
+
+<p>This index creation will speed up to query and make it run in little over <em>3.524 ms</em>. Nice runtime.</p>
+<p>You could also perform almost the exact same query, but instead of using an SQL sum() function, you could use <em>ST_Collect()</em>, which creates collections of geometry out of all the separate pieces you feed it.
+In our case we feed it separate linestrings, which will make this function output a single <em>multilinestring</em>. We would then only have to perform one length calculation.</p>
+<pre class="code literal-block"><span></span><span class="k">WITH</span> <span class="n">road_pieces</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="n">ST_Collect</span><span class="p">(</span><span class="n">way</span><span class="p">)</span> <span class="k">AS</span> <span class="n">geom</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_line</span>
+    <span class="k">WHERE</span> <span class="k">ref</span> <span class="o">=</span> <span class="s1">'58'</span>    
+    <span class="p">)</span>
+<span class="k">SELECT</span> <span class="n">ST_Length</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span> <span class="k">AS</span> <span class="k">length</span>
+    <span class="k">FROM</span> <span class="n">road_pieces</span><span class="p">;</span>
+</pre>
+
+
+<p>This query will run even around <em>1 ms</em> faster then former and it returns <em>the exact</em> same distance of <em>536.486 Kilometers</em>.</p>
+<p>Now that we have this one multilinestring which represents route 58, we could check how close this route comes to our famous Kin building (which we will statically feed):</p>
+<pre class="code literal-block"><span></span><span class="k">WITH</span> <span class="n">road_pieces</span> <span class="k">AS</span> <span class="p">(</span>
+    <span class="k">SELECT</span> <span class="n">ST_Collect</span><span class="p">(</span><span class="n">way</span><span class="p">)</span> <span class="k">AS</span> <span class="n">geom</span>
+    <span class="k">FROM</span> <span class="n">planet_osm_line</span>
+    <span class="k">WHERE</span> <span class="k">ref</span> <span class="o">=</span> <span class="s1">'58'</span>    
+    <span class="p">)</span>
+<span class="k">SELECT</span> <span class="n">ST_Distance</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="n">ST_GeomFromText</span><span class="p">(</span><span class="s1">'POLYGON((14239931.42 3054117.72,14239990.49 3054224.25,14240230.15 3054091.38,14240171.08 3053984.84,14239931.42 3054117.72))'</span><span class="p">,</span><span class="mi">900913</span><span class="p">))</span> <span class="k">AS</span> <span class="n">distance</span>
+    <span class="k">FROM</span> <span class="n">road_pieces</span><span class="p">;</span>
+</pre>
+
+
+<p>Which would give us:</p>
+<pre class="code literal-block"><span></span> <span class="m">7900</span>.58662432767
+</pre>
+
+
+<p>In other words: Route 58 is, at it closest point, <em>7.9 Kilometers</em> from our coal storage building.
+This query now took about <em>5 ms</em> to complete. A rather nice throughput.</p>
+<p>Okay, enough exploring for today.</p>
+<p>We took a brief look at indexing our spatial data, and what benefits we could gain from it.
+And, as you can imagine, a lack of indexes and improper use of the GIS functions, could lead to dramatic slow-downs, certainly on larger data sets.</p>
+<h3>Shapefiles</h3>
+<p>Before I will let you go I want to take a brief look at another mechanism of carrying around GIS data: the <em>shapefile</em>.
+Probably more used then the OSM XML format, but less open. It is almost the GIS standard way of exchanging data between GIS systems.</p>
+<p>We can import shapefiles by using a tool called "shp2pgsql" which comes shipped with PostGIS.
+This tool will attempt to upload <em>ESRI</em> shape data into your PostGIS enables database.</p>
+<h4>ESRI?</h4>
+<p><em>ESRI</em> stands for <em>Environmental Systems Research Institute</em> and is yet another organization that taps into the world of digital cartography.</p>
+<p>They have defined a (somewhat open) file format standard that allows the GIS world to save their data in a so called <em>shapefile</em>.
+These files hold GIS primitives (polygons, linestrings, points, ...) together with a bunch of descriptive information that tells us what each primitive represents.</p>
+<p>It was once developed for ESRI's own, proprietary software package (ArcGIS), but was quickly picked up by the rest of the GIS community.
+Today, almost all serious GIS packages have the ability to read and/or write to such shapefiles.</p>
+<h4>Shapefile build-up</h4>
+<p>Let us take a peek at the guts of such a shapefile.</p>
+<p>First, contrary to what the name suggest, a shapefile is not a single file. At a minimal level, it is a bundle containing a minimum of three files to be spec compliant:</p>
+<ul>
+<li>
+<em>.shp</em>: the first mandatory file has the extension <em>.shp</em> and holds the GIS primitives themselves.</li>
+<li>
+<em>.shx</em>: the second important file is an index of the geometry </li>
+<li>
+<em>.dbf</em>: the last needed file is a database file with geometry attributes</li>
+</ul>
+<h3>Getting shapefile data</h3>
+<p>There are many organizations who offer shapefiles of all areas of the globe, either free or for a small fee.
+But since we already have data in our database we are familiar with, we could create our own shapefiles.</p>
+<h4>Exporting with pgsql2shp</h4>
+<p>Besides "shp2pgsql", which is used to import or <em>load</em> shapefiles, we also got shipped a reverse tool called "pgsql2shp", which can export to or <em>dump</em> shapefiles based on geometry in your database.</p>
+<p>So let us, per experiment, create a shapefile containing all secondary roads of Okinawa.</p>
+<p>First we need to prepare an empty directory where this tool can dump our data. Since it will create multiple files, it is best to put them in their own spot.
+Open up a terminal window and go to your favorite directory-making place and create a directory called "okinawa-roads":</p>
+<pre class="code literal-block"><span></span>$ mkdir okinawa-roads
+</pre>
+
+
+<p>Next enter that directory.</p>
+<p>The "pgsql2shp" tool needs a few parameters to be able to successfully complete. We will be using the following flags:</p>
+<ul>
+<li>-f, tells the tool which file name to adhere</li>
+<li>-u, the database user to connect with</li>
+</ul>
+<p>After these flags we need to input the database we wish to take a chunk out of and the query which will determine the actual data to be dumped.</p>
+<p>The above will result in the following command:</p>
+<pre class="code literal-block"><span></span>$  pgsql2shp -f secundairy_roads -u postgres gis <span class="s2">"select way, ref from planet_osm_line where highway = 'secondary';"</span>
+</pre>
+
+
+<p>As you can see we construct a query which only gets the road reference and the geometry "way" column from the secondary road types.</p>
+<p>After some processing it will have created 4 files, the 3 mandatory ones mentioned above, and a new one called a <em>projection</em> file.
+This file contains the coordinate system and other projection information in WKT format.</p>
+<p>This bundle of 4 files is now our shapefile format which you could easily exchange between GIS aware software packages.</p>
+<h4>Importing with shp2pgsql</h4>
+<p>Let us now import these shapefiles back into PostgreSQL and see what happens.</p>
+<p>For this we will ignore out "gis" database, and simply create a new database to keep things separated.
+Connect to a PostgreSQL terminal, create the database and make it PostGIS aware:</p>
+<pre class="code literal-block"><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">gisshape</span><span class="p">;</span>
+<span class="err">\</span><span class="k">c</span> <span class="n">gisshape</span>
+<span class="k">CREATE</span> <span class="n">EXTENSION</span> <span class="n">postgis</span><span class="p">;</span>
+</pre>
+
+
+<p>Now go back to your terminal window to do some importing.</p>
+<p>The import tool works by dumping the SQL statements to <em>stdin</em> or to a SQL dump file if preferred.
+If you do not wish to work with such a dump file, you have to pipe the output to the <em>psql</em> command to be able to load in the data.</p>
+<p>From the directory where you saved the shapefile dump, run the "shp2pgsql" tool:</p>
+<pre class="code literal-block"><span></span>$ shp2pgsql -S -s <span class="m">900913</span> -I secundairy_roads <span class="p">|</span> psql -U postgres gisshape
+</pre>
+
+
+<p>Let me go over the flags we used:</p>
+<ul>
+<li>-S: is used to keep the geometry <em>simple</em>. The tool otherwise will convert all geometry to its <em>MULTI...</em> counterpart</li>
+<li>-s: is needed to set the correct SRID</li>
+<li>-I: specifies that we wish the tool to create <em>GiST</em> indexes on the geometry columns</li>
+</ul>
+<p>Note that the <em>-S</em> flag will only work if all of your geometry is actual simple and does not contain true MULTI... types of geometry with multiple linestrings, points or polygons in them.</p>
+<p>An annoying fact is that you <em>have</em> to tell the loader which SRID your geometry is in. There is a <em>.prj</em> file in our shapefile bundle, but it only contains the WKT projection information, not the SRID.
+One trick to find the SRID based on the information in the projection file is by using <em>OpenGEO</em>'s <a href="http://prj2epsg.org">Prj2EPSG"</a> website, which does quite a good job at looking up the EPSG ID (which most of the time is the SRID). However, it fails to find the SRID of our OSM projection.</p>
+<p>Another way of finding our about the SRID is by using the PostGIS <em>spatial_ref_sys</em> table itself:</p>
+<pre class="code literal-block"><span></span><span class="k">SELECT</span> <span class="n">srid</span> <span class="k">FROM</span> <span class="n">spatial_ref_sys</span> <span class="k">WHERE</span> <span class="n">srtext</span> <span class="o">=</span> <span class="s1">'PROJCS["Popular Visualisation CRS / Mercator (deprecated)",GEOGCS["Popular Visualisation CRS",DATUM["Popular_Visualisation_Datum",SPHEROID["Popular Visualisation Sphere",6378137,0,AUTHORITY["EPSG","7059"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY["EPSG","6055"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4055"]],UNIT["metre",1,AUTHORITY["EPSG","9001"]],PROJECTION["Mercator_1SP"],PARAMETER["central_meridian",0],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],AUTHORITY["EPSG","3785"],AXIS["X",EAST],AXIS["Y",NORTH]]'</span><span class="p">;</span>
+</pre>
+
+
+<p>This will gives us:</p>
+<pre class="code literal-block"><span></span><span class="m">900913</span>
+</pre>
+
+
+<p>Perfect!</p>
+<p>If you now connect to your database and query its structure:</p>
+<pre class="code literal-block"><span></span><span class="err">\</span><span class="k">c</span> <span class="n">gisshape</span>
+<span class="err">\</span><span class="n">d</span>
+</pre>
+
+
+<p>You will see we have a new table called "secondary_roads". This table now holds only the information we dumped into the shapefile, being our road route numbers and their geometry. Neat!</p>
+<h3>The end</h3>
+<p>Good.</p>
+<p>We are done folks. I hope I have given you enough firepower to be able to commence with your own GIS work, using PostGIS.
+As I have said in the beginning of this series, the past three chapters form merely an introduction into the capabilities of PostGIS, so as I expect you will do every time: go out and explore!</p>
+<p>Try to load in different areas of the world, either with OpenStreetMap or by using shapefiles. Experiment with all the different GIS functions and operators that PostGIS makes available.</p>
+<p>And above all, have fun!</p>
+<p>And as always...thanks for reading!</p>
+<!--  LocalWords:  PostGIS PostgreSQL GIS OpenStreetMap
+ -->
+</div>
+ </div>
+</div></body></html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html><body><div class="postbox">
+ Nikola: the static blog engine A.K.A. How I build Shisaa.jp
+ <p class="post-date">01/02/2013 <span>-</span> </p>
+ <div class="post">
+  <div>
+<h3>Preface</h3>
+<p>First, a big thank you to Roberto Alsina, creator of Nikola, for giving this post <a href="http://nikola.ralsina.com.ar/blog/new-nikola-tutorial.html" title="Blog post about shisaa.jp on Nikola's blog">a warm welcome</a> and embedding it in the Nikola documentation!</p>
+<p>When I designed Shisaa.jp I spend quit some time thinking about the "backend" to use. What system would generate the website for me...which CMS to use?
+As I have quite some experience with Drupal, that would be a possible candidate...but being familiar with Drupal, is also knowing some hard-to-ignore facts:</p>
+<ul>
+<li>Drupal is written in PHP which is not a language I aspire much to program in.</li>
+<li>Drupal, besides being a powerful tool, is slow-as-hell, which is a typical burden of most all-purpose-cms-so-large-it-almost-becomes-framework systems out there.</li>
+<li>Drupal 8, the soon to be launched new and shiny version, is now build on top of another framework (symfony), so its a framework on top of a framework...which in most sane cases means it will become even slower.</li>
+</ul>
+<p>So not Drupal then, what else is out there? Wordpress, Joomla, ...? Not likely to happen...ever...and they still are all hacked up in PHP.</p>
+<p>Okay, no PHP driven systems...I seem to like Python more, so maybe Plone, Pylons, Pyramid, ...?</p>
+<p>Maybe...</p>
+<p>But there was still a nagging voice in the back of my head..."Do I really need a CMS"?</p>
+<p>I mean, think about it, I'm the only author of this website, there are no external users who need to login and use fancy interfaces to put the word out there.
+And...think of security...every single dynamic system on the internet is prone to all kinds of scary attacks...simply because their dynamic.
+Oh, and performance, serving up a few plain old HTML files is light-years faster then dynamically throwing together a page per request (even with cache!).</p>
+<p>So I decided to setup this whole site...wait for it...<strong>statically</strong>. But how?</p>
+<p>When you decide to build your website statically you basically have two options:</p>
+<ol>
+<li>Write each HTML document by hand</li>
+<li>Use a static generator</li>
+</ol>
+<p>If you choose option one, you have to consider the amount of work you are putting on your own shoulders. If your website or blog only consists of a few pages and gets updated two times a year, then good old handcrafted pages are the way to go. But if you tend to update the site frequently, writing each page from the ground up and maintaining all the menu and deep links can become a hell of a job...which would suck all the fun out of authoring your website.</p>
+<p>That's where static generators jump in to help you. Once setup, these things will do the heavy lifting for you so you can concentrate on writing your blog, maintaining your company's website, putting pictures of your latest event online, etc...</p>
+<p>"But I will need a lot of technical knowledge if I use these kind of systems", you ask. No, you will not.
+While it is true that these systems always need a minimal of configuration (which system doesn't?), a good amount of eagerness can get you well underway!</p>
+<h3>Step in Nikola</h3>
+<p>Besides the fact that I am a huge fan of Nikola Tesla, I quickly felt that <a href="http://nikola.ralsina.com" title="Nikola homepage">this</a> Nikola would be my weapon of choice, its quite a fast and elegant system with a nice feature set...and its extensible. It also contains a balanced toolset at your service when building or authoring your site. It even is multilingual!</p>
+<p>Go and read <a href="http://nikola.ralsina.com.ar/handbook.html" title="Nikola handbook">Roberto Alsina's</a> handbook on Nikola to find out more about the reasoning behind this project and the beautiful features and tools available. On that site you will also find some pretty detailed guides on how to start building your site. Despite Roberto's best efforts of guiding you throughout Nikola's process, I sometimes ran aground, especially when theming, and had to go explore by myself.</p>
+<p>So now I would like to take you on a short trip and show you how I used Nikola to setup, deploy and author this very website, mainly the basic setup and building your custom theme for the above stated reasons.</p>
+<h3>The environment</h3>
+<p>Before we can dive in, we first have to setup Nikola itself...and to setup Nikola, we have to setup our Python environment.
+Because many programs on Unix install various versions of python on your system, it is sometimes difficult to setup a clean workspace for you to run your projects in.
+You really need a development sandbox where you can mess things up, install specific dependencies and use a specific versions of Python. For this sandboxing, I use the popular <a href="http://www.virtualenv.org/" title="Virtualenv project page">Virtualenv</a>.</p>
+<p>With Virtualenv you can do all of the above...you deploy a new virtual environment in a directory of your choice, point your shell to there and you can start building. First, install Virtualenv:</p>
+<pre class="code literal-block"><span></span>$ pip install virtualenv
+</pre>
+
+
+<p>Now we can setup our virtual environment:</p>
+<pre class="code literal-block"><span></span>$ virtualenv --python<span class="o">=</span>python2.7 yourdir
+</pre>
+
+
+<p>Noticed that I told Virtualenv to use Python version 2.7, Nikola 5.3 <em>is</em> Python 3 compatible, but if you want to deliver a nice Google sitemap XML, you will have to stick with Python 2.x.
+After Virtualenv is done setting up your sandbox, <strong>go to that directory</strong> and load this sandbox environment up into your current shell:</p>
+<pre class="code literal-block"><span></span>$ <span class="nb">source</span> bin/activate
+</pre>
+
+
+<p>Voila, you will notice the current directory name in parenthesis in front of your shell, this means that all is well. Now...lets install Nikola!</p>
+<pre class="code literal-block"><span></span>$ pip install nikola
+</pre>
+
+
+<p>This will give you Nikola 5.3 (on the time of writing) and install all the necessary dependencies for you. We can now initialize our site.</p>
+<h3>The basics</h3>
+<p>To setup a new site, you can simply run:</p>
+<pre class="code literal-block"><span></span>$ nikola init shisaa.jp
+</pre>
+
+
+<p>Since Nikola 5.2 this creates a <em>really</em> empty site containing only the basic directory structure and an example configuration file.
+You could go ahead and build this site, it works out of the box. Prior to 5.2 the init command would generate an empty site and fill it with demonstration data.
+If you would like this behavior just set the "--demo" flag after the init command. </p>
+<p>When you enter your freshly created site directory you will notice the following structure:</p>
+<pre class="code literal-block"><span></span>files
+galleries
+listings
+posts
+stories
+</pre>
+
+
+<p>Lets take a quick peek a what each directory means (and see some of Nikola's features along the way):</p>
+<p>The <em>files</em> directory contains static assets that you want to have available regardless of the theme you use.
+<em>Galleries</em> reveal the photo gallery feature of Nikola. Inside this directory you can create as many directories as you like, each being a separate gallery.
+Next up is <em>listings</em>, this directory will contain source code listings. Here you can put your raw source code files and Nikola will create a listings page and syntax highlighted HTML files for each code file you put in there.
+<em>Posts</em> get more to the heart of Nikola. This directory will keep all your post files in a chosen markup language.
+The last directory is <em>stories</em>, it contains all the "static" pages (non-post pages) you wish to serve. Things like an <em>about</em> or <em>contact</em> page would fit nicely there.</p>
+<p>But before we can understand how Nikola will treat all these directories we have to take a look at the configuration file...the controlling hub of your Nikola site.</p>
+<h3>Create the basic configuration</h3>
+<p>Like we seen above, the basic site initialization gives you a fully packed <em>conf.py</em> file.
+For the sake of learning...I would suggest you backup this conf.py and create an empty one.</p>
+<p>Fire up your favorite editor and lets start building a fresh Nikola site configuration file.
+Since Nikola is a Python application, the configuration file is also written in the Python language.
+So the first thing we have to do is to load in some Python modules so Nikola can successfully parse the file:</p>
+<pre class="code literal-block"><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+</pre>
+
+
+<p>Next we can setup some basic information about our site, variables that we can use later in our templates:</p>
+<pre class="code literal-block"><span></span><span class="n">BLOG_AUTHOR</span> <span class="o">=</span> <span class="s2">"Tim van der Linden"</span>
+<span class="n">BLOG_TITLE</span> <span class="o">=</span> <span class="s2">"Shisaa.jp"</span>
+<span class="n">BLOG_URL</span> <span class="o">=</span> <span class="s2">"http://Shisaa.jp"</span>
+<span class="n">BLOG_EMAIL</span> <span class="o">=</span> <span class="s2">"tim@Shisaa.jp"</span>
+<span class="n">BLOG_DESCRIPTION</span> <span class="o">=</span> <span class="s2">"A blog about Programming, Japan and Photography"</span>
+</pre>
+
+
+<p>Simple enough right? Now is a good time to save the file. It <em>has</em> to be named conf.py and <em>has</em> to be saved in the root of your Nikola site directory.</p>
+<p>The next thing to do is to tell Nikola about the different content we would like to have processed. Because at heart Nikola is a blog engine, we will start there.</p>
+<p>Static website generators follow roughly the same principle: You write your posts or pages in a markup language, define templates for these markup files and put in some static files like CSS or Javascript, then you let the generator do all the magic and output a directory with everything rendered in HTML. So first we define a place to put our blog posts markup files. In Nikola, this directory, by default, is called <em>posts</em>. You can actually call it anything you like, as long as your tell Nikola where to find it. </p>
+<p>So the next thing we have to enter in our configuration file is a hash table doing exactly that:</p>
+<pre class="code literal-block"><span></span><span class="n">post_pages</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s2">"posts/*.md"</span><span class="p">,</span> <span class="s2">"posts"</span><span class="p">,</span> <span class="s2">"post.tmpl"</span><span class="p">,</span> <span class="bp">True</span><span class="p">),</span>
+<span class="p">)</span>
+</pre>
+
+
+<p>This hash table is called <em>post_pages</em> and follows a certain syntax. First we define the directory where we will put our posts in and which files to look for (files with the <em>md</em> syntax in this case). Then we define the type of content Nikola will find there, in this case posts (you can also define pages here, but well see that later), The third entry is the template file to use when rendering. The last entry is a Boolean you can set telling Nikola wether to include these files in the sites RSS feed or not.</p>
+<p>Next Nikola needs to know in which language we wrote down our static files. You can simply write down the <em>HTML</em> or use one of the many available markup languages that Nikola supports like <em>Markdown</em> or <em>reStructuredText</em>. For this we define another hash table called <em>post_compilers</em>:</p>
+<pre class="code literal-block"><span></span><span class="n">post_compilers</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"markdown"</span><span class="p">:</span> <span class="p">(</span><span class="s1">'.md'</span><span class="p">,</span> <span class="s1">'.mdown'</span><span class="p">,</span> <span class="s1">'.markdown'</span><span class="p">),</span>
+<span class="p">}</span>
+</pre>
+
+
+<p>In my case I only use Markdown so that's the only one I define here. You can define more then one language here and based on the extension Nikola will use the correct compiler when translating it into HTML.</p>
+<p>Quite fancy, right?</p>
+<h3>Writing your post</h3>
+<p>Nikola has a command to start a new post:</p>
+<pre class="code literal-block"><span></span>$ nikola new_post -f markdown
+</pre>
+
+
+<p>It will ask you some of the necessary meta data and the post text itself. Notice the <em>-f</em> flag, if you use multiple markup languages you will have to specifiy which language you want this new post to be written in.</p>
+<p>A different way, and for me a more convenient one, is to create your post file manually and save it in your posts directory.</p>
+<p>To start a post manually just open your favorite editor and save the file with a decent name under your posts directory.
+The first thing we have to do in such a file is to declare some meta data Nikola will use to generate the HTML page, inner links and tags with.
+Each line can contain one meta data attribute using a syntax that starts with two dots and a space. A default post or page would start with this:</p>
+<pre class="code literal-block"><span></span><span class="cp">.. title: Your blog post title</span>
+<span class="cp">.. slug: any-unique-slug-you-like</span>
+<span class="cp">.. date: 2013/02/27 18:52:05</span>
+<span class="cp">.. tags: web, blog</span>
+</pre>
+
+
+<p>After that you can start writing your post at your hearts content...in the markup language you defined in your <em>conf.py</em>.</p>
+<h3>Building for the first time</h3>
+<p>Okay, a little bit early in the process, but we could already do a test build to see the effect of what we have done so far.</p>
+<p>Just punch in the command and watch the process roll out:</p>
+<pre class="code literal-block"><span></span>$ nikola build
+</pre>
+
+
+<p>Nikola will now create a directory called "output" where it will put your whole site structure.
+A nice detail about the build process it also that it only builds the changes and everything related to that change.
+Say you updated a blog post, then only that blog post will be re-rendered, including the files that have links pointing to that post....but nothing more then that.
+This means that your initial build can take a few seconds, but after that is lighting fast!</p>
+<p>If all went well, you can now take a peak at what was actually build.
+To do this you could setup a web server and point it to the "output" directory...or you could use Nikola's build-in server.
+From the same site root directory, start Nikola's build in server:</p>
+<pre class="code literal-block"><span></span>$ nikola serve
+</pre>
+
+
+<p>Et voila...you can now point your browser to "http://localhost:8000" (the port is configurable in the config.py of your site) and watch the beauty unfold!
+I usually open up a new terminal and have it run the Nikola server as long as I'm building so that in my main terminal I can punch in "nikola build" as much as I want to.
+Remember that for each new terminal that you start you will have to set the source to your virtual environment again.</p>
+<p>"But the website looks like Nikola's homepage!", you say. And that's correct.
+What you see is the default theme that comes shipped with Nikola.
+We want to make the site totally our own, so this also means a custom build theme.</p>
+<p>So guess what...next thing up: <em>creating your theme!</em></p>
+<h3>Create a theme</h3>
+<p>As we have seen above, you can tell Nikola which template file (a file that has the <em>tmpl</em> extension) to use for each type of content you define in your <em>post_pages</em> hash table.
+But where are these template files located? Well...In a theme.</p>
+<p>Nikola will always search themes in the <em>themes</em> directory and load up the theme you defined in your <em>conf.py</em>:</p>
+<pre class="code literal-block"><span></span><span class="n">THEME</span> <span class="o">=</span> <span class="s1">'shisaa'</span>
+</pre>
+
+
+<p>Now Nikola will search for a directory called <em>shisaa</em> inside the <em>themes</em> directory.</p>
+<p>"But wait!", you ask swiftly, "Before I did not declare a theme, but still there was the default one...what magic is happening here?"</p>
+<p>Ah, glad you asked.</p>
+<p>When you installed Nikola, you secretly also installed a few themes that come shipped with Nikola.</p>
+<p>These themes reside in Nikola's sources. To get to them, you simply have to go to the <em>lib</em> directory where your Python is installed.
+Remember, if you installed Python via a Virtualenv, then you have to open up that environment's <em>lib</em> directory.</p>
+<p>In your <em>lib</em> you will find your Python version, open that one up and you will find a place called <em>site-packages</em>.
+There you'll find the Nikola directory, and in there the <em>data</em> directory.
+In that <em>data</em> directory sits a <em>themes</em> directory which holds all of the basic themes.
+If you don't define any theme in your conf.py, it will use the one called <em>default</em>.</p>
+<p>There, mystery solved!</p>
+<p>Also nice to know: among the themes you'll find in there is a theme called <em>Orphan</em>. This is actually a stripped down theme that you can use to build upon.
+So if you're tired of reading, just copy that to your themes directory, rename it and start tweaking.
+Or just keep reading...and have some more fun with me!</p>
+<p>You're still here? Good! Lets continue theming!</p>
+<p>Theming in Nikola is done by the <em>Mako</em> or the <em>Jinja</em> theming engine, I chose <em>Mako</em> for the shisaa theme.
+Mako needs a few directories inside your theme directory where you can store different type of files. You basically need three of them:</p>
+<ul>
+<li>assets</li>
+<li>templates</li>
+<li>messages</li>
+</ul>
+<p>The <em>assets</em> directory will contain all the static files like CSS, Javascript, images, ... that are specific to your theme.
+<em>Templates</em> is where you will put the actual <em>.tmpl</em> files.
+And finally <em>messages</em> will contain the strings levering Nikola's multilingual capabilities. For now, we will only focus on English.</p>
+<p>Lets start with the most exciting one...the <em>templates</em> directory.</p>
+<p>Nikola uses a set of hardcoded template names it expects to find in that directory.
+As explained in <a href="http://nikola.ralsina.com.ar/theming.html" title="Basic theming documentation">the basic theming documentation</a> that comes with Nikola these are:</p>
+<ul>
+<li>base.tmpl</li>
+<li>index.tmpl</li>
+<li>post.tmpl</li>
+<li>listing.tmpl</li>
+<li>list.tmpl</li>
+<li>list_post.tmpl</li>
+<li>tags.tmpl</li>
+</ul>
+<p>There are a few others (namely <em>gallery.tmpl</em>, <em>story.tmpl</em>) but that's for a little bit further up the road.</p>
+<p>But before we start building each of these files, lets have a lightspeed glance at Mako:</p>
+<p>Mako is a templating engine written in Python <em>for</em> Python. It uses a language that ties in very close with Python. A Mako template file can inherit from other Mako template files easily giving you the ability to separate certain parts of templating logic to keep everything tidy. You can inherit a file using the following syntax:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">inherit</span> <span class="na">file=</span><span class="s">"base.tmpl"</span><span class="cp">/&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>The next neat thing you will be using when inheriting are template blocks to include pieces of template code you want to use in your main template:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"footer"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;div id="footer"&gt;</span>
+<span class="x">        &lt;p&gt;This is a footer, just static html!&lt;/p&gt;</span>
+<span class="x">    &lt;/div&gt;</span>
+<span class="cp">&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>Now in your inheriting template file you can call this block like so:</p>
+<pre class="code literal-block"><span></span><span class="cp">${</span><span class="n">footer</span><span class="p">()</span><span class="cp">}</span><span class="x"></span>
+</pre>
+
+
+<p>Besides inheriting you can use Python code almost seamlessly inside your template file.
+To use Python code, start with <em>&lt;%</em> and end with <em>%&gt;</em> when your code block is finished:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%!</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">"foobar"</span>
+<span class="cp">%&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>And, of course, you also can use control structures to build loops or make simple decisions, caught exceptions, ...
+I suggest you go and read the <a href="http://docs.makotemplates.org/en/latest/" title="Mako documentation">Mako documentation</a> to find out everything about this very powerful template language.
+For now, lets get our hands dirty by creating a theme and start writing some Mako!</p>
+<p>If you haven't already done so, create your themes directory in your Nikola site root and under that create a directory named after the theme your declared in <em>conf.py</em>.</p>
+<p>The very first thing a theme needs are the translatable messages, even if your site is going to be in only one language, you still need to set the correct translation strings.
+The message translations are stored in a directory called "messages" under you theme. So go ahead and create that directory.</p>
+<p>Each language that you wish to support has its own translation file in the following syntax: <strong>language-code</strong><em>_messages.py</em>.
+For the default English translation, create a file called <em>en_messages.py</em>.
+This file <em>has</em> to be filled with a module import and a dictionary called <em>MESSAGES</em> containing a fixed number of items:</p>
+<pre class="code literal-block"><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">unicode_literals</span>
+
+<span class="n">MESSAGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"LANGUAGE"</span><span class="p">:</span> <span class="s2">"English"</span><span class="p">,</span>
+    <span class="s2">"Posts for year </span><span class="si">%s</span><span class="s2">"</span><span class="p">:</span> <span class="s2">"Posts for year </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"Archive"</span><span class="p">:</span> <span class="s2">"Archive"</span><span class="p">,</span>
+    <span class="s2">"Posts about </span><span class="si">%s</span><span class="s2">"</span><span class="p">:</span> <span class="s2">"Posts about </span><span class="si">%s</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"Tags"</span><span class="p">:</span> <span class="s2">"Tags"</span><span class="p">,</span>
+    <span class="s2">"Also available in"</span><span class="p">:</span> <span class="s2">"Also available in"</span><span class="p">,</span>
+    <span class="s2">"More posts about"</span><span class="p">:</span> <span class="s2">"More posts about"</span><span class="p">,</span>
+    <span class="s2">"Posted"</span><span class="p">:</span> <span class="s2">"Posted"</span><span class="p">,</span>
+    <span class="s2">"Original site"</span><span class="p">:</span> <span class="s2">"Original site"</span><span class="p">,</span>
+    <span class="s2">"Read in English"</span><span class="p">:</span> <span class="s2">"Read in English"</span><span class="p">,</span>
+    <span class="s2">"Newer posts"</span><span class="p">:</span> <span class="s2">"Newer posts"</span><span class="p">,</span>
+    <span class="s2">"Older posts"</span><span class="p">:</span> <span class="s2">"Older posts"</span><span class="p">,</span>
+    <span class="s2">"Previous post"</span><span class="p">:</span> <span class="s2">"Previous post"</span><span class="p">,</span>
+    <span class="s2">"Next post"</span><span class="p">:</span> <span class="s2">"Next post"</span><span class="p">,</span>
+    <span class="s2">"old posts page </span><span class="si">%d</span><span class="s2">"</span><span class="p">:</span> <span class="s2">"old posts page </span><span class="si">%d</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"Read more"</span><span class="p">:</span> <span class="s2">"Read more"</span><span class="p">,</span>
+    <span class="s2">"Source"</span><span class="p">:</span> <span class="s2">"Source"</span><span class="p">,</span>
+<span class="p">}</span>
+</pre>
+
+
+<p>Even if you don't use all of these translations, you still need to declare them.</p>
+<p>Next we can build our actual template files used for rendering out the final HTML.</p>
+<p><strong>Warning: I altered each tmpl file more of less to fit my needs for Shisaa.jp. I do not make use of comments or multilingual features. Please review the tmpl files from the Orphan theme if you would like to see the original theme code!</strong></p>
+<p>Because we need quite some HTML and a lot of Mako structures in our template files it can get very unreadable, very quickly.
+To prevent this, it is a good practice to make use of Mako's <em>definition blocks</em>.
+As we have seen a little bit earlier, Mako's gives you the ability to define blocks of "code" that you later can call by means of a simple function call.</p>
+<p>"How do I go about doing that?", you ask me.</p>
+<p>Well, lets just put our preaching to practice and create two files under your <em>templates</em> directory.
+One is called <em>base.tmpl</em>, the other one is called <em>base_helper.tmpl</em>.
+The <em>base.tmpl</em> is the main template file that will hold the skeleton of our HTML markup. This means the <em>head</em>, <em>html</em> and <em>body</em> tags.
+The <em>base_helper.tmpl</em> is something that Nikola doesn't care for, but what you can use to store reusable definition blocks so you can keep your <em>base.tmpl</em> clean.
+Actually, you can call this "helper" file anything you like (or create as many helper files as you like for that matter), but for clarity <em>base_helper.tmpl</em> is not such a bad choice.</p>
+<p>Now lets uses these files together, shall we?</p>
+<p>First, to be able to use the definition blocks you declare in your helper file inside <em>base.tmpl</em>, you first have to tell <em>base.tmpl</em> about it.
+You can simply import the definition blocks by using Mako's "namespacing" attribute:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">namespace</span> <span class="na">file=</span><span class="s">"base_helper.tmpl import="</span><span class="err">*"</span><span class="cp">/&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>This line simply tells Mako to import all the definition blocks from the <em>base_helper.tmpl</em> file.
+If you only want to import certain blocks from that helper file, simply remove the wildcard (*), sum them up, separated by a comma, in the <em>import=""</em> attribute.
+Put this line at the top of your <em>base.tmpl</em> file.</p>
+<p>Before we start defining the blocks, lets create our skeleton in <em>base.tmpl</em>.
+The shisaa skeleton looks somewhat like this:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;!DOCTYPE HTML&gt;</span>
+<span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">html</span> <span class="na">lang</span><span class="o">=</span><span class="s">"${lang}"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</pre>
+
+
+<p>But this would result in beautiful yet totally white pages. We need to display actual content.</p>
+<p>First, the <em>head</em>, it looks quite empty don't you think? It misses a title, some CSS, a favicon, ...
+We could all just put it in the <em>base.tmpl</em> file, but we wanted it to be as uncluttered as possible.
+So now may be a good time to edit our <em>base_helpers.tmpl</em> file and lets define our header block:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">def</span> <span class="na">name=</span><span class="s">"html_head()"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;meta charset="utf-8"&gt;</span>
+<span class="x">    &lt;meta name="title" content="</span><span class="cp">${</span><span class="n">title</span><span class="cp">}</span><span class="x"> | </span><span class="cp">${</span><span class="n">blog_title</span><span class="cp">}</span><span class="x">" &gt;</span>
+<span class="x">    &lt;meta name="description" content="</span><span class="cp">${</span><span class="n">description</span><span class="cp">}</span><span class="x">" &gt;</span>
+<span class="x">    &lt;meta name="author" content="</span><span class="cp">${</span><span class="n">blog_author</span><span class="cp">}</span><span class="x">"&gt;</span>
+<span class="x">    &lt;title&gt;</span><span class="cp">${</span><span class="n">title</span><span class="cp">}</span><span class="x"> | </span><span class="cp">${</span><span class="n">blog_title</span><span class="cp">}</span><span class="x">&lt;/title&gt;</span>
+<span class="x">    &lt;link type="image/x-icon" href="/assets/img/favicon.ico" rel="icon" /&gt;</span>
+<span class="x">    &lt;link type="image/x-icon" href="/assets/img/favicon.ico" rel="shortcut icon" /&gt;</span>
+<span class="x">    &lt;link href="/assets/css/reset.css" rel="stylesheet" type="text/css"/&gt;</span>
+<span class="x">    &lt;link href="/assets/css/theme.css" rel="stylesheet" type="text/css"/&gt;</span>
+<span class="x">    &lt;!-- Le HTML5 shim, for IE6-8 support of HTML5 elements --&gt;</span>
+<span class="x">    &lt;!--[if lt IE 9]&gt;</span>
+<span class="x">    &lt;script src="/assets/js/html5shiv.js" type="text/javascript"&gt;&lt;/script&gt;</span>
+<span class="x">    &lt;script src="/assets/js/html5shiv-print.js" type="text/javascript"&gt;&lt;/script&gt;</span>
+<span class="x">    &lt;![endif]--&gt;</span>
+    <span class="cp">%</span><span class="k">if</span> <span class="n">rss_link</span><span class="p">:</span><span class="x"></span>
+<span class="x">        </span><span class="cp">${</span><span class="n">rss_link</span><span class="cp">}</span>
+    <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+<span class="cp">&lt;/%</span><span class="nb">def</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>That looks a little bit more like what you would expect in a <em>head</em> tag, right?</p>
+<p>As you can see we can use the variables we stored in the <em>conf.py</em> right here in the theme.
+To use a variable you can just call it with the <em>${}</em> syntax. As you could also see with the <em>${lang}</em> variable for setting the correct locale HTML setting in <em>base.tmpl</em>.
+Notice that some variables where not declare in your configuration (like <em>title</em>) but instead are fetched from the meta data inside your posts or pages markup files.</p>
+<p>So now we have a neat header, but how to tell our <em>base.tmpl</em> to put this in the correct spot?
+Simply by using the same syntax you used to render out variables, the only difference is that definition blocks should be called as if they where functions instead of simple variables.
+This  means that instead of <em>${foo}</em> you have to call it with <em>${foo()}</em>.
+So call this definition block in your <em>head</em> section:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;!DOCTYPE HTML&gt;</span>
+<span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">html</span> <span class="na">lang</span><span class="o">=</span><span class="s">"${lang}"</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+        ${html_head()}
+    <span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+    <span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+    <span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</pre>
+
+
+<p>Now, what about the <em>body</em> section? Here needs to come the actual content from our posts, pages, etc...
+We always want to display a side-wide title on screen, so lets add a nice and semantic <em>h1</em> tag containing the title and make it clickable to always go back to the homepage:</p>
+<pre class="code literal-block"><span></span><span class="p">&lt;</span><span class="nt">h1</span> <span class="na">id</span><span class="o">=</span><span class="s">"blog-title"</span><span class="p">&gt;</span>
+  <span class="p">&lt;</span><span class="nt">a</span> <span class="na">href</span><span class="o">=</span><span class="s">"${abs_link('/')}"</span> <span class="na">title</span><span class="o">=</span><span class="s">"${blog_title}"</span><span class="p">&gt;</span>${blog_title}<span class="p">&lt;/</span><span class="nt">a</span><span class="p">&gt;</span>
+<span class="p">&lt;/</span><span class="nt">h1</span><span class="p">&gt;</span>
+</pre>
+
+
+<p>Next we need a placeholder so Nikola knows where to put all of the content we want to be rendered inside our skeleton.
+Here we can introduce Mako's concept of <em>inheritance</em>.</p>
+<p>The only thing we have to do is define a <em>block</em> where all of the other template files will refer to.
+Under you page title, put in the following block:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"content"</span><span class="cp">&gt;&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>All of the other templates will refer to this block and they will render their output right at that spot.
+These templates will start by inheriting from <em>base.tmpl</em>:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">inherit</span> <span class="na">file=</span><span class="s">"base.tmpl"</span><span class="cp">/&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>And they will include the same block with the same name, but with their specific templating markup:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"content"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    ...</span>
+<span class="cp">&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>Simple enough, right?</p>
+<p>If its not totally clear yet, don't worry, we will come back to this later, first lets finish our <em>base.tmpl</em>.</p>
+<p>The thing we typically want next after our content is a footer:</p>
+<pre class="code literal-block"><span></span><span class="cp">${</span><span class="n">content_footer</span><span class="cp">}</span><span class="x"></span>
+</pre>
+
+
+<p>Now where does this <em>content_footer</em> variable come from? From your conf.py:</p>
+<pre class="code literal-block"><span></span><span class="n">CONTENT_FOOTER</span> <span class="o">=</span> <span class="s1">'Contents &amp;copy; {date} &lt;a href="mailto:{email}"&gt;{author}&lt;/a&gt; - Powered by &lt;a href="http://nikola.ralsina.com.ar"&gt;Nikola&lt;/a&gt;'</span>
+</pre>
+
+
+<p>Put the above line in your configuration file and tweak as desired!</p>
+<p>The only thing missing now is a menu.</p>
+<p>On shisaa you will notice that I have a sidebar-style menu.
+The links generated in the menu are also defined in the conf.py in a dictionary called...well...<em>SIDEBAR_LINKS</em>:</p>
+<pre class="code literal-block"><span></span><span class="n">SIDEBAR_LINKS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">DEFAULT_LANG</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'/'</span><span class="p">,</span> <span class="s1">'Home'</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">'/archive.html'</span><span class="p">,</span> <span class="s1">'Blog),</span>
+        <span class="p">(</span><span class="s1">'/stories/about.html'</span><span class="p">,</span> <span class="s1">'About),</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+</pre>
+
+
+<p>You'll notice that the menu is also multilingual, but since I only use one language, declaring the <em>DEFAULT_LANG</em> dictionary is enough.
+In the dictionary you first declare the path and then the name you wish to have displayed in the menu.
+The markup is build in our <em>base_helper.tmpl</em> file:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">def</span> <span class="na">name=</span><span class="s">"html_sidebar_links()"</span><span class="cp">&gt;</span>
+    <span class="cp">%</span><span class="k">for</span> <span class="n">url</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">sidebar_links</span><span class="p">[</span><span class="n">lang</span><span class="p">]:</span><span class="x"></span>
+        <span class="cp">%</span> <span class="k">if</span> <span class="n">rel_link</span><span class="p">(</span><span class="n">permalink</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"#"</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li class="active"&gt;&lt;a href="</span><span class="cp">${</span><span class="n">url</span><span class="cp">}</span><span class="x">"&gt;</span><span class="cp">${</span><span class="n">text</span><span class="cp">}</span><span class="x">&lt;/a&gt;</span>
+        <span class="cp">%</span><span class="k">else</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li&gt;&lt;a href="</span><span class="cp">${</span><span class="n">url</span><span class="cp">}</span><span class="x">"&gt;</span><span class="cp">${</span><span class="n">text</span><span class="cp">}</span><span class="x">&lt;/a&gt;</span>
+        <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+    <span class="cp">%</span><span class="k">endfor</span><span class="x"></span>
+<span class="cp">&lt;/%</span><span class="nb">def</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>"Whats all this?", you might wonder.</p>
+<p>As we have seen in our small Mako introduction, you have the ability to use control structures and loops inside your templates.
+Both are on stage in this little definition block.</p>
+<p>First we loop over our current (or default) language in the <em>SIDEBAR_LINKS</em> dictionary.
+For each item we find in the dictionary we check whether the link to be rendered is the current page, if so then set the "<em>active</em>" class. 
+That's it, that's how our sidebar menu gets rendered.</p>
+<p>When we put all of this together, the shisaa <em>base.tmpl</em> looks something like this:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">namespace</span> <span class="na">file=</span><span class="s">"base_helper.tmpl"</span> <span class="na">import=</span><span class="s">"*"</span><span class="cp">/&gt;</span><span class="x"></span>
+<span class="x">&lt;!DOCTYPE html&gt;</span>
+<span class="x">&lt;html lang="</span><span class="cp">${</span><span class="n">lang</span><span class="cp">}</span><span class="x">"&gt;</span>
+<span class="x">    &lt;head&gt;</span>
+<span class="x">        </span><span class="cp">${</span><span class="n">html_head</span><span class="p">()</span><span class="cp">}</span><span class="x"></span>
+<span class="x">    &lt;/head&gt;</span>
+<span class="x">    &lt;body&gt;</span>
+<span class="x">        &lt;h1 id="blog-title"&gt;</span>
+<span class="x">            &lt;a href="</span><span class="cp">${</span><span class="n">abs_link</span><span class="p">(</span><span class="s1">'/'</span><span class="p">)</span><span class="cp">}</span><span class="x">" title="</span><span class="cp">${</span><span class="n">blog_title</span><span class="cp">}</span><span class="x">"&gt;</span><span class="cp">${</span><span class="n">blog_title</span><span class="cp">}</span><span class="x">&lt;/a&gt;</span>
+<span class="x">        &lt;/h1&gt;</span>
+<span class="x">        &lt;ul id="sidebar"&gt;</span>
+<span class="x">            &lt;li&gt;</span>
+<span class="x">                </span><span class="cp">${</span><span class="n">html_sidebar_links</span><span class="p">()</span><span class="cp">}</span><span class="x"></span>
+<span class="x">            &lt;li&gt;</span>
+<span class="x">        &lt;/ul&gt;</span>
+<span class="x">        &lt;div id="content"&gt;</span>
+<span class="x">            </span><span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"content"</span><span class="cp">&gt;&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">        &lt;/div&gt;</span>
+<span class="x">        &lt;div id="footer"&gt;</span><span class="cp">${</span><span class="n">content_footer</span><span class="cp">}</span><span class="x">&lt;/div&gt;</span>
+<span class="x">    &lt;/body&gt;</span>
+<span class="x">&lt;/html&gt;</span>
+</pre>
+
+
+<p>And our <em>base_helper.tmpl</em> looks like this:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">def</span> <span class="na">name=</span><span class="s">"html_head()"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;meta charset="utf-8"&gt;</span>
+<span class="x">    &lt;meta name="title" content="</span><span class="cp">${</span><span class="n">title</span><span class="cp">}</span><span class="x"> | </span><span class="cp">${</span><span class="n">blog_title</span><span class="cp">}</span><span class="x">" &gt;</span>
+<span class="x">    &lt;meta name="description" content="</span><span class="cp">${</span><span class="n">description</span><span class="cp">}</span><span class="x">" &gt;</span>
+<span class="x">    &lt;meta name="author" content="</span><span class="cp">${</span><span class="n">blog_author</span><span class="cp">}</span><span class="x">"&gt;</span>
+<span class="x">    &lt;title&gt;</span><span class="cp">${</span><span class="n">title</span><span class="cp">}</span><span class="x"> | </span><span class="cp">${</span><span class="n">blog_title</span><span class="cp">}</span><span class="x">&lt;/title&gt;</span>
+<span class="x">    &lt;link type="image/x-icon" href="/assets/img/favicon.ico" rel="icon" /&gt;</span>
+<span class="x">    &lt;link type="image/x-icon" href="/assets/img/favicon.ico" rel="shortcut icon" /&gt;</span>
+<span class="x">    &lt;link href="/assets/css/reset.css" rel="stylesheet" type="text/css"/&gt;</span>
+<span class="x">    &lt;link href="/assets/css/theme.css" rel="stylesheet" type="text/css"/&gt;</span>
+<span class="x">    &lt;!-- Le HTML5 shim, for IE6-8 support of HTML5 elements --&gt;</span>
+<span class="x">    &lt;!--[if lt IE 9]&gt;</span>
+<span class="x">    &lt;script src="http://html5shim.googlecode.com/svn/trunk/html5.js" type="text/javascript"&gt;&lt;/script&gt;</span>
+<span class="x">    &lt;![endif]--&gt;</span>
+    <span class="cp">%</span><span class="k">if</span> <span class="n">rss_link</span><span class="p">:</span><span class="x"></span>
+<span class="x">        </span><span class="cp">${</span><span class="n">rss_link</span><span class="cp">}</span>
+    <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+<span class="cp">&lt;/%</span><span class="nb">def</span><span class="cp">&gt;</span><span class="x"></span>
+
+<span class="cp">&lt;%</span><span class="nb">def</span> <span class="na">name=</span><span class="s">"html_sidebar_links()"</span><span class="cp">&gt;</span>
+    <span class="cp">%</span><span class="k">for</span> <span class="n">url</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">sidebar_links</span><span class="p">[</span><span class="n">lang</span><span class="p">]:</span><span class="x"></span>
+        <span class="cp">%</span> <span class="k">if</span> <span class="n">rel_link</span><span class="p">(</span><span class="n">permalink</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"#"</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li class="active"&gt;&lt;a href="</span><span class="cp">${</span><span class="n">url</span><span class="cp">}</span><span class="x">"&gt;</span><span class="cp">${</span><span class="n">text</span><span class="cp">}</span><span class="x">&lt;/a&gt;</span>
+        <span class="cp">%</span><span class="k">else</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li&gt;&lt;a href="</span><span class="cp">${</span><span class="n">url</span><span class="cp">}</span><span class="x">"&gt;</span><span class="cp">${</span><span class="n">text</span><span class="cp">}</span><span class="x">&lt;/a&gt;</span>
+        <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+    <span class="cp">%</span><span class="k">endfor</span><span class="x"></span>
+<span class="cp">&lt;/%</span><span class="nb">def</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>Congratulations, we have setup the skeleton of our template!</p>
+<p>Next we have to look into the different parts that will be rendered in our <em>content</em> block.
+In the beginning of our templating adventure we saw that Nikola needs a minimal list of template files to successfully build your site.
+We just covered <em>base.tmpl</em>, so whats still left?</p>
+<ul>
+<li><s>base.tmpl<s></s></s></li>
+<li>index.tmpl</li>
+<li>post.tmpl</li>
+<li>listing.tmp</li>
+<li>list.tmpl</li>
+<li>list_post.tmpl</li>
+<li>tags.tmpl</li>
+</ul>
+<p>The <em>index.tmpl</em> file will render out content of the corresponding <em>index.html</em>.
+On most blogs the index page contains a stream of the latest X posts that you wrote, or just contains the latest post with a pager to flip trough older posts.
+I choose the latter, having a 20-scroll-page long index just doesn't look pleasing to me.</p>
+<p>So this is my <em>index.tmpl</em>:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">inherit</span> <span class="na">file=</span><span class="s">"base.tmpl"</span><span class="cp">/&gt;</span><span class="x"></span>
+<span class="cp">&lt;%</span><span class="nb">namespace</span> <span class="na">name=</span><span class="s">"helper"</span> <span class="na">file=</span><span class="s">"index_helper.tmpl"</span> <span class="na">import=</span><span class="s">"*"</span><span class="cp">/&gt;</span><span class="x"></span>
+<span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"content"</span><span class="cp">&gt;</span>
+    <span class="cp">%</span><span class="k">for</span> <span class="n">post</span> <span class="ow">in</span> <span class="n">posts</span><span class="p">:</span><span class="x"></span>
+        <span class="cp">%</span><span class="k">if</span> <span class="p">(</span><span class="n">loop</span><span class="o">.</span><span class="n">first</span><span class="p">):</span><span class="x"></span>
+<span class="x">            &lt;div class="index-post"&gt;</span>
+<span class="x">                &lt;h2&gt;</span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x">&lt;/h2&gt;</span>
+<span class="x">                &lt;p class="post-date"&gt;</span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">date_format</span><span class="p">)</span><span class="cp">}</span><span class="x"> - &lt;/p&gt;</span>
+<span class="x">                </span><span class="cp">${</span><span class="n">helper</span><span class="o">.</span><span class="n">html_tags</span><span class="p">(</span><span class="n">post</span><span class="p">)</span><span class="cp">}</span><span class="x"></span>
+<span class="x">                &lt;div class="index-post-text"&gt;</span>
+<span class="x">                    </span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x"></span>
+<span class="x">                &lt;/div&gt;</span>
+<span class="x">                </span><span class="cp">${</span><span class="n">helper</span><span class="o">.</span><span class="n">html_pager</span><span class="p">(</span><span class="n">post</span><span class="p">)</span><span class="cp">}</span><span class="x"></span>
+<span class="x">            &lt;/div&gt;</span>
+        <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+    <span class="cp">%</span><span class="k">endfor</span><span class="x"></span>
+<span class="cp">&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>At the top we setup the inheritance relation to our base.tmpl file. Next we load up the helper file. This helper will contain the logic for the tags and the pager rendering.
+Finally we render out our basic markup. Because I only want the first post (most newest post) displayed, I use Mako's <a href="http://docs.makotemplates.org/en/latest/runtime.html#loop-context" title="More information about Loop Context in Mako">loop context</a> to only show the first iteration of the loop.</p>
+<p>The <em>index_helper.tmpl</em> looks like this:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">def</span> <span class="na">name=</span><span class="s">"html_tags(post)"</span><span class="cp">&gt;</span>
+    <span class="cp">%</span> <span class="k">if</span> <span class="n">post</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span><span class="x"></span>
+<span class="x">        &lt;ul class="tags"&gt;</span>
+            <span class="cp">%</span><span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">post</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span><span class="x"></span>
+<span class="x">                &lt;li class="tag"&gt;&lt;a href="</span><span class="cp">${</span><span class="n">_link</span><span class="p">(</span><span class="s1">'tag'</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x">"&gt;</span><span class="cp">${</span><span class="n">tag</span><span class="cp">}</span><span class="x">&lt;/a&gt;&lt;/li&gt;          </span>
+            <span class="cp">%</span><span class="k">endfor</span><span class="x"></span>
+<span class="x">        &lt;/ul&gt;</span>
+    <span class="cp">%</span><span class="k"> endif</span><span class="x"></span>
+<span class="cp">&lt;/%</span><span class="nb">def</span><span class="cp">&gt;</span><span class="x"></span>
+
+<span class="cp">&lt;%</span><span class="nb">def</span> <span class="na">name=</span><span class="s">"html_pager(post)"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;ul class="pager"&gt;</span>
+        <span class="cp">%</span><span class="k">if</span> <span class="n">post</span><span class="o">.</span><span class="n">prev_post</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li class="previous"&gt;</span>
+<span class="x">                &lt;a href="</span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">prev_post</span><span class="o">.</span><span class="n">permalink</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x">"&gt;&amp;larr; </span><span class="cp">${</span><span class="n">messages</span><span class="p">[</span><span class="n">lang</span><span class="p">][</span><span class="s2">"Previous post"</span><span class="p">]</span><span class="cp">}</span><span class="x">&lt;/a&gt;</span>
+<span class="x">            &lt;/li&gt;</span>
+        <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+        <span class="cp">%</span><span class="k">if</span> <span class="n">post</span><span class="o">.</span><span class="n">next_post</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li class="next"&gt;</span>
+<span class="x">                &lt;a href="</span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">next_post</span><span class="o">.</span><span class="n">permalink</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x">"&gt;</span><span class="cp">${</span><span class="n">messages</span><span class="p">[</span><span class="n">lang</span><span class="p">][</span><span class="s2">"Next post"</span><span class="p">]</span><span class="cp">}</span><span class="x"> &amp;rarr;&lt;/a&gt;</span>
+<span class="x">            &lt;/li&gt;</span>
+        <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+<span class="x">    &lt;/ul&gt;</span>
+<span class="cp">&lt;/%</span><span class="nb">def</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>Good, that's all for the index, one more off the list:</p>
+<ul>
+<li><s>base.tmpl</s></li>
+<li><s>index.tmpl</s></li>
+<li>post.tmpl</li>
+<li>listing.tmp</li>
+<li>list.tmpl</li>
+<li>list_post.tmpl</li>
+<li>tags.tmpl</li>
+</ul>
+<p>Next logical step, our posts itself, the dedicated, individual post pages. These are handled by <em>post.tmpl</em>.
+For every file we see on this list we can find the same pattern: they will all inherit from the <em>content</em> block declared in <em>base.tmpl</em>.
+So lets pick up the pace a little bit. </p>
+<p>Below is my template for rendering a post:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">inherit</span> <span class="na">file=</span><span class="s">"base.tmpl"</span><span class="cp">/&gt;</span><span class="x"></span>
+<span class="cp">&lt;%</span><span class="nb">namespace</span> <span class="na">name=</span><span class="s">"helper"</span> <span class="na">file=</span><span class="s">"post_helper.tmpl"</span><span class="cp">/&gt;</span><span class="x"></span>
+<span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"content"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;div class="postbox"&gt;</span>
+<span class="x">        </span><span class="cp">${</span><span class="n">helper</span><span class="o">.</span><span class="n">html_title</span><span class="p">()</span><span class="cp">}</span><span class="x"></span>
+<span class="x">        &lt;small&gt;</span>
+<span class="x">            </span><span class="cp">${</span><span class="n">messages</span><span class="p">[</span><span class="n">lang</span><span class="p">][</span><span class="s2">"Posted"</span><span class="p">]</span><span class="cp">}</span><span class="x">: </span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">date_format</span><span class="p">)</span><span class="cp">}</span><span class="x"></span>
+<span class="x">            </span><span class="cp">${</span><span class="n">helper</span><span class="o">.</span><span class="n">html_tags</span><span class="p">(</span><span class="n">post</span><span class="p">)</span><span class="cp">}</span><span class="x"></span>
+<span class="x">        &lt;/small&gt;</span>
+<span class="x">        </span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x"></span>
+<span class="x">        </span><span class="cp">${</span><span class="n">helper</span><span class="o">.</span><span class="n">html_pager</span><span class="p">(</span><span class="n">post</span><span class="p">)</span><span class="cp">}</span><span class="x"></span>
+<span class="x">    &lt;/div&gt;</span>
+<span class="cp">&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>And the helper file:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">def</span> <span class="na">name=</span><span class="s">"html_title()"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;h1&gt;</span><span class="cp">${</span><span class="n">title</span><span class="cp">}</span><span class="x">&lt;/h1&gt;</span>
+    <span class="cp">%</span> <span class="k">if</span> <span class="n">link</span><span class="p">:</span><span class="x"></span>
+<span class="x">        &lt;p&gt;&lt;a href='</span><span class="cp">${</span><span class="n">link</span><span class="cp">}</span><span class="x">'&gt;</span><span class="cp">${</span><span class="n">messages</span><span class="p">[</span><span class="n">lang</span><span class="p">][</span><span class="s2">"Original site"</span><span class="p">]</span><span class="cp">}</span><span class="x">&lt;/a&gt;&lt;/p&gt;</span>
+    <span class="cp">%</span><span class="k"> endif</span><span class="x"></span>
+<span class="cp">&lt;/%</span><span class="nb">def</span><span class="cp">&gt;</span><span class="x"></span>
+
+<span class="cp">&lt;%</span><span class="nb">def</span> <span class="na">name=</span><span class="s">"html_tags(post)"</span><span class="cp">&gt;</span>
+    <span class="cp">%</span><span class="k">if</span> <span class="n">post</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span><span class="x"></span>
+<span class="x">        </span><span class="cp">${</span><span class="n">messages</span><span class="p">[</span><span class="n">lang</span><span class="p">][</span><span class="s2">"More posts about"</span><span class="p">]</span><span class="cp">}</span>
+        <span class="cp">%</span><span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">post</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;a class="tag" href="</span><span class="cp">${</span><span class="n">_link</span><span class="p">(</span><span class="s1">'tag'</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x">"&gt;&lt;span class="badge badge-info"&gt;</span><span class="cp">${</span><span class="n">tag</span><span class="cp">}</span><span class="x">&lt;/span&gt;&lt;/a&gt;</span>
+        <span class="cp">%</span><span class="k">endfor</span><span class="x"></span>
+    <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+<span class="cp">&lt;/%</span><span class="nb">def</span><span class="cp">&gt;</span><span class="x"></span>
+
+<span class="cp">&lt;%</span><span class="nb">def</span> <span class="na">name=</span><span class="s">"html_pager(post)"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;ul class="pager"&gt;</span>
+        <span class="cp">%</span><span class="k">if</span> <span class="n">post</span><span class="o">.</span><span class="n">prev_post</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li class="previous"&gt;</span>
+<span class="x">                &lt;a href="</span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">prev_post</span><span class="o">.</span><span class="n">permalink</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x">"&gt;&amp;larr; </span><span class="cp">${</span><span class="n">messages</span><span class="p">[</span><span class="n">lang</span><span class="p">][</span><span class="s2">"Previous post"</span><span class="p">]</span><span class="cp">}</span><span class="x">&lt;/a&gt;</span>
+<span class="x">            &lt;/li&gt;</span>
+        <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+        <span class="cp">%</span><span class="k">if</span> <span class="n">post</span><span class="o">.</span><span class="n">next_post</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li class="next"&gt;</span>
+<span class="x">                &lt;a href="</span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">next_post</span><span class="o">.</span><span class="n">permalink</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x">"&gt;</span><span class="cp">${</span><span class="n">messages</span><span class="p">[</span><span class="n">lang</span><span class="p">][</span><span class="s2">"Next post"</span><span class="p">]</span><span class="cp">}</span><span class="x"> &amp;rarr;&lt;/a&gt;</span>
+<span class="x">            &lt;/li&gt;</span>
+        <span class="cp">%</span><span class="k">endif</span><span class="x"></span>
+<span class="x">    &lt;/ul&gt;</span>
+<span class="cp">&lt;/%</span><span class="nb">def</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>By now, this all should look quite straightforward. We define three blocks in the helper file, where the last two are identical to what we used in the <em>index_helper.tmpl</em>:</p>
+<ul>
+<li>One to render the title</li>
+<li>One to render the tags and create a link to a page showing all other posts that contain this tag</li>
+<li>And a pager that can flip trough older and newer</li>
+</ul>
+<p>Quite simple, right? 
+Another one to cross off:</p>
+<ul>
+<li><s>base.tmpl</s></li>
+<li><s>index.tmpl</s></li>
+<li>
+<s>post.tmpl</s> </li>
+<li>listing.tmp</li>
+<li>list.tmpl</li>
+<li>list_post.tmpl</li>
+<li>tags.tmpl</li>
+</ul>
+<p>This next one is used to render the code listings feature we seen in the beginning of this post and looks like this:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">inherit</span> <span class="na">file=</span><span class="s">"base.tmpl"</span><span class="cp">/&gt;</span><span class="x"></span>
+<span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"content"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;ul class="breadcrumb"&gt;</span>
+        <span class="cp">%</span> <span class="k">for</span> <span class="n">link</span><span class="p">,</span> <span class="n">crumb</span> <span class="ow">in</span> <span class="n">crumbs</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li&gt;&lt;a href="</span><span class="cp">${</span><span class="n">link</span><span class="cp">}</span><span class="x">"&gt;/ </span><span class="cp">${</span><span class="n">crumb</span><span class="cp">}</span><span class="x">&lt;/a&gt;&lt;/li&gt;</span>
+        <span class="cp">%</span><span class="k"> endfor</span><span class="x"></span>
+<span class="x">    &lt;/ul&gt;</span>
+<span class="x">    </span><span class="cp">${</span><span class="n">code</span><span class="cp">}</span><span class="x"></span>
+<span class="cp">&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>We first render out a breadcrumb that resembles the path of the file in a hierarchical directory structure and after that we simply render the code. That's it!</p>
+<ul>
+<li><s>base.tmpl</s></li>
+<li><s>index.tmpl</s></li>
+<li><s>post.tmpl</s></li>
+<li><s>listing.tmp</s></li>
+<li>list.tmpl</li>
+<li>list_post.tmpl</li>
+<li>tags.tmpl</li>
+</ul>
+<p>Finally we have three, almost identical templates: <em>list.tmpl</em>, <em>list_post.tmpl</em> and <em>tags.tmpl</em>. 
+The main difference between them is the data that they have available.
+<em>List.tmpl</em> has an <em>items</em> dictionary available containing general links, <em>list_post.tmpl</em> gets a <em>posts</em> dictionary containing all the posts and <em>tags.tmpl</em>, well, gets a dictionary with tag information.</p>
+<p>The <em>list_post.tmpl</em> is used to render out the actual posts overview that belongs to a certain year (when browsing trough the archive). The template looks like this:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">inherit</span> <span class="na">file=</span><span class="s">"base.tmpl"</span><span class="cp">/&gt;</span><span class="x"></span>
+<span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"content"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;!--Body content--&gt;</span>
+<span class="x">    &lt;div class="postbox"&gt;</span>
+<span class="x">        &lt;h1&gt;</span><span class="cp">${</span><span class="n">title</span><span class="cp">}</span><span class="x">&lt;/h1&gt;</span>
+<span class="x">        &lt;ul class="unstyled"&gt;</span>
+            <span class="cp">%</span> <span class="k">for</span> <span class="n">post</span> <span class="ow">in</span> <span class="n">posts</span><span class="p">:</span><span class="x"></span>
+<span class="x">                &lt;li&gt;&lt;a href="</span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">permalink</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x">"&gt;[</span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="n">date_format</span><span class="p">)</span><span class="cp">}</span><span class="x">] </span><span class="cp">${</span><span class="n">post</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">lang</span><span class="p">)</span><span class="cp">}</span><span class="x">&lt;/a&gt;</span>
+            <span class="cp">%</span><span class="k"> endfor</span><span class="x"></span>
+<span class="x">        &lt;/ul&gt;</span>
+<span class="x">    &lt;/div&gt;</span>
+<span class="x">    &lt;!--End of body content--&gt;</span>
+<span class="cp">&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>It is not needed to use a helper file because this template doesn't have so much functionality. It will just render out an unordered list of post titles.
+You are, of course, free to pull anything from the <em>posts</em> you have available here and render it.</p>
+<p>When you look at its counterpart, <em>list.tmpl</em>, you will find exactly the same code, but with <em>items</em> instead of <em>posts</em>:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">inherit</span> <span class="na">file=</span><span class="s">"base.tmpl"</span><span class="cp">/&gt;</span><span class="x"></span>
+<span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"content"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;!--Body content--&gt;</span>
+<span class="x">    &lt;div class="postbox"&gt;</span>
+<span class="x">        &lt;h1&gt;</span><span class="cp">${</span><span class="n">title</span><span class="cp">}</span><span class="x">&lt;/h1&gt;</span>
+<span class="x">        &lt;ul class="unstyled"&gt;</span>
+            <span class="cp">%</span> <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span><span class="x"></span>
+<span class="x">                &lt;li&gt;&lt;a href="</span><span class="cp">${</span><span class="n">link</span><span class="cp">}</span><span class="x">"&gt;</span><span class="cp">${</span><span class="n">text</span><span class="cp">}</span><span class="x">&lt;/a&gt;</span>
+            <span class="cp">%</span><span class="k"> endfor</span><span class="x"></span>
+<span class="x">        &lt;/ul&gt;</span>
+<span class="x">    &lt;/div&gt;</span>
+<span class="x">    &lt;!--End of body content--&gt;</span>
+<span class="cp">&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>This one if used to render the list of different years you have available.</p>
+<p>Also <em>tags.tmpl</em> file uses <em>items</em> to contain all the information:</p>
+<pre class="code literal-block"><span></span><span class="cp">&lt;%</span><span class="nb">inherit</span> <span class="na">file=</span><span class="s">"base.tmpl"</span><span class="cp">/&gt;</span><span class="x"></span>
+<span class="cp">&lt;%</span><span class="nb">block</span> <span class="na">name=</span><span class="s">"content"</span><span class="cp">&gt;</span><span class="x"></span>
+<span class="x">    &lt;div class="postbox"&gt;</span>
+<span class="x">    &lt;!--Body content--&gt;</span>
+<span class="x">        &lt;h1&gt;</span><span class="cp">${</span><span class="n">title</span><span class="cp">}</span><span class="x">&lt;/h1&gt;</span>
+<span class="x">        &lt;ul class="unstyled"&gt;</span>
+        <span class="cp">%</span> <span class="k">for</span> <span class="n">text</span><span class="p">,</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span><span class="x"></span>
+<span class="x">            &lt;li&gt;&lt;a class="tag" href="</span><span class="cp">${</span><span class="n">link</span><span class="cp">}</span><span class="x">"&gt;&lt;span class="badge badge-info"&gt;</span><span class="cp">${</span><span class="n">text</span><span class="cp">}</span><span class="x">&lt;/span&gt;&lt;/a&gt;</span>
+        <span class="cp">%</span><span class="k"> endfor</span><span class="x"></span>
+<span class="x">        &lt;/ul&gt;</span>
+<span class="x">    &lt;!--End of body content--&gt;</span>
+<span class="x">&lt;/div&gt;</span>
+<span class="cp">&lt;/%</span><span class="nb">block</span><span class="cp">&gt;</span><span class="x"></span>
+</pre>
+
+
+<p>Phew, we have written out all the necessary template files.
+This means Nikola now has enough information to actually render out each individual HTML page.</p>
+<h3>Make a test run</h3>
+<p>So, are you ready for our second build? With your own theme this time? Punch it in!</p>
+<pre class="code literal-block"><span></span>$ nikola build
+</pre>
+
+
+<p>If you still have a Nikola server running in another terminal, you can just refresh your page and see your new template in action.
+Of course, we did not make any CSS, so everything will look quite like <a href="https://duckduckgo.com/?q=css+naked+day" title="Duck Duck Go search for CSS Naked Day">CSS Naked Day</a> (which by itself is a good test).</p>
+<p>In the beginning of this post we constructed the header and included some CSS files as I have used them on Shisaa.jp. Now go ahead and style your theme, correctly link up the files, and build again.</p>
+<p>Now there you have it, a Nikola site up and running!</p>
+<p>I hope I could make you feel the power you have at your fingertips when making your site with Nikola.
+Its now ready to be tinkered with more and I encourage you to go and explore more features such as the gallery, multilingual, disqus integration, try a different markup language, ...</p>
+<p>And as always...thanks for reading!</p>
+</div>
+ </div>
+</div></body></html>

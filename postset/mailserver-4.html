@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html><body><div class="postbox">
+ Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 4
+ <p class="post-date">20/04/2013 <span>-</span> </p>
+ <div class="post">
+  <div>
+<h3>Chapter 4 - Dovecot, the friendly front desk</h3>
+<p>And so we arrive at the final big stop of our mailserver series.</p>
+<p>If you've missed <a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series">chapter 1</a>, <a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series">chapter 2</a> or <a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series">chapter 3</a> I recommend reading them first.</p>
+<p>First, the outline:</p>
+<ul>
+<li>Small introduction to Dovecot</li>
+<li>Introduction to IMAP and POP3</li>
+<li>Configure Dovecot to use IMAP</li>
+<li>Setup SSL/TLS inside Dovecot</li>
+<li>Hashing our users passwords with doveadm</li>
+<li>Setting up extra mail folder</li>
+<li>Connecting with an email client</li>
+</ul>
+<p>So far we have talked about the heart of our mailserver, Postfix, we then saw how we can use a solid database as our back-end instead of using Unix user accounts and in the last chapter we saw how we could protect ourselves from viruses and spam. So far we have a smoothly running factory, receiving mail, checking it and if necessary storing it. But there is still one important part missing, it is all happening behind the closed doors of our factory floor and there is still no way for our customers, the owners of the various mailboxes, to actually receive and send their mail. Our factory does not have a front desk yet. So lets make one, shall we?</p>
+<p>This front-desk is called, as you might have guessed, <em>Dovecot</em>. It calls itself an IMAP and POP3 mail server.
+It takes care of the communication between the actual mail files stored on the hard disk drive and the email client the end-user will be using.
+Dovecot of course also supports our database back-end we used to store the sensitive information about the user.</p>
+<p>Now what is this <em>IMAP</em> and <em>POP3</em> that Dovecot supports, you might ask.</p>
+<p><em>IMAP</em> stands for <em>Internet Message Access Protocol</em>. The IMAP protocol makes it possible to have multiple users connect to the same mailbox and see the same messages. The mail stays on the server.
+<em>POP3</em> on the other hand is a protocol that has to copy the mail to the users computer before it can be displayed.
+When you want to see your mail on your computer and on your mobile device for instance, this can be confusing when using <em>POP3</em>, many <em>POP3</em> clients even delete the mail on the server when it is downloaded.
+<em>IMAP</em> syncs between the server and the various clients that connect to the mailbox and it will only download a message and its attachments when asked for.
+<em>POP3</em> has to download all the messages, including the attachments, before it can be display in your mail client.
+Another big difference between the two is that <em>outgoing</em> mail, when using <em>IMAP</em>, is stored on the server and thus available on multiple devices. With POP3, its only stored on the local computer from which you sent it.</p>
+<p>Knowing the main differences between the two protocols, I always prefer <em>IMAP</em>.
+So lets go ahead and configure Dovecot the be able to read your mail using the <em>IMAP</em> protocol!</p>
+<p>As always, we first have to install the Dovecot package. The CentALT version is quite recent, so you can just go ahead and install it.</p>
+<pre class="code literal-block"><span></span>$ yum install dovecot
+</pre>
+
+
+<p>Dovecots main configuration exists in only one file located at <em>/etc/dovecot/dovecot.conf</em>. Open it right up and lets dive in!
+The first thing you want to set are the different protocols you want to support, since we decided on <em>IMAP</em> you can add a line at the end of the file:</p>
+<pre class="code literal-block"><span></span>$ <span class="nv">protocols</span> <span class="o">=</span> imap
+</pre>
+
+
+<p>I like to add everything at the bottom to keep it all together. I start with a comment line reading something like "#Added lines by me" and put my own configuration lines under that..
+Then add the <em>base_dir</em>, the <em>instance_name</em> and the <em>login_greeting</em> variable. You find these variables commented out in the <em>dovecot.conf</em> file. Just copy them to the bottom and remove the hash.</p>
+<p>Save the file and lets see what else we need to configure.</p>
+<p>In chapter 1 we talked about being secure when it comes to data traveling between the server and the client computer.
+We have to continue this work in Dovecot because not only will be exchanging passwords, we will also be syncing mail between the server and the client computer.
+So lets first setup SSL/TLS inside dovecot. All the extra configuration files are made available in the <em>/etc/dovecot/conf.d</em> directory.
+Files starting with a two digit number and end with ".conf" are automatically loaded by the <em>dovecot.conf</em> file.
+The other files are indented as a demonstration of what else you can do in the main <em>dovecot.conf</em> file and should not be altered.</p>
+<p>I usually disable the automatic include of these files and just copy the needed variables to my main configuration. So in the <em>dovecot.conf</em> file, put a hash before the bottom two "!include" statements.
+In this conf.d directory you will also find a file called "10-ssl.conf<em>. Open this one up and lets start moving some variables to our </em>dovecot.conf* file. First the enable SSL:</p>
+<pre class="code literal-block"><span></span>$ <span class="nv">ssl</span> <span class="o">=</span> yes
+</pre>
+
+
+<p>Next we see two very important lines, the <em>ssl_cert</em> en the <em>ssl_key</em> file. Dovecot already prepared a certificate and a private key for you to use.
+Also copy these lines to the <em>dovecot.conf</em> file.
+The only thing you must be sure of is that both files are only readable by root. So do a <em>ls -la</em> to check if this is so.
+Now before we do anything else, fire up dovecot and lets try connecting:</p>
+<pre class="code literal-block"><span></span>$ /etc/init.d/dovecot start
+</pre>
+
+
+<p>Then lets try to connect to localhost and ask for imaps:</p>
+<pre class="code literal-block"><span></span>$ openssl s_client -connect <span class="m">127</span>.0.0.1:imaps
+</pre>
+
+
+<p>If you get an output containing a SSL key, the connection is successful.</p>
+<p>When we connect with our mail client further up this chapter, you will notice it will complain about a self-signed certificate and that's correct.
+We ARE using a self-signed certificate. As discussed in chapter 1 that is perfectly save, as long as the mail server only serves a handful of users and these user are educated in the risk of a MITM attack.
+You could always go out and buy a certificate with the certificate mafia and you should if you are planning to setup a large, public mailserver. But for now, self-signed is the way to go.</p>
+<p>In chapter 2 we enabled Postfix to work with PostgreSQL to retrieve the necessary mailbox data so Postfix could deliver the mail. This same data Dovecot will need to authenticate the users.
+So we need to enable PostgreSQL support in Dovecot.</p>
+<p>In the <em>conf.d</em> directory you will find a <em>auth-sql.conf.ext</em> file, this is an example file of how we can setup our database connection.
+So we have to setup our PostgreSQL connection and make a new file with the correct lookup query. Setup the connection in the <em>dovecot.conf</em> file:</p>
+<pre class="code literal-block"><span></span>$ passdb <span class="o">{</span>
+    <span class="nv">driver</span> <span class="o">=</span> sql
+    <span class="nv">args</span> <span class="o">=</span> /etc/dovecot/dovecot-sql.conf
+ <span class="o">}</span>
+ userdb <span class="o">{</span>
+     <span class="nv">driver</span> <span class="o">=</span> prefetch
+ <span class="o">}</span>
+</pre>
+
+
+<p>You will notice a couple of things here, first we have two variables we setup: <em>passdb{}</em> and <em>userdb{}</em>.
+The <em>passdb{}</em> is used for the authentication when the user logs in and the <em>userdb{}</em> is used to retrieve additional information about the connected user.</p>
+<p>But since the only extra information we need in our setup is the location of the users mailbox, we can also use the "<em>passdb{}</em> for that and save a query every time a users connects.
+To use <em>passdb{}</em> for this we have to tell Dovecot that the <em>userdb{}</em> uses the <em>prefetch</em> driver, meaning it will use the <em>passdb{}</em> query for its extra user data.
+The driver is set to <em>sql</em> instead of <em>pgsql</em>, Dovecot only expects to see which kind of main driver it will be using. In the <em>dovecot-sql.conf</em> we will define it is PostgreSQL.</p>
+<p>The actually connection string and the lookup query are stored in an separate file as described above.
+So create a new file called <em>dovecot-sql.conf</em> in <em>/etc/dovecot/</em> and put in your database details like so:</p>
+<pre class="code literal-block"><span></span>$ <span class="nv">driver</span> <span class="o">=</span> pgsql
+  <span class="nv">connect</span> <span class="o">=</span> <span class="nv">host</span><span class="o">=</span>localhost <span class="nv">dbname</span><span class="o">=</span>mail <span class="nv">user</span><span class="o">=</span>mailreader <span class="nv">password</span><span class="o">=</span>some-password
+  <span class="nv">default_pass_scheme</span> <span class="o">=</span> SHA512
+  <span class="nv">password_query</span> <span class="o">=</span> SELECT email as user, password, <span class="s1">'maildir:/home/mail'</span><span class="o">||</span>maildir as userdb_mail FROM users WHERE <span class="nv">email</span> <span class="o">=</span> <span class="s1">'%u'</span>
+</pre>
+
+
+<p>First we define which subtype of the sql driver we will be using, in our case <em>pgsql</em> for PostgreSQL.
+Then we have the connection string for, well, actually connecting to the database.
+The third parameter sets the type of password encryption scheme that we used to store our password in the users table.
+And finally we have the query itself, Dovecot recognizes <em>user</em> as the actual user, <em>password</em> as the column containing the hashed password and <em>userdb_mail</em> as the maildir.</p>
+<p>Since our column names don't fully correspond with what Dovecot expects, we have to rewrite them as you can see in the query.
+You can see that I prefix the maildir with <em>maildir:/home/mail</em>, this way I can tell Dovecot two things, the mailbox is in <em>Maildir</em> format and make the paths absolute so Dovecot can find them. At the time of writing Dovecot does not support relative maildir locations. There is also one placeholder in here, the <em>%u</em>. In the Dovecot SQL driver <em>%u</em> means the full username: username@tld.com. Since we stored our users with their full email, we can safely use this placeholder.</p>
+<p>One more important thing to tell Dovecot is with which UID and GID it can handle the mail directories.
+In chapter 2 we created the user <em>mailreader</em> which owns all the mail directories. We also decided not to include the GID and UID in the database as this would be overkill, so instead we hardcoded them into the <em>main.cf</em> of <em>Postfix</em>. We now have to do the same with the <em>dovecot.conf</em>. Add these parameters to your file:</p>
+<pre class="code literal-block"><span></span><span class="nv">mail_uid</span> <span class="o">=</span> the-uid-of-your-mailreader-user
+<span class="nv">mail_gid</span> <span class="o">=</span> the-gid-of-your-mailreader-user
+</pre>
+
+
+<p><strong>Update:</strong> In newer Dovecot versions (after the writing of these posts) the default, minimal allowed UID lies above 200. Therefor, setting this variable to 200 will cause Dovecot to throw an error stating that this UID is not allowed. To fix this, set the <em>first_valid_uid</em> variable before your <em>mail_uid</em> inside your <em>dovecot.conf</em> (be sure to check that UID 200 is not already in use on your system!): </p>
+<pre class="code literal-block"><span></span><span class="nv">first_valid_uid</span> <span class="o">=</span> <span class="m">200</span>
+</pre>
+
+
+<p>Remember we talked about password hashing in chapter 2 and how we would use <em>doveadm</em> for creating our hashes? Lets do that right away!</p>
+<p>In the above <em>dovecot-sql.conf</em> you will notice that the <em>default_pass_scheme</em> is set to SHA512, another very strong password hashing algorithm.
+So lets create a SHA512 hashed password for our "foo" user, shall we?</p>
+<p>You can query which kind of hashing schemes your Dovecot installation supports by using <em>doveadm</em>:</p>
+<pre class="code literal-block"><span></span>$ doveadm pw -l
+</pre>
+
+
+<p>There is a big chance you will see SHA512 among them. Lets now hash our plain text password:</p>
+<pre class="code literal-block"><span></span>$ doveadm pw -p plain_text_password -s sha512 -r <span class="m">100</span>
+</pre>
+
+
+<p>This will return a hashed string using the sha512 scheme and hashed 100 times. Before this string is the scheme name withing brackets {SHA512}, <em>dont remove this</em>!
+Insert this string into your database as the password for the user "foo".</p>
+<pre class="code literal-block"><span></span><span class="err">$</span> <span class="k">UPDATE</span> <span class="n">users</span> <span class="k">SET</span> <span class="k">password</span> <span class="o">=</span> <span class="s1">'your-hashed-string" WHERE email = '</span><span class="n">foo</span><span class="o">@</span><span class="k">domain</span><span class="mf">.</span><span class="n">com</span><span class="s s-Name">";</span>
+</pre>
+
+
+<p>Before you can login with your mailclient, be sure to enable <em>PLAIN</em> text login. Add the support for this in your <em>dovecot.conf</em> file:</p>
+<pre class="code literal-block"><span></span>$ <span class="nv">disable_plaintext_auth</span> <span class="o">=</span> no
+  <span class="nv">auth_mechanisms</span> <span class="o">=</span> plain
+</pre>
+
+
+<p>And now...you should be able to connect with an external mail client to your server. Setup your client to connect via <em>IMAP</em> on port <em>143</em> (open up this port in your firewall if needed). Set to connect via <em>STARTTLS</em>. And also remember to input your full email address as your username, since that's what we also used in our PostgreSQL users database.</p>
+<p>There is one more important thing left to do...sending mail.</p>
+<p>You may have noticed that when you connect your mailclient and you synchronize your IMAP folders, you only have one folder name <em>INBOX</em>. There is no <em>sent</em>, <em>trash</em> or <em>draft</em>.
+Dovecot has a very neat way of setting up additional folders and setup whether or not users should be automatically subscribed to them.
+For this task, Dovecot has a plugin named  <em>autocreated</em>. Open up your <em>dovecot.conf</em> file and add the following lines:</p>
+<pre class="code literal-block"><span></span>$ protocol imap <span class="o">{</span>
+    <span class="nv">mail_plugins</span> <span class="o">=</span> <span class="nv">$mail_plugins</span> autocreate
+  <span class="o">}</span>
+  plugin <span class="o">{</span>
+    <span class="nv">autocreate</span> <span class="o">=</span> Trash
+    <span class="nv">autocreate2</span> <span class="o">=</span> Sent
+    <span class="nv">autosubscribe</span> <span class="o">=</span> Trash
+    <span class="nv">autosubscribe2</span> <span class="o">=</span> Sent
+  <span class="o">}</span>
+</pre>
+
+
+<p>Se first we setup this plugin to be used together with <em>IMAP</em>.
+Then in the <em>plugin{}</em> section we define which folders should be automatically created and which one each user should be automatically subscribed to.
+Save this file and restart Dovecot. Now rebuild your <em>IMAP</em> folder tree in your mail client...you should see these two new folders appearing!</p>
+<p>Now for the actual sending part.</p>
+<p>We need to go back to Postfix one more time, because we now need to enable Dovecot <em>SASL</em> (remember chapter 1?) and let it use our PostgreSQL database as a lookup for authenticating users before they can send.
+Open up your <em>master.cf</em> file and add the following overwrites to your submission daemon:</p>
+<pre class="code literal-block"><span></span>$  -o <span class="nv">smtpd_sasl_type</span><span class="o">=</span>dovecot
+   -o <span class="nv">smtpd_sasl_path</span><span class="o">=</span>private/auth
+</pre>
+
+
+<p>This will tell Postfix to not use the default <em>Cyrus SASL</em> library, but use Dovecots one, which is simpler to setup and can communicate with PostgreSQL.
+Next we need to tell Dovecot to talk <em>SASL</em> with Postfix, open up the <em>dovecot.conf</em> file and add the following <em>service auth{}</em> section:</p>
+<pre class="code literal-block"><span></span>$ service auth <span class="o">{</span>
+    unix_listener auth_userdb <span class="o">{</span>
+        <span class="nv">path</span> <span class="o">=</span> /var/spool/postfix/private/auth
+        <span class="nv">mode</span> <span class="o">=</span> <span class="m">0660</span>
+        <span class="nv">user</span> <span class="o">=</span> postfix
+        <span class="nv">group</span> <span class="o">=</span> postfix
+    <span class="o">}</span>
+ <span class="o">}</span>
+</pre>
+
+
+<p>Now restart both Postfix and Dovecot.</p>
+<p>Go back to your mailclient and make sure that you setup <em>TLS</em> for the sending server and that is uses <em>PLAIN</em> authentication with your full email as your username and also input your password.
+Try sending out an email...it should arrive at the other end...and in your sent folder!</p>
+<p>There, believe it or not, you are done.</p>
+<p>You now have a fully fledged mailserver with Postfix at its heart, PostgreSQL for the bookkeeping, Amavis for virus and spam fighting, Dovecot for the client reception and an "as secure as possible" method woven between them.</p>
+<p>Now remember, in these four lengthy chapters we only seen the tip of the iceberg.
+Both Postfix and Dovecot are capable of many, many more powerful things...but I suggest that you keep hungry for knowledge and go explore these extra possibilities!</p>
+<p>I decided to write a fifth, "unofficial" chapter about setting up some extra functionality to do some more fancy and useful stuff like filtering mail, setting up a vacation responder and an issue named "Time moved backwards". Stay tuned...</p>
+<p>And as always, thanks for reading.</p>
+</div>
+ </div>
+</div></body></html>

@@ -1,0 +1,1463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title>shisaa.jp (Posts about unix)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/categories/unix.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><copyright>Contents © 2017 &lt;a href="mailto:tim@shisaa.jp"&gt;Tim van der Linden&lt;/a&gt; </copyright><lastBuildDate>Sat, 17 Jun 2017 07:08:39 GMT</lastBuildDate><generator>Nikola (getnikola.com)</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5</title><link>http://shisaa.jp/postset/mailserver-5.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 5 - Dovecot continued: our frontdesk in more detail&lt;/h3&gt;
+&lt;p&gt;Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.jp mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.&lt;/p&gt;
+&lt;p&gt;Which ever being the case, lets see Dovecot in a little bit more detail.&lt;/p&gt;
+&lt;h4&gt;Time moved backwards&lt;/h4&gt;
+&lt;p&gt;First, lets mingle with time. Or to be more precise, lets &lt;em&gt;fix&lt;/em&gt; time....the time on our server that is. What does this have to do with Dovecot?
+Well, if you are using Dovecot and you never got &lt;em&gt;"Time moved backwards"&lt;/em&gt; as an error in your maillog, then good for you!
+It either means that you have configured the time correctly on your server, or that you just are one lucky falla (or gal).
+If you &lt;em&gt;do&lt;/em&gt; have experienced this, you will know that this little error kills the Dovecot daemon and that you are left without a frontdesk to ask for your mail.&lt;/p&gt;
+&lt;p&gt;So what does this error mean and why does Dovecot crash?&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;"Time moved backwards"&lt;/em&gt; means literally what it says: The time on your server suddenly moved back in time.&lt;/p&gt;
+&lt;p&gt;How?&lt;/p&gt;
+&lt;p&gt;This comes down to time synchronization and how you set this up. 
+If you have no time sync whats so ever, then your are fine. And with fine I mean fine for this error, actually your servers time is probably behind the actual time, you just don't know it.&lt;/p&gt;
+&lt;p&gt;But if you are getting this error, it means you &lt;em&gt;have&lt;/em&gt; setup time synchronization (yeah!), but you did it the wrong way (oh...).
+You have most probably setup time to sync itself with &lt;em&gt;ntpd&lt;/em&gt; using a periodical cronjob that calls &lt;em&gt;ntpdate&lt;/em&gt;.
+This will check the time against a NTP server every time the cronjob runs and immediately adjusts your servers system clock to match.
+Because this adjusting is done instantly, the clock will skip time (forwards or backwards). This may only be a matter of a few seconds, but the time will shift harshly non the less.
+This "jumping" of the time is what will crash Dovecot.&lt;/p&gt;
+&lt;p&gt;Before we go into the simple solution to this problem, we have to ask if this is a bug in Dovecot or if this is desired behavior.
+To answer that we have to look at the implications that can come when time moves suddenly.&lt;/p&gt;
+&lt;p&gt;For one, the files that are created in your maildir(s) rely on a timestamp for their uniqueness. If two timestamps would overlap, this could resolve in data loss.&lt;/p&gt;
+&lt;p&gt;Second, timestamps in Unix are used in memory constantly, not only by Dovecot. Shifting in time could resolve in a possible unstable system.&lt;/p&gt;
+&lt;p&gt;Is crashing desired behavior then?
+Well, not really, that's why as of version 2.x, Dovecot doesn't crash but it still stops the SMTP and POP3 daemon.
+This will prevent nasty things happening to your maildir files. It won't, however, save you from other potential instabilities that could happen in your system.&lt;/p&gt;
+&lt;p&gt;The solution to this sudden jump in time is quite simple: Don't jump, stretch. If your clock is behind, speed up the time until it reaches the correct time. If time is in the future, slow it down.&lt;/p&gt;
+&lt;p&gt;Makes sense, right?&lt;/p&gt;
+&lt;p&gt;To setup this stretching is even simpler. You still use NTP, but the correct way.
+First make sure that you have NTP installed:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ yum install ntp
+&lt;/pre&gt;
+
+
+&lt;p&gt;Next make it run on boot:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ chkconfig ntpd on
+&lt;/pre&gt;
+
+
+&lt;p&gt;Before starting the daemon we have to setup which timeserver we want to synchronize with.
+Open the &lt;em&gt;ntp&lt;/em&gt; configuration file located at &lt;em&gt;/etc/ntp.conf&lt;/em&gt;.
+In here, setup the timezone server you which to use. To get a list of servers visit the &lt;a href="http://www.pool.ntp.org/zone/@" title="NTP Pool Project website"&gt;NTP Pool Project&lt;/a&gt;.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ server &lt;span class="m"&gt;0&lt;/span&gt;.your-favorite-timezone-server.org
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now save the file and simply start the daemon:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ /etc/init.d/ntpd start
+&lt;/pre&gt;
+
+
+&lt;p&gt;That's it, now your server time will be updated gracefully.&lt;/p&gt;
+&lt;h4&gt;Filtering mail&lt;/h4&gt;
+&lt;p&gt;Maybe you want to put mail from specific addresses in specific mailfolders, you want to put messages marked as spam in its own container or you want to split work and private related email from the same address, which ever being the case, you need filtering.&lt;/p&gt;
+&lt;p&gt;And whats more important, you want to filter server side.&lt;/p&gt;
+&lt;p&gt;Why?&lt;/p&gt;
+&lt;p&gt;If you check your mail on multiple devices, you don't want to setup the filter rules on each client. You want to manage your filtering on the server and watch the magic happen automatically on each machine you use.&lt;/p&gt;
+&lt;p&gt;The combination of Postfix and Dovecot is ideal for this task.&lt;/p&gt;
+&lt;p&gt;If you have followed &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;my&lt;/a&gt; &lt;a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;previous&lt;/a&gt; &lt;a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;four&lt;/a&gt; &lt;a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapters&lt;/a&gt; and setup your own mailserver, then currently Dovecot is only used to check mail and authenticate, all through the IMAP protocol.
+The actual delivery is done by Postfix itself using the Postfix LMTP delivery mechanism. This is a simple mechanism that, well, just delivers mail and does nothing else.
+To setup server side filtering we have to plugin Dovecot's &lt;em&gt;Local Delivery Agent&lt;/em&gt; or &lt;em&gt;LDA&lt;/em&gt; into our workflow. Substituting Postfix LMTP for Dovecot LDA gives us two main advantages:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;By letting Dovecot deliver the mail to the users mailfolder the filtering is done at the correct timing in the delivery workflow, while the mail is in transit, before it is delivered.&lt;/li&gt;
+&lt;li&gt;By using this LDA we can directly tap into Dovecot's powerful filtering plugin language and setup some fancy rules with ease.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So lets get our hands dirty and introduce a new workstation in our factory!&lt;/p&gt;
+&lt;p&gt;First we start with setting up the Dovecot LDA. To do this we have to introduce a new protocol in the Dovecot configuration file. Add the LDA protocol to &lt;em&gt;dovecot.conf&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;protocol lda &lt;span class="o"&gt;{&lt;/span&gt;
+  &lt;span class="nv"&gt;mail_plugins&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$mail_plugins&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will initiate the LDA mechanism and load in any plugins we define. We will need this later down the road.
+Next we need to define 2 important variables for Dovecot to be able to act as a delivery agent. Add these to the same file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;postmaster_address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; tim@shisaa.jp
+&lt;span class="nv"&gt;hostname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; mail.shisaa.jp
+&lt;/pre&gt;
+
+
+&lt;p&gt;Since Dovecot will do the delivery, it will now also do the rejection handling if something is wrong (instead of Postfix). When it rejects mail it needs to know where to sent a notification to.
+The hostname is used for including in the message headers.&lt;/p&gt;
+&lt;p&gt;Now we have to input some familiar settings we used to make Dovecot communicate with Postfix. But this time, we need them for the user lookups that the LDA will have to do.
+To be more specific, we need to redeclare the &lt;em&gt;userdb&lt;/em&gt; and the &lt;em&gt;auth-userdb&lt;/em&gt; declarations.
+First the &lt;em&gt;userdb&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;userdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; sql
+    &lt;span class="nv"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /etc/dovecot/dovecot-sql.conf
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;&lt;strong&gt;Caution&lt;/strong&gt;: leave your original &lt;em&gt;userdb&lt;/em&gt; declaration intact. For Postfix we have setup the user lookup to &lt;em&gt;driver=prefetch&lt;/em&gt; because we had enough information from the &lt;em&gt;passdb&lt;/em&gt; query and we did not want to travel to the database twice. For the LDA, however, this is different. The lookup cannot work with the driver set to &lt;em&gt;prefetch&lt;/em&gt;, we will have to do a separate query. So now you should have two &lt;em&gt;userdb&lt;/em&gt; entries like so:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;userdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; prefetch
+&lt;span class="o"&gt;}&lt;/span&gt;
+userdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; sql
+    &lt;span class="nv"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /etc/dovecot/dovecot-sql.conf
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Postfix will take the &lt;em&gt;prefetch&lt;/em&gt; usersb and the LDA will take the second, because it fails using the first.
+The next thing is to declare a user lookup query in our &lt;em&gt;dovecot-sql.conf&lt;/em&gt;. Open this file and add the following query:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;user_query&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; SELECT &lt;span class="s1"&gt;'/home/mail/'&lt;/span&gt;&lt;span class="o"&gt;||&lt;/span&gt;maildir as home, uid, gid, email FROM users WHERE &lt;span class="nv"&gt;email&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'%u'&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This looks quite similar to the &lt;em&gt;password_query&lt;/em&gt; we defined in chapter 4, and it is actually a bit redundant, but Dovecot LDA does simply not accept prefetch.
+There is one pitfall you have to look out for: the &lt;em&gt;maildir&lt;/em&gt; or &lt;em&gt;home&lt;/em&gt; if you will. As you can see we do the same concatenation as we did in the last chapter, but this time I have added an extra slash.
+So &lt;em&gt;'/home/mail'&lt;/em&gt; becomes &lt;em&gt;'/home/mail/'&lt;/em&gt;. I contrast to the Postfix LMTP, the LDA needs the extra slash at the end. So you could put an extra slash in your database entries, or just put it one time in the lookup queries and be done with it.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Don't forget to also put this extra slash in your password_query as well!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;Another thing you may notice is that the concatenated &lt;em&gt;home&lt;/em&gt; in the &lt;em&gt;user_query&lt;/em&gt; does &lt;strong&gt;not&lt;/strong&gt; start with &lt;em&gt;maildir:&lt;/em&gt;. If you do so, Dovecot will complain about not supporting relative home directories.
+But if you don't put it their, the LDA will start complaining that it does not know in which format the mail directory is laid out. To fix this we have to return to our &lt;em&gt;dovecot.conf&lt;/em&gt; and add the following line:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;mail_location&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Maildir:~/
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will tell Dovecot that our mail directories are in &lt;em&gt;Maildir&lt;/em&gt; format. The lookup should succeed now.&lt;/p&gt;
+&lt;p&gt;The last thing we have to edit in our &lt;em&gt;dovecot.conf&lt;/em&gt; is the unix listener for the auth_userdb socket.
+Again, you already did this one chapter ago, but this was for the Postfix SMTP daemon.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;You also need to keep the original entry!&lt;/strong&gt;. Add the following entry:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;service auth &lt;span class="o"&gt;{&lt;/span&gt;
+    unix_listener auth-userdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;0600&lt;/span&gt;
+    &lt;span class="nv"&gt;user&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; mailreader
+    &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will add another auth-userdb socket, besides the Postfix one, that the LDA will use to do the user lookups.
+If you keep the mode set to 600, you don't need to add a group, only our famous &lt;em&gt;mailreader&lt;/em&gt; user is okay.&lt;/p&gt;
+&lt;p&gt;Save the file and close it up. We are finished here.&lt;/p&gt;
+&lt;p&gt;What's next?&lt;/p&gt;
+&lt;p&gt;We need to tell Postfix about the new player in town, so crack open your master.cf and add the following service:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;dovecot   unix   -   n   n   -   -   pipe
+  &lt;span class="nv"&gt;flags&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;DRhu &lt;span class="nv"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mailreader:mail &lt;span class="nv"&gt;argv&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;/usr/libexec/dovecot/deliver -f &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;sender&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt; -d &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="nv"&gt;recipient&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will enable the LDA service and use Postfix &lt;em&gt;pipe&lt;/em&gt; mechanism to pass mails that are ready to be delivered to the Dovecot LDA.&lt;/p&gt;
+&lt;p&gt;Whats a &lt;em&gt;pipe&lt;/em&gt; mechanism?&lt;/p&gt;
+&lt;p&gt;In Postfix, the &lt;em&gt;pipe&lt;/em&gt; mechanism or &lt;em&gt;pipe&lt;/em&gt; daemon is a way for postfix to deliver mail to a command line program.
+In our case, we pipe the mail to an external program called &lt;em&gt;deliver&lt;/em&gt;, which you can also run from the prompt.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;pipe&lt;/em&gt; mechanism comes with a few attributes you can set. To begin, we have the &lt;em&gt;flags&lt;/em&gt;. With &lt;em&gt;flags&lt;/em&gt; you can modify messages before they are handed over to the piped program.
+In our case we say &lt;em&gt;DRhu&lt;/em&gt;:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;D: Will include a &lt;em&gt;Deliver-To&lt;/em&gt; in the message header&lt;/li&gt;
+&lt;li&gt;R: Will include a &lt;em&gt;Return-Path&lt;/em&gt; in the message header&lt;/li&gt;
+&lt;li&gt;h: Will lowercase everything right of the @ sign (or right of the most right @ sign)&lt;/li&gt;
+&lt;li&gt;u: Will lowercase everything left of the @ sign (or left of the most right @ sign)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So basically we include some extra information and make sure the addresses are all lower cased.&lt;/p&gt;
+&lt;p&gt;Next we specify as which user:group that the &lt;em&gt;deliver&lt;/em&gt; command has to be run.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;argv=&lt;/em&gt; part tells Postfix which program we actually want to call, being the Dovecot LDA.&lt;/p&gt;
+&lt;p&gt;The &lt;em&gt;-f&lt;/em&gt; and &lt;em&gt;-d&lt;/em&gt; flags at the end are flags belonging to the &lt;em&gt;deliver&lt;/em&gt; program itself.
+With &lt;em&gt;-f&lt;/em&gt; you can define the &lt;em&gt;Envelope sender&lt;/em&gt;, with &lt;em&gt;-d&lt;/em&gt; you define the username.
+After each flag you can find a placeholder, these are placeholders defined by the Postfix pipe.&lt;/p&gt;
+&lt;p&gt;Are we done?&lt;/p&gt;
+&lt;p&gt;Almost! The only thing you have to do now is tell Postfix to actually &lt;em&gt;use&lt;/em&gt; the LDA service. To do that we have to alter our &lt;em&gt;virtual&lt;/em&gt; transport (which is the standard Postfix LMTP) and set that to the name of the service, in this case &lt;em&gt;dovecot&lt;/em&gt;. Since we are using a fancy database lookup system, we will have to alter the entry in the &lt;em&gt;transport&lt;/em&gt; table of our mail database. Change the transport from &lt;em&gt;virtual&lt;/em&gt; to &lt;em&gt;dovecot&lt;/em&gt; in the record that accompanies your domain (in most cases you will have just one entry in that table).&lt;/p&gt;
+&lt;p&gt;Just restart both &lt;em&gt;Postfix&lt;/em&gt; and &lt;em&gt;Dovecot&lt;/em&gt; and you are done!&lt;/p&gt;
+&lt;p&gt;If all is well, your mail should still be working and nothing should have changed (that's a good thing).
+But if you check your famous &lt;em&gt;maillog&lt;/em&gt; file, you will see entries about &lt;em&gt;dovecot: lda&lt;/em&gt; putting stuff in your mail directory.&lt;/p&gt;
+&lt;p&gt;And now...the actual filtering.&lt;/p&gt;
+&lt;p&gt;For filtering, Dovecot has a nice plugin called &lt;em&gt;Sieve&lt;/em&gt; which uses the (surprise) &lt;em&gt;Sieve Language&lt;/em&gt; for scripting together filtering rules.
+To get up and running, we need to install the Sieve interpreter and Dovecot plugin:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;yum install dovecot-pigeonhole
+&lt;/pre&gt;
+
+
+&lt;p&gt;Yes...its name is Pigeonhole, I cannot help it.
+Now we have to load the plugin for our LDA. Open the &lt;em&gt;dovecot.conf&lt;/em&gt; and go to the freshly inserted &lt;em&gt;protocol lda&lt;/em&gt; block and append the &lt;em&gt;sieve&lt;/em&gt; plugin:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;protocol lda &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;mail_plugins&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$mail_plugins&lt;/span&gt; sieve
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;And restart Dovecot.&lt;/p&gt;
+&lt;p&gt;Next you need to go the &lt;em&gt;plugin&lt;/em&gt; declaration block where you defined your different &lt;em&gt;autocreate&lt;/em&gt; and &lt;em&gt;autosubscribed&lt;/em&gt; behaviors in chapter 4.
+Here we can do the basic configuration for the &lt;em&gt;sieve&lt;/em&gt; plugin. Many hosted mail providers that run of a Dovecot service provide the ability for users to upload their own custom sieve scripts.
+If you want to do so, you can declair the &lt;em&gt;sieve=&lt;/em&gt; variable, which most of the time would be set like so:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;sieve&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;~/
+&lt;/pre&gt;
+
+
+&lt;p&gt;This tells &lt;em&gt;sieve&lt;/em&gt; that user script can be found in the users home directory.
+For the scope of this post I'm only interested in setting up a global script for all users. The &lt;em&gt;global_script_path&lt;/em&gt; does this for us:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;global_script_path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /home/mail/default.sieve
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now for the fun part, make your &lt;em&gt;default.sieve&lt;/em&gt; file and lets start making a rule!
+In the beginning of your Sieve script you have to define which modules you want to load in.
+I first want to file messages that are marked &lt;em&gt;spam&lt;/em&gt; by Amavis into a spam mail folder. So I only need the &lt;em&gt;fileinto&lt;/em&gt; plugin which handles moving messages around.
+Start your script:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;require "fileinto";
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then for the rule:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;if header :contains "X-Spam-Flag" "YES" {
+    fileinto "Spam";
+}
+&lt;/pre&gt;
+
+
+&lt;p&gt;Bam! That's quite readable and simple, won't you say? If the header has it spam flag set to "YES" file it into spam!
+Save this file into the defined location and make sure it is readable by Dovecot, so in our setup that would be:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;chown mailreader:mail /home/mail/default.sieve
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now remember, the &lt;em&gt;"Spam"&lt;/em&gt; in this script corresponds to a folder that you made with Dovecot. If you have not made a &lt;em&gt;Spam&lt;/em&gt; folder, go and make one now, checkout &lt;a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapter four&lt;/a&gt; for details on how to do this.&lt;/p&gt;
+&lt;p&gt;Next you want to put messages from a specific someone into its own folder? Lets do that then!
+For this we need "fileinto" and also a plugin to read out the message envelope.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;require ["fileinto","envelope"];
+if envelope "from" "tim@shisaa.jp" {
+    fileinto "Shisaa";
+}
+&lt;/pre&gt;
+
+
+&lt;p&gt;And what about that vacation responder? Also, piece of cake:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;require "vacation";
+:days 1
+:subject "I'm on vacation!"
+:addresses ["tim@shisaa.jp,postmaster@shisaa.jp"]
+"I'm on vacation, you can join me or wait until I'm back.
+Cheers
+Tim";
+&lt;/pre&gt;
+
+
+&lt;p&gt;A little bit more explenation may be in place. &lt;em&gt;days 1&lt;/em&gt; simply tells Sieve to only send the same person the out-of-office reply once every day.
+The rest is pretty straight forward. You input the subject, the addresses and the message itself.
+And of course you can put everything together in one big Sieve script:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;require &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"fileinto"&lt;/span&gt;,&lt;span class="s2"&gt;"envelope"&lt;/span&gt;,&lt;span class="s2"&gt;"vacation"&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; header :contains &lt;span class="s2"&gt;"X-Spam-Flag"&lt;/span&gt; &lt;span class="s2"&gt;"YES"&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    fileinto &lt;span class="s2"&gt;"Spam"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; envelope &lt;span class="s2"&gt;"from"&lt;/span&gt; &lt;span class="s2"&gt;"tim@shisaa.jp"&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+    fileinto &lt;span class="s2"&gt;"Shisaa"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="o"&gt;}&lt;/span&gt;
+:days &lt;span class="m"&gt;1&lt;/span&gt;
+:subject &lt;span class="s2"&gt;"I'm on vacation!"&lt;/span&gt;
+:addresses &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"tim@shisaa.jp,postmaster@shisaa.jp"&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+&lt;span class="s2"&gt;"I'm on vacation, you can join me or wait until I'm back.&lt;/span&gt;
+&lt;span class="s2"&gt;Cheers&lt;/span&gt;
+&lt;span class="s2"&gt;Tim"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;You don't need to restart Dovecot after altering a Sieve script.&lt;/p&gt;
+&lt;p&gt;Okay, we have gone out and had a little deeper chat with our frontdesk Dovecot. Quite a nice and capable person don't you think?&lt;/p&gt;
+&lt;p&gt;If you run into any trouble, be sure to always check your maillog , for it will tell you quite clear (most of the time) whats going on.&lt;/p&gt;
+&lt;p&gt;Maybe a small tip for debugging: If you want more verbose output from the whole LDA process (including Sieve) you can put this in the &lt;em&gt;protocol lda&lt;/em&gt; block:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;mail_debug&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now go out and learn more about what you can do with Sieve and harvest that knowledge!&lt;/p&gt;
+&lt;p&gt;And as always, thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>dovecot</category><category>postfix</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-5.html</guid><pubDate>Sat, 08 Jun 2013 20:30:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 4</title><link>http://shisaa.jp/postset/mailserver-4.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 4 - Dovecot, the friendly front desk&lt;/h3&gt;
+&lt;p&gt;And so we arrive at the final big stop of our mailserver series.&lt;/p&gt;
+&lt;p&gt;If you've missed &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;chapter 1&lt;/a&gt;, &lt;a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;chapter 2&lt;/a&gt; or &lt;a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;chapter 3&lt;/a&gt; I recommend reading them first.&lt;/p&gt;
+&lt;p&gt;First, the outline:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Small introduction to Dovecot&lt;/li&gt;
+&lt;li&gt;Introduction to IMAP and POP3&lt;/li&gt;
+&lt;li&gt;Configure Dovecot to use IMAP&lt;/li&gt;
+&lt;li&gt;Setup SSL/TLS inside Dovecot&lt;/li&gt;
+&lt;li&gt;Hashing our users passwords with doveadm&lt;/li&gt;
+&lt;li&gt;Setting up extra mail folder&lt;/li&gt;
+&lt;li&gt;Connecting with an email client&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;So far we have talked about the heart of our mailserver, Postfix, we then saw how we can use a solid database as our back-end instead of using Unix user accounts and in the last chapter we saw how we could protect ourselves from viruses and spam. So far we have a smoothly running factory, receiving mail, checking it and if necessary storing it. But there is still one important part missing, it is all happening behind the closed doors of our factory floor and there is still no way for our customers, the owners of the various mailboxes, to actually receive and send their mail. Our factory does not have a front desk yet. So lets make one, shall we?&lt;/p&gt;
+&lt;p&gt;This front-desk is called, as you might have guessed, &lt;em&gt;Dovecot&lt;/em&gt;. It calls itself an IMAP and POP3 mail server.
+It takes care of the communication between the actual mail files stored on the hard disk drive and the email client the end-user will be using.
+Dovecot of course also supports our database back-end we used to store the sensitive information about the user.&lt;/p&gt;
+&lt;p&gt;Now what is this &lt;em&gt;IMAP&lt;/em&gt; and &lt;em&gt;POP3&lt;/em&gt; that Dovecot supports, you might ask.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;IMAP&lt;/em&gt; stands for &lt;em&gt;Internet Message Access Protocol&lt;/em&gt;. The IMAP protocol makes it possible to have multiple users connect to the same mailbox and see the same messages. The mail stays on the server.
+&lt;em&gt;POP3&lt;/em&gt; on the other hand is a protocol that has to copy the mail to the users computer before it can be displayed.
+When you want to see your mail on your computer and on your mobile device for instance, this can be confusing when using &lt;em&gt;POP3&lt;/em&gt;, many &lt;em&gt;POP3&lt;/em&gt; clients even delete the mail on the server when it is downloaded.
+&lt;em&gt;IMAP&lt;/em&gt; syncs between the server and the various clients that connect to the mailbox and it will only download a message and its attachments when asked for.
+&lt;em&gt;POP3&lt;/em&gt; has to download all the messages, including the attachments, before it can be display in your mail client.
+Another big difference between the two is that &lt;em&gt;outgoing&lt;/em&gt; mail, when using &lt;em&gt;IMAP&lt;/em&gt;, is stored on the server and thus available on multiple devices. With POP3, its only stored on the local computer from which you sent it.&lt;/p&gt;
+&lt;p&gt;Knowing the main differences between the two protocols, I always prefer &lt;em&gt;IMAP&lt;/em&gt;.
+So lets go ahead and configure Dovecot the be able to read your mail using the &lt;em&gt;IMAP&lt;/em&gt; protocol!&lt;/p&gt;
+&lt;p&gt;As always, we first have to install the Dovecot package. The CentALT version is quite recent, so you can just go ahead and install it.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ yum install dovecot
+&lt;/pre&gt;
+
+
+&lt;p&gt;Dovecots main configuration exists in only one file located at &lt;em&gt;/etc/dovecot/dovecot.conf&lt;/em&gt;. Open it right up and lets dive in!
+The first thing you want to set are the different protocols you want to support, since we decided on &lt;em&gt;IMAP&lt;/em&gt; you can add a line at the end of the file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;protocols&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; imap
+&lt;/pre&gt;
+
+
+&lt;p&gt;I like to add everything at the bottom to keep it all together. I start with a comment line reading something like "#Added lines by me" and put my own configuration lines under that..
+Then add the &lt;em&gt;base_dir&lt;/em&gt;, the &lt;em&gt;instance_name&lt;/em&gt; and the &lt;em&gt;login_greeting&lt;/em&gt; variable. You find these variables commented out in the &lt;em&gt;dovecot.conf&lt;/em&gt; file. Just copy them to the bottom and remove the hash.&lt;/p&gt;
+&lt;p&gt;Save the file and lets see what else we need to configure.&lt;/p&gt;
+&lt;p&gt;In chapter 1 we talked about being secure when it comes to data traveling between the server and the client computer.
+We have to continue this work in Dovecot because not only will be exchanging passwords, we will also be syncing mail between the server and the client computer.
+So lets first setup SSL/TLS inside dovecot. All the extra configuration files are made available in the &lt;em&gt;/etc/dovecot/conf.d&lt;/em&gt; directory.
+Files starting with a two digit number and end with ".conf" are automatically loaded by the &lt;em&gt;dovecot.conf&lt;/em&gt; file.
+The other files are indented as a demonstration of what else you can do in the main &lt;em&gt;dovecot.conf&lt;/em&gt; file and should not be altered.&lt;/p&gt;
+&lt;p&gt;I usually disable the automatic include of these files and just copy the needed variables to my main configuration. So in the &lt;em&gt;dovecot.conf&lt;/em&gt; file, put a hash before the bottom two "!include" statements.
+In this conf.d directory you will also find a file called "10-ssl.conf&lt;em&gt;. Open this one up and lets start moving some variables to our &lt;/em&gt;dovecot.conf* file. First the enable SSL:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;ssl&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; yes
+&lt;/pre&gt;
+
+
+&lt;p&gt;Next we see two very important lines, the &lt;em&gt;ssl_cert&lt;/em&gt; en the &lt;em&gt;ssl_key&lt;/em&gt; file. Dovecot already prepared a certificate and a private key for you to use.
+Also copy these lines to the &lt;em&gt;dovecot.conf&lt;/em&gt; file.
+The only thing you must be sure of is that both files are only readable by root. So do a &lt;em&gt;ls -la&lt;/em&gt; to check if this is so.
+Now before we do anything else, fire up dovecot and lets try connecting:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ /etc/init.d/dovecot start
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then lets try to connect to localhost and ask for imaps:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ openssl s_client -connect &lt;span class="m"&gt;127&lt;/span&gt;.0.0.1:imaps
+&lt;/pre&gt;
+
+
+&lt;p&gt;If you get an output containing a SSL key, the connection is successful.&lt;/p&gt;
+&lt;p&gt;When we connect with our mail client further up this chapter, you will notice it will complain about a self-signed certificate and that's correct.
+We ARE using a self-signed certificate. As discussed in chapter 1 that is perfectly save, as long as the mail server only serves a handful of users and these user are educated in the risk of a MITM attack.
+You could always go out and buy a certificate with the certificate mafia and you should if you are planning to setup a large, public mailserver. But for now, self-signed is the way to go.&lt;/p&gt;
+&lt;p&gt;In chapter 2 we enabled Postfix to work with PostgreSQL to retrieve the necessary mailbox data so Postfix could deliver the mail. This same data Dovecot will need to authenticate the users.
+So we need to enable PostgreSQL support in Dovecot.&lt;/p&gt;
+&lt;p&gt;In the &lt;em&gt;conf.d&lt;/em&gt; directory you will find a &lt;em&gt;auth-sql.conf.ext&lt;/em&gt; file, this is an example file of how we can setup our database connection.
+So we have to setup our PostgreSQL connection and make a new file with the correct lookup query. Setup the connection in the &lt;em&gt;dovecot.conf&lt;/em&gt; file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ passdb &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; sql
+    &lt;span class="nv"&gt;args&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /etc/dovecot/dovecot-sql.conf
+ &lt;span class="o"&gt;}&lt;/span&gt;
+ userdb &lt;span class="o"&gt;{&lt;/span&gt;
+     &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; prefetch
+ &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;You will notice a couple of things here, first we have two variables we setup: &lt;em&gt;passdb{}&lt;/em&gt; and &lt;em&gt;userdb{}&lt;/em&gt;.
+The &lt;em&gt;passdb{}&lt;/em&gt; is used for the authentication when the user logs in and the &lt;em&gt;userdb{}&lt;/em&gt; is used to retrieve additional information about the connected user.&lt;/p&gt;
+&lt;p&gt;But since the only extra information we need in our setup is the location of the users mailbox, we can also use the "&lt;em&gt;passdb{}&lt;/em&gt; for that and save a query every time a users connects.
+To use &lt;em&gt;passdb{}&lt;/em&gt; for this we have to tell Dovecot that the &lt;em&gt;userdb{}&lt;/em&gt; uses the &lt;em&gt;prefetch&lt;/em&gt; driver, meaning it will use the &lt;em&gt;passdb{}&lt;/em&gt; query for its extra user data.
+The driver is set to &lt;em&gt;sql&lt;/em&gt; instead of &lt;em&gt;pgsql&lt;/em&gt;, Dovecot only expects to see which kind of main driver it will be using. In the &lt;em&gt;dovecot-sql.conf&lt;/em&gt; we will define it is PostgreSQL.&lt;/p&gt;
+&lt;p&gt;The actually connection string and the lookup query are stored in an separate file as described above.
+So create a new file called &lt;em&gt;dovecot-sql.conf&lt;/em&gt; in &lt;em&gt;/etc/dovecot/&lt;/em&gt; and put in your database details like so:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;driver&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; pgsql
+  &lt;span class="nv"&gt;connect&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;host&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;localhost &lt;span class="nv"&gt;dbname&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mail &lt;span class="nv"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mailreader &lt;span class="nv"&gt;password&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;some-password
+  &lt;span class="nv"&gt;default_pass_scheme&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; SHA512
+  &lt;span class="nv"&gt;password_query&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; SELECT email as user, password, &lt;span class="s1"&gt;'maildir:/home/mail'&lt;/span&gt;&lt;span class="o"&gt;||&lt;/span&gt;maildir as userdb_mail FROM users WHERE &lt;span class="nv"&gt;email&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'%u'&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;First we define which subtype of the sql driver we will be using, in our case &lt;em&gt;pgsql&lt;/em&gt; for PostgreSQL.
+Then we have the connection string for, well, actually connecting to the database.
+The third parameter sets the type of password encryption scheme that we used to store our password in the users table.
+And finally we have the query itself, Dovecot recognizes &lt;em&gt;user&lt;/em&gt; as the actual user, &lt;em&gt;password&lt;/em&gt; as the column containing the hashed password and &lt;em&gt;userdb_mail&lt;/em&gt; as the maildir.&lt;/p&gt;
+&lt;p&gt;Since our column names don't fully correspond with what Dovecot expects, we have to rewrite them as you can see in the query.
+You can see that I prefix the maildir with &lt;em&gt;maildir:/home/mail&lt;/em&gt;, this way I can tell Dovecot two things, the mailbox is in &lt;em&gt;Maildir&lt;/em&gt; format and make the paths absolute so Dovecot can find them. At the time of writing Dovecot does not support relative maildir locations. There is also one placeholder in here, the &lt;em&gt;%u&lt;/em&gt;. In the Dovecot SQL driver &lt;em&gt;%u&lt;/em&gt; means the full username: username@tld.com. Since we stored our users with their full email, we can safely use this placeholder.&lt;/p&gt;
+&lt;p&gt;One more important thing to tell Dovecot is with which UID and GID it can handle the mail directories.
+In chapter 2 we created the user &lt;em&gt;mailreader&lt;/em&gt; which owns all the mail directories. We also decided not to include the GID and UID in the database as this would be overkill, so instead we hardcoded them into the &lt;em&gt;main.cf&lt;/em&gt; of &lt;em&gt;Postfix&lt;/em&gt;. We now have to do the same with the &lt;em&gt;dovecot.conf&lt;/em&gt;. Add these parameters to your file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;mail_uid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; the-uid-of-your-mailreader-user
+&lt;span class="nv"&gt;mail_gid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; the-gid-of-your-mailreader-user
+&lt;/pre&gt;
+
+
+&lt;p&gt;&lt;strong&gt;Update:&lt;/strong&gt; In newer Dovecot versions (after the writing of these posts) the default, minimal allowed UID lies above 200. Therefor, setting this variable to 200 will cause Dovecot to throw an error stating that this UID is not allowed. To fix this, set the &lt;em&gt;first_valid_uid&lt;/em&gt; variable before your &lt;em&gt;mail_uid&lt;/em&gt; inside your &lt;em&gt;dovecot.conf&lt;/em&gt; (be sure to check that UID 200 is not already in use on your system!): &lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="nv"&gt;first_valid_uid&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;200&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Remember we talked about password hashing in chapter 2 and how we would use &lt;em&gt;doveadm&lt;/em&gt; for creating our hashes? Lets do that right away!&lt;/p&gt;
+&lt;p&gt;In the above &lt;em&gt;dovecot-sql.conf&lt;/em&gt; you will notice that the &lt;em&gt;default_pass_scheme&lt;/em&gt; is set to SHA512, another very strong password hashing algorithm.
+So lets create a SHA512 hashed password for our "foo" user, shall we?&lt;/p&gt;
+&lt;p&gt;You can query which kind of hashing schemes your Dovecot installation supports by using &lt;em&gt;doveadm&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ doveadm pw -l
+&lt;/pre&gt;
+
+
+&lt;p&gt;There is a big chance you will see SHA512 among them. Lets now hash our plain text password:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ doveadm pw -p plain_text_password -s sha512 -r &lt;span class="m"&gt;100&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will return a hashed string using the sha512 scheme and hashed 100 times. Before this string is the scheme name withing brackets {SHA512}, &lt;em&gt;dont remove this&lt;/em&gt;!
+Insert this string into your database as the password for the user "foo".&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;UPDATE&lt;/span&gt; &lt;span class="n"&gt;users&lt;/span&gt; &lt;span class="k"&gt;SET&lt;/span&gt; &lt;span class="k"&gt;password&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;'your-hashed-string" WHERE email = '&lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="o"&gt;@&lt;/span&gt;&lt;span class="k"&gt;domain&lt;/span&gt;&lt;span class="mf"&gt;.&lt;/span&gt;&lt;span class="n"&gt;com&lt;/span&gt;&lt;span class="s s-Name"&gt;";&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Before you can login with your mailclient, be sure to enable &lt;em&gt;PLAIN&lt;/em&gt; text login. Add the support for this in your &lt;em&gt;dovecot.conf&lt;/em&gt; file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;disable_plaintext_auth&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; no
+  &lt;span class="nv"&gt;auth_mechanisms&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; plain
+&lt;/pre&gt;
+
+
+&lt;p&gt;And now...you should be able to connect with an external mail client to your server. Setup your client to connect via &lt;em&gt;IMAP&lt;/em&gt; on port &lt;em&gt;143&lt;/em&gt; (open up this port in your firewall if needed). Set to connect via &lt;em&gt;STARTTLS&lt;/em&gt;. And also remember to input your full email address as your username, since that's what we also used in our PostgreSQL users database.&lt;/p&gt;
+&lt;p&gt;There is one more important thing left to do...sending mail.&lt;/p&gt;
+&lt;p&gt;You may have noticed that when you connect your mailclient and you synchronize your IMAP folders, you only have one folder name &lt;em&gt;INBOX&lt;/em&gt;. There is no &lt;em&gt;sent&lt;/em&gt;, &lt;em&gt;trash&lt;/em&gt; or &lt;em&gt;draft&lt;/em&gt;.
+Dovecot has a very neat way of setting up additional folders and setup whether or not users should be automatically subscribed to them.
+For this task, Dovecot has a plugin named  &lt;em&gt;autocreated&lt;/em&gt;. Open up your &lt;em&gt;dovecot.conf&lt;/em&gt; file and add the following lines:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ protocol imap &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;mail_plugins&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$mail_plugins&lt;/span&gt; autocreate
+  &lt;span class="o"&gt;}&lt;/span&gt;
+  plugin &lt;span class="o"&gt;{&lt;/span&gt;
+    &lt;span class="nv"&gt;autocreate&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Trash
+    &lt;span class="nv"&gt;autocreate2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Sent
+    &lt;span class="nv"&gt;autosubscribe&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Trash
+    &lt;span class="nv"&gt;autosubscribe2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; Sent
+  &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Se first we setup this plugin to be used together with &lt;em&gt;IMAP&lt;/em&gt;.
+Then in the &lt;em&gt;plugin{}&lt;/em&gt; section we define which folders should be automatically created and which one each user should be automatically subscribed to.
+Save this file and restart Dovecot. Now rebuild your &lt;em&gt;IMAP&lt;/em&gt; folder tree in your mail client...you should see these two new folders appearing!&lt;/p&gt;
+&lt;p&gt;Now for the actual sending part.&lt;/p&gt;
+&lt;p&gt;We need to go back to Postfix one more time, because we now need to enable Dovecot &lt;em&gt;SASL&lt;/em&gt; (remember chapter 1?) and let it use our PostgreSQL database as a lookup for authenticating users before they can send.
+Open up your &lt;em&gt;master.cf&lt;/em&gt; file and add the following overwrites to your submission daemon:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$  -o &lt;span class="nv"&gt;smtpd_sasl_type&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;dovecot
+   -o &lt;span class="nv"&gt;smtpd_sasl_path&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;private/auth
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will tell Postfix to not use the default &lt;em&gt;Cyrus SASL&lt;/em&gt; library, but use Dovecots one, which is simpler to setup and can communicate with PostgreSQL.
+Next we need to tell Dovecot to talk &lt;em&gt;SASL&lt;/em&gt; with Postfix, open up the &lt;em&gt;dovecot.conf&lt;/em&gt; file and add the following &lt;em&gt;service auth{}&lt;/em&gt; section:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ service auth &lt;span class="o"&gt;{&lt;/span&gt;
+    unix_listener auth_userdb &lt;span class="o"&gt;{&lt;/span&gt;
+        &lt;span class="nv"&gt;path&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /var/spool/postfix/private/auth
+        &lt;span class="nv"&gt;mode&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="m"&gt;0660&lt;/span&gt;
+        &lt;span class="nv"&gt;user&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; postfix
+        &lt;span class="nv"&gt;group&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; postfix
+    &lt;span class="o"&gt;}&lt;/span&gt;
+ &lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now restart both Postfix and Dovecot.&lt;/p&gt;
+&lt;p&gt;Go back to your mailclient and make sure that you setup &lt;em&gt;TLS&lt;/em&gt; for the sending server and that is uses &lt;em&gt;PLAIN&lt;/em&gt; authentication with your full email as your username and also input your password.
+Try sending out an email...it should arrive at the other end...and in your sent folder!&lt;/p&gt;
+&lt;p&gt;There, believe it or not, you are done.&lt;/p&gt;
+&lt;p&gt;You now have a fully fledged mailserver with Postfix at its heart, PostgreSQL for the bookkeeping, Amavis for virus and spam fighting, Dovecot for the client reception and an "as secure as possible" method woven between them.&lt;/p&gt;
+&lt;p&gt;Now remember, in these four lengthy chapters we only seen the tip of the iceberg.
+Both Postfix and Dovecot are capable of many, many more powerful things...but I suggest that you keep hungry for knowledge and go explore these extra possibilities!&lt;/p&gt;
+&lt;p&gt;I decided to write a fifth, "unofficial" chapter about setting up some extra functionality to do some more fancy and useful stuff like filtering mail, setting up a vacation responder and an issue named "Time moved backwards". Stay tuned...&lt;/p&gt;
+&lt;p&gt;And as always, thanks for reading.&lt;/p&gt;&lt;/div&gt;</description><category>dovecot</category><category>postfix</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-4.html</guid><pubDate>Sat, 20 Apr 2013 10:30:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 3</title><link>http://shisaa.jp/postset/mailserver-3.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 3 - Milters, the trusty workers&lt;/h3&gt;
+&lt;p&gt;Welcome to the third part of our mailserver setup saga.&lt;/p&gt;
+&lt;p&gt;If you've missed &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;chapter 1&lt;/a&gt; or &lt;a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;chapter 2&lt;/a&gt; I recommend reading them first.&lt;/p&gt;
+&lt;p&gt;In this episode, we will be looking a bit closer at our so called "Milters" or "Mail Filters".
+Especially the ones who will protect us from evil virusses and floods of spam.&lt;/p&gt;
+&lt;p&gt;First, the outline of this chapter:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Install and setup Amavis&lt;/li&gt;
+&lt;li&gt;Configure Postfix to let Amavis do some heavy check lifting&lt;/li&gt;
+&lt;li&gt;Install and configure ClamAV and make it run with Amavis&lt;/li&gt;
+&lt;li&gt;Install and configure Spamassasin and make it run with Amavas&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Lets dive in!&lt;/p&gt;
+&lt;h4&gt;Amavis&lt;/h4&gt;
+&lt;p&gt;First lets talk about this "Amavis" program, what is it and what does it do...&lt;/p&gt;
+&lt;p&gt;Amavis or more better AMaViS stands for "A Mail Virus Scanner", it, well, scans for viruses and checks for spam.
+Amavis is a very powerful interface between Postfix and third-party programs. Those third-party applications are most commonly &lt;em&gt;ClamAV&lt;/em&gt; for virus scanning and &lt;em&gt;Spamassassin&lt;/em&gt; for spam filtering.&lt;/p&gt;
+&lt;p&gt;In our factory, Amavis would be a separate small conveyor belt installed next to our big Postfix belt.
+At that conveyor belt are many workers specially trained to check messages for viruses and spam.&lt;/p&gt;
+&lt;p&gt;That's actually all you need to know before installing...so lets go ahead and install it!&lt;/p&gt;
+&lt;p&gt;By default your CentOS 6 installation does not carry a recent binary package for that in its basic repositories.
+So you will have to add one:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ rpm -Uvh http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/rpmforge-release-0.5.2-2.el6.rf.x86_64.rpm
+&lt;/pre&gt;
+
+
+&lt;p&gt;And install it:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ yum install amavisd-new
+&lt;/pre&gt;
+
+
+&lt;p&gt;You will notice that it installs a bunch of extra Perl modules needed to run Amavis. It also installed Spamassassin by default.
+To make our setup complete, we also need ClamAV, so lets go ahead and install this one too:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ yum install clamd
+&lt;/pre&gt;
+
+
+&lt;p&gt;Good, so now we have our three new programs installed, lets start by configuring our interface, Amavis.
+The main configuration file for Amavis is located at &lt;em&gt;/etc/amavisd.conf&lt;/em&gt;. Open up that file.&lt;/p&gt;
+&lt;p&gt;This configuration file is quite daunting, so lets just configure it piece by piece, shall we?&lt;/p&gt;
+&lt;p&gt;Lets first check to see if anti-virus and spam filtering are enabled. Check if the two lines that start with &lt;em&gt;@bypass_spam_checks&lt;/em&gt; and &lt;em&gt;@bypass_virus_checks&lt;/em&gt; are commented out.
+If you uncomment them, spam and antivirus checking will not happen.&lt;/p&gt;
+&lt;p&gt;Then we have to set &lt;em&gt;$mydomain&lt;/em&gt; parameter to your domainname.&lt;/p&gt;
+&lt;p&gt;Next up are the &lt;em&gt;$daemon_user&lt;/em&gt; and the &lt;em&gt;$daemon_group&lt;/em&gt; variables. These should match the user and group under which Amavis is allowed to run.
+If all is good, both should have been created during the install of Amavis, but it never hurts to check:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ grep &lt;span class="s2"&gt;"amavis"&lt;/span&gt; /etc/passwd
+&lt;/pre&gt;
+
+
+&lt;p&gt;If it returns the user, everything went well, now lets check for the group:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ grep &lt;span class="s2"&gt;"amavis"&lt;/span&gt; /etc/group
+&lt;/pre&gt;
+
+
+&lt;p&gt;It returned a group? Perfect! Then lets continue!&lt;/p&gt;
+&lt;p&gt;Now we can go back to our &lt;em&gt;amavisd.conf&lt;/em&gt; file and uncomment the &lt;em&gt;$MYHOME&lt;/em&gt; variable and also uncomment and set the &lt;em&gt;$myhostname&lt;/em&gt; variable to read your FQDN: mail.example.com.&lt;/p&gt;
+&lt;p&gt;We also have to enable the newly installed ClamAV in our &lt;em&gt;amavisd.conf&lt;/em&gt; file. There is already an entry for that. Search for ClamAV and uncomment these lines:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="c1"&gt;### http://www.clamav.net/&lt;/span&gt;
+    &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;'ClamAV-clamd'&lt;/span&gt;,
+        &lt;span class="se"&gt;\&amp;amp;&lt;/span&gt;ask_daemon, &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"CONTSCAN {}\n"&lt;/span&gt;, &lt;span class="s2"&gt;"/var/run/clamav/clamd.sock"&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;,
+        qr/&lt;span class="se"&gt;\b&lt;/span&gt;OK$/, qr/&lt;span class="se"&gt;\b&lt;/span&gt;FOUND$/,
+        qr/^.*?: &lt;span class="o"&gt;(&lt;/span&gt;?!Infected Archive&lt;span class="o"&gt;)(&lt;/span&gt;.*&lt;span class="o"&gt;)&lt;/span&gt; FOUND$/ &lt;span class="o"&gt;]&lt;/span&gt;,
+    &lt;span class="c1"&gt;# # NOTE: run clamd under the same user as amavisd, or run it under its own&lt;/span&gt;
+    &lt;span class="c1"&gt;# #   uid such as clamav, add user clamav to the amavis group, and then add&lt;/span&gt;
+    &lt;span class="c1"&gt;# #   AllowSupplementaryGroups to clamd.conf;&lt;/span&gt;
+    &lt;span class="c1"&gt;# # NOTE: match socket name (LocalSocket) in clamav.conf to the socket name in&lt;/span&gt;
+    &lt;span class="c1"&gt;# #   this entry; when running chrooted one may prefer socket "$MYHOME/clamd".&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Important to notice is the socket &lt;em&gt;/var/run/clamav/clamd.sock&lt;/em&gt;, this socket has to be the socket where ClamAV is really running.
+To check this, open up the ClamAV configuration file at &lt;em&gt;/etc/clamd.conf&lt;/em&gt; and check the variable named &lt;em&gt;Localsocket&lt;/em&gt;.
+Make sure that both files have exactly the same path to that socket.&lt;/p&gt;
+&lt;p&gt;Also make sure that the path to that socket is accessible to the "clamav" user that was created when installing ClamAV.
+So set the correct ownership:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ chown -R clamav:clamav /var/run/clamav
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then make sure that the user "clamav" is in the "amavis" group:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ usermod -G amavis clamav
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now amavis will use ClamAV as its primary virus scanner.&lt;/p&gt;
+&lt;p&gt;There are three other variables that you should make mental note of for now: &lt;em&gt;$max_servers&lt;/em&gt;, &lt;em&gt;$notify_method&lt;/em&gt; and &lt;em&gt;$forward_method&lt;/em&gt;. We'll come back here later.&lt;/p&gt;
+&lt;p&gt;Good, that was a quick rush through the basics of the Amavis configuration, lets first tell Postfix about Amavis and make them work together before we delve a little bit deeper into our milters.
+Open up our old friend the &lt;em&gt;master.cf&lt;/em&gt; file from Postfix and add a new transport daemon to be spawned called &lt;em&gt;Amavisfeed&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ amavisfeed unix -       -       n       -       &lt;span class="m"&gt;2&lt;/span&gt;       lmtp
+    -o &lt;span class="nv"&gt;lmtp_data_done_timeout&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1200&lt;/span&gt;
+    -o &lt;span class="nv"&gt;lmtp_send_xforward_command&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;/pre&gt;
+
+
+&lt;p&gt;What did you just do?
+Well, you created a so called &lt;em&gt;dedicated lmtp-client&lt;/em&gt; that Postfix can use to communicate with Amavis.
+The overwrites under it do the following:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ -o &lt;span class="nv"&gt;lmtp_data_done_timout&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1200&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This line sets a timeout limit in seconds for Postfix to wait to claim successful delivery. If a message is not delivered within this time limit, Postfix will give the message a "deferred" status and alert the sender.
+We have this separate timeout setting, which is larger then the default Postfix timout, because we now add some new processes that the mail has to go through before it can be delivered.
+The workers and the sides of our conveyor belt have just tripled and so has the amount of checking that needs to be done. We have to give these people some more time!&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;lmtp_send_xforward_command&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;yes
+&lt;/pre&gt;
+
+
+&lt;p&gt;This tells Postfix to give Amavis the messages original IP-address and HELO command and not only the message itself.
+With this extra information Amavis is able to do some extra checks to see if this message is genuine.&lt;/p&gt;
+&lt;p&gt;You should also note the &lt;em&gt;maxproc&lt;/em&gt; setting on this transport, it reads "2". This should correspond to the &lt;em&gt;$max_servers&lt;/em&gt; variable in the amavisd.conf file.&lt;/p&gt;
+&lt;p&gt;Now we have setup the basic integration for when Postfix receives mail. But there is one more important daemon to setup, the &lt;em&gt;reinjection smtp daemon&lt;/em&gt;.
+When Amavis is called to check a mail it will pick the mail up from the main Postfix conveyor belt and puts it on its own small conveyor belt.
+The specially trained workers then go about there business as instructed by you, the Postmaster, in the amavisd.conf file.&lt;/p&gt;
+&lt;p&gt;After the checks are finished, the mail must go back on the conveyor belt so it can be delivered or trashed according to the milters findings.
+The process of putting mail back onto the conveyor belt is called "reinjection". This has to be done by a separate SMTP daemon of which Postfix only accepts mail from Amavis.
+A special entrance to the Postfix conveyor belt, so to say, only to be used by Amavis. Lets set up this new daemon:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="m"&gt;127&lt;/span&gt;.0.0.1:10025 inet n    -       n       -       -     smtpd
+    -o &lt;span class="nv"&gt;content_filter&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+    -o &lt;span class="nv"&gt;smtpd_delay_reject&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;no
+    -o &lt;span class="nv"&gt;smtpd_client_restrictions&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;permit_mynetworks,reject
+    -o &lt;span class="nv"&gt;smtpd_helo_restrictions&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+    -o &lt;span class="nv"&gt;smtpd_sender_restrictions&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+    -o &lt;span class="nv"&gt;smtpd_recipient_restrictions&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;permit_mynetworks,reject
+    -o &lt;span class="nv"&gt;smtpd_data_restrictions&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;reject_unauth_pipelining
+    -o &lt;span class="nv"&gt;smtpd_end_of_data_restrictions&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+    -o &lt;span class="nv"&gt;smtpd_restriction_classes&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+    -o &lt;span class="nv"&gt;mynetworks&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;127&lt;/span&gt;.0.0.0/8
+    -o &lt;span class="nv"&gt;smtpd_error_sleep_time&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;
+    -o &lt;span class="nv"&gt;smtpd_soft_error_limit&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1001&lt;/span&gt;
+    -o &lt;span class="nv"&gt;smtpd_hard_error_limit&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;1000&lt;/span&gt;
+    -o &lt;span class="nv"&gt;smtpd_client_connection_count_limit&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;
+    -o &lt;span class="nv"&gt;smtpd_client_connection_rate_limit&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="m"&gt;0&lt;/span&gt;
+    -o &lt;span class="nv"&gt;receive_override_options&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;no_header_body_checks,no_unknown_recipient_checks,no_milters,no_address_mappings
+    -o &lt;span class="nv"&gt;local_header_rewrite_clients&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+    -o &lt;span class="nv"&gt;smtpd_milters&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+    -o &lt;span class="nv"&gt;local_recipient_maps&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+    -o &lt;span class="nv"&gt;relay_recipient_maps&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Waah! What's all this? &lt;/p&gt;
+&lt;p&gt;Well, its nothing more then a new SMTP daemon, running on your localhost ip on port 10025 (remeber my mental note about $notify_method and $forward method?).
+It has as many as 20 overwrites under it, all are used to overwrite default settings you may have set for your normal Postfix SMTP deamon.
+You will recognize many lines from chapter 1 and some new lines that may look unfamiliar to you.&lt;/p&gt;
+&lt;p&gt;We could go about and explain each line in more detail but that unnecessary this time. All you need to remeber is that this deamon is used only by Amavis to send mail back to Postfix.
+Any mail coming out of Amavis has the correct labeling and we can assume that these messages are save to re-inject or to put back on our conveyor belt.
+To do more checking on this deamon would be redundant and would only consume more system resources.&lt;/p&gt;
+&lt;p&gt;Save that &lt;em&gt;master.cf&lt;/em&gt; file and stop your Postfix daemon (&lt;em&gt;don't restart it&lt;/em&gt;). We first have to make sure that our Spamassassin and ClamAV daemons are running and setup to run by default.
+First start the Spamassassin, ClamAV and Amavis daemon:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ /etc/init.d/spamassassin start
+$ /etc/init.d/clamd start
+$ /etc/init.d/amavisd start
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then make sure that after reboot all daemons are automatically started:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ chkconfig spamassassin on
+$ chkconfig clamd on
+$ chkconfig amavisd on
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now you can start the Postfix daemon:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ /etc/init.d/postfix start
+&lt;/pre&gt;
+
+
+&lt;p&gt;If all is well, we now should have basic spam and virus protection up and running!
+Check you maillog, it should say all kinds of neat messages about Amavis decoders, AV Scanners, etc.
+Also check if Postfix is still accepting mail by putting a follow tail on your maillog and sending mail from external to one of your mailboxes:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ tail -f /var/log/maillog
+&lt;/pre&gt;
+
+
+&lt;p&gt;When you hit send in your external mail program, the maillog should show some lines ending with "(delivered to maildir)".&lt;/p&gt;
+&lt;p&gt;Now lets do some testing before we continue. Lets see if the Amavis service is actually listening:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ telnet localhost &lt;span class="m"&gt;10024&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This should bring up a telnet interface stating that amavisd-new service is ready.
+Send a "ehlo" command on that telnet interface so see if you get output:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ ehlo localhost
+&lt;/pre&gt;
+
+
+&lt;p&gt;If it prints a bunch of lines starting with "250" you are in the clear. Type "quit" to exit the telnet.
+Second we want to test if our SMTP daemon we created above, the daemon used for re-injection, is also up and running:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ telnet localhost &lt;span class="m"&gt;10025&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This should start a new telnet interface with a line reading something like "220 mail.foo.com".
+Again give the ehlo command to see if we get something:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ ehlo localhost
+&lt;/pre&gt;
+
+
+&lt;p&gt;Another row of 250 lines? Good! Use quit to exit this telnet and lets move on!&lt;/p&gt;
+&lt;p&gt;Now its time to tell Postfix to pass all incoming mail to the small conveyor belt of our Amavis workers.
+Open up your main.cf file and at the end, where you inserted the PostgreSQL lines in the previous chapter, add this simple line:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;content_filter&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; amavisfeed:&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="m"&gt;127&lt;/span&gt;.0.0.1&lt;span class="o"&gt;]&lt;/span&gt;:10024
+&lt;/pre&gt;
+
+
+&lt;p&gt;And there you have it, Postfix will now allow Amavis to pull through all the mail!&lt;/p&gt;
+&lt;p&gt;Now its time for sending some virusses and spam to our server, the proof of the pudding is in the eating so to speak.
+First, lets see if our Amavis milters catch this virus test string created by the folks over at eircar.org.
+Send the following string as a plain text message from an external mailserver to your mailserver and check your maillog after sending:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*
+&lt;/pre&gt;
+
+
+&lt;p&gt;This string is save to send and does not contain a virus, read more about this at &lt;a href="http://www.eicar.org/86-0-Intended-use.html"&gt;Eicar&lt;/a&gt;.
+This merely triggers Amavis's and in turn ClamAV's warning light and it will alert you of a possible virus in the maillog.
+Your maillog will contain a bunch of new lines about this message where one will say something like:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ mail amavis&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="m"&gt;5112&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;: &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="m"&gt;05112&lt;/span&gt;-03&lt;span class="o"&gt;)&lt;/span&gt; Blocked INFECTED &lt;span class="o"&gt;(&lt;/span&gt;Eicar-Test-Signature&lt;span class="o"&gt;)&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;If you see this, congratulations, Amavis, ClamAV and Postfix are working together nicely! &lt;/p&gt;
+&lt;p&gt;Now lets do a spam test. The website of Spamassassin delivers us with a same type of string that will fire your setup's spam warning lights.
+Again, send a plain text email with the following string:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;XJS*C4JDBQADN1.NSBN3*2IDNEN*GTUBE-STANDARD-ANTI-UBE-TEST-EMAIL*C.34X
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now check your maillog, again a bunch of new lines and one of them should say:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ mail amavis&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="m"&gt;5113&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;: &lt;span class="o"&gt;(&lt;/span&gt;&lt;span class="m"&gt;05113&lt;/span&gt;-03&lt;span class="o"&gt;)&lt;/span&gt; Blocked SPAM.
+&lt;/pre&gt;
+
+
+&lt;p&gt;Good, everything seems up and running!&lt;/p&gt;
+&lt;p&gt;Now in your maillog you may also have noticed that it tries to alert you of this virus or spam via the address virusalert@yourdomain.com.
+You can of course set this to any address you like by editing the amavisd.conf file.
+Search for the variable "$virus_admin" and change the "virusalert" part into any other mailbox or alias that you wish to receive notifications on.&lt;/p&gt;
+&lt;p&gt;Whats next?&lt;/p&gt;
+&lt;p&gt;Well, the world of viruses and spam is changing rapidly, every day. To have a good protection it is thus necessary to also keep our systems up to date.
+First lets auto-update Spamassassin. Spamassassin already prepared a cronfile for us that updates its spam rules.
+The cronfile is located in &lt;em&gt;/usr/share/spamassassin/sa-update.cron&lt;/em&gt;. During install, Spamassassin already added a cronjob for this file in &lt;em&gt;/etc/cron.d/sa-update&lt;/em&gt;.
+Just open the last file and check if the line is not commented:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="m"&gt;10&lt;/span&gt; &lt;span class="m"&gt;4&lt;/span&gt; * * * root /usr/share/spamassassin/sa-update.cron &lt;span class="m"&gt;2&lt;/span&gt;&amp;gt;&lt;span class="p"&gt;&amp;amp;&lt;/span&gt;&lt;span class="m"&gt;1&lt;/span&gt; &lt;span class="p"&gt;|&lt;/span&gt; tee -a /var/log/sa-update.log
+&lt;/pre&gt;
+
+
+&lt;p&gt;Once a day this will update the spam rules via cron if you have enabled it in your crontab file.
+To enable this in our crontab file, op this file at "/etc/crontab" and make sure that our hourly, daily, weekly and monthly scripts are there.
+By default this file is empty, only with a comment header telling you about how to use the crontab. You can enable the different cronjobs by adding this to your crontab:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="m"&gt;01&lt;/span&gt; * * * * root run-parts /etc/cron.hourly 
+  &lt;span class="m"&gt;02&lt;/span&gt; &lt;span class="m"&gt;4&lt;/span&gt; * * * root run-parts /etc/cron.daily 
+  &lt;span class="m"&gt;22&lt;/span&gt; &lt;span class="m"&gt;4&lt;/span&gt; * * &lt;span class="m"&gt;0&lt;/span&gt; root run-parts /etc/cron.weekly 
+  &lt;span class="m"&gt;42&lt;/span&gt; &lt;span class="m"&gt;4&lt;/span&gt; &lt;span class="m"&gt;1&lt;/span&gt; * * root run-parts /etc/cron.monthly
+&lt;/pre&gt;
+
+
+&lt;p&gt;Save this file. Now all the cronjoobs in the various cron.* directories are executed at their set interval.
+Now make sure the cron daemon is running:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ /etc/init.d/crond start
+&lt;/pre&gt;
+
+
+&lt;p&gt;And set it to run automatically after reboot:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ chkconfig crond on
+&lt;/pre&gt;
+
+
+&lt;p&gt;After the first cron has run, you can check the update log file at &lt;em&gt;/var/log/sa-update.log&lt;/em&gt; to see if everything went well.
+You can always call &lt;em&gt;sa-update&lt;/em&gt; manually and restart Spamassassin by issuing the following command:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ sa-update &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; /etc/init.d/spamassassin restart
+&lt;/pre&gt;
+
+
+&lt;p&gt;The next one up is ClamAV's virus definition files. Also here ClamAV already installed a cronjob for us that updates the definition database one time each day.
+It uses a shellscript called "freshclam" which can be found at &lt;em&gt;/etc/cron.daily/freshclam&lt;/em&gt; to do the job. Since you already configured your cronjobs to run, everything is setup.
+Also here we can check a log file to see if it is being updated. This file is located here: &lt;em&gt;/var/log/clamav/freshclam.log&lt;/em&gt;.
+This update can also be triggered manually by issuing the following command:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ freshclam &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; /etc/init.d/clamd restart
+&lt;/pre&gt;
+
+
+&lt;p&gt;Okay, we are through! We now have full virus and spam protection up and running.
+This chapter wasn't to bad, right?&lt;/p&gt;
+&lt;p&gt;On to &lt;a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapter 4&lt;/a&gt;, where we will setup Dovecot which will connect our beautiful factory to the outside world!&lt;/p&gt;
+&lt;p&gt;And as always, thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>amavis</category><category>postfix</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-3.html</guid><pubDate>Fri, 05 Apr 2013 18:00:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mailserver on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 2</title><link>http://shisaa.jp/postset/mailserver-2.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;PostgreSQL - The Solid Bookkeeper&lt;/h3&gt;
+&lt;p&gt;Welcome to the second iteration of our mailserver setup!&lt;/p&gt;
+&lt;p&gt;I'm happy you lived through &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;part 1&lt;/a&gt;, and I promise this part will be shorter.&lt;/p&gt;
+&lt;p&gt;Before we dive in, let me go over the different challenges we will be tackling shortly.
+Remember in the last chapter we setup our conveyor belt to run smoothly and we secured things up where possible?
+The focus in this chapter will be about keeping track which users we have and some detailed information about them.&lt;/p&gt;
+&lt;p&gt;Let me draw a quick outline of this chapter:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Introducing you to mail setup with a database backend (and briefly beating MySQLs ass)&lt;/li&gt;
+&lt;li&gt;Installing and configuring the basics of PostgreSQL&lt;/li&gt;
+&lt;li&gt;Setting up the various tables and a database user inside of PostgreSQL&lt;/li&gt;
+&lt;li&gt;Setting up the different transports between PostgreSQL and Postfix&lt;/li&gt;
+&lt;li&gt;Configuring Postfix to talk with PostgreSQL through the previously setup transports&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4&gt;Mail setup with a database backend&lt;/h4&gt;
+&lt;p&gt;Okay, what's PostgreSQL, why use it (why not MySQL?) and how does it fit in our mailserver setup?&lt;/p&gt;
+&lt;p&gt;Good question(s)! First, PostgreSQL is a database server. But you probably figured that out already...
+If you are not familiar with PostgreSQL (shame on you!) you could compare it to the o-so-popular MySQL or any other SQL oriented database.&lt;/p&gt;
+&lt;p&gt;Second, if you have done any professional work on the web (or offline) that requires a secure and solid database solution, you hopefully will not have chosen MySQL to do the job.
+Why not? Well, MySQL, apart from being the little adopted, limp child of the closed source gals and guys over at Oracle, MySQL is neither mature, secure, powerful nor SQL standardized.
+Let the asswooping commence:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;MySQL has the most bizarre security leaks and defaults (you need to install a package called mysql_secure_installation to...well...secure MySQL).&lt;/li&gt;
+&lt;li&gt;Feed MySQL with a million records and it will die a horrible, resource eating death.&lt;/li&gt;
+&lt;li&gt;Try rebooting a crashed database (after its horrible death), you will love the way your tables have "crashed and burned".&lt;/li&gt;
+&lt;li&gt;To MySQL ACID is like the blood which runs through a genuine Xenomorph Alien's veins.&lt;/li&gt;
+&lt;li&gt;Data integrity and reliability...MySQL will give you a looooong blank stare.&lt;/li&gt;
+&lt;li&gt;MySQL still thinks Multicore is a kind of pesticide to kill more then one bug at a time.&lt;/li&gt;
+&lt;li&gt;Ooh and PostgreSQL was petting MySQLs back, waiting for it to give its first burp! (true story...).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;To see it explained in a more detailed way, checkout &lt;a href="http://www.youtube.com/watch?v=1PoFIohBSM4" title="Youtube video explaining why MySQL is bad."&gt;this&lt;/a&gt; video.&lt;/p&gt;
+&lt;p&gt;Anyway...if you are serious about a reliable, scalable and robust database, you'll do PostgreSQL.&lt;/p&gt;
+&lt;p&gt;Now, for the third part of the question...how does it fit in our factory.&lt;/p&gt;
+&lt;p&gt;You can store your users and their corresponding data in two basic ways. You can either use Unix its own user system as your mail users or you can use a database backend to store your users information. Both are okay, but only one is scalable.&lt;/p&gt;
+&lt;p&gt;If you setup a mailserver for your own private use, doing it with Unix its own user system is perfectly okay.
+But if you want a mailserver that will host 20 or more users, maybe thousands of users, you'll need something more flexible and something more easy to maintain.
+Also, if you would like to write your own configuration (web)front-end for users to make and administer their accounts/mailboxes, you'll also need a database that your application can retrieve and store its data in. If your mail setup is already using a database, you could just as well use the data already available. Life is easy!&lt;/p&gt;
+&lt;p&gt;In our factory, PostgreSQL would be the bookkeeper who reads all entries made into his huge book by you, the big boss. But this bookkeeper will also work close with his colleague, Dovecot (which we will see in the final chapter) to negotiate usernames, passwords and user settings so the factory customers (the readers of email) can identify themselves at the factory front desk and get or send their mail.&lt;/p&gt;
+&lt;p&gt;But because this bookkeeper has many sensitive information, his office must be secured...well secured.&lt;/p&gt;
+&lt;h4&gt;Securing your fresh PostgreSQL installation&lt;/h4&gt;
+&lt;p&gt;First we need to have access control...only a few known people can have access to the bookkeepers office.
+Some are simply allowed inside without further check, others need certain protocols and passwords and most are just denied access.
+To inspect and setup the correct access policy you will need to crack open the &lt;em&gt;pg_hba.conf&lt;/em&gt; file.
+The 'hba' part stands for host-based authentication. It basically tells which client application can use which method to authorize itself.&lt;/p&gt;
+&lt;p&gt;In this file you typical define access on a fine grain level. On a per-line basis you can specify the user, an IP-address range the user can come from, the database(s) it can connect to and the method they can use to authenticate themselves. Go ahead and open up the &lt;em&gt;pg_hba.conf&lt;/em&gt; file. &lt;/p&gt;
+&lt;p&gt;On CentOS 6 you can find it under &lt;em&gt;/var/lib/pgsql/9.2/data/pg_hba.conf&lt;/em&gt; (if you have the 9.2 version that is). Once open you can see a bunch of lines already in there, defining the default PostgreSQL access policy.&lt;/p&gt;
+&lt;p&gt;By default PostgreSQL will only allow Unix domain socket connections or localhost to connect through md5 password authentication.
+Lets add a policy for Postfix and Dovecot to access our database server.&lt;/p&gt;
+&lt;p&gt;Before we edit the file, here are a few basic syntax guidelines to remember:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Only one host entry per line is allowed and these lines may not wrap&lt;/li&gt;
+&lt;li&gt;Each line has multiple sections and each section must be separated by spaces or tabs&lt;/li&gt;
+&lt;li&gt;To comment-out a line, use a hash sign in front of it&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Dovecot and Postfix connect to PostgreSQL through password authentication, so to enable this, we could simply add the following line:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ host  all all &lt;span class="m"&gt;127&lt;/span&gt;.0.0.1/32 md5
+&lt;/pre&gt;
+
+
+&lt;p&gt;But, this would enable all databases to be connected to on the tcp/ip protocol.
+This could create a possible backdoor, so lets crank it up a bit.&lt;/p&gt;
+&lt;p&gt;We only want Postfix and Dovecot to be able to connect to our database server through &lt;em&gt;host&lt;/em&gt;.
+So to tighten things up we need to set the database user and database name in the file.
+We still have to make that user and database, but for the sake of this post, lets assume it already exists.&lt;/p&gt;
+&lt;p&gt;The database name will be...well..."mail" and the user we will name "mailreader".
+So, if we input that, the line now reads:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ host mail mailreader &lt;span class="m"&gt;127&lt;/span&gt;.0.0.1/32 md5
+&lt;/pre&gt;
+
+
+&lt;p&gt;But wait, there is one more line to be added for Postfix to be able to connect:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ host mail mailreader ::1/128 md5
+&lt;/pre&gt;
+
+
+&lt;p&gt;"::1" is the same as 127.0.0.1, but then for IPv6 addresses.&lt;/p&gt;
+&lt;p&gt;Be sure to reload or restart PostgreSQL after altering the &lt;em&gt;pg_hba.conf&lt;/em&gt; file.&lt;/p&gt;
+&lt;p&gt;A nice-to-know detail: PostgreSQL will read the file from top to bottom. As soon as it finds a matching line to use for the current connection it will use that line and ignore anything under that line.&lt;/p&gt;
+&lt;p&gt;That's better, now only the database "mail" and the user "mailreader" can connect to PostgreSQL through tcp/ip.&lt;/p&gt;
+&lt;p&gt;When installing, PostgreSQL made a new user called "postgres" which you can think of as a kind of root user inside of PostgreSQL.
+But it has no password setup, so with these settings in your pg_hba.conf, you cannot login yet.
+So lets login to PostgreSQL, as root, and setup a password for that user:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ sudo -u postgres psql
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then setup the password:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;USER&lt;/span&gt; &lt;span class="n"&gt;postgres&lt;/span&gt; &lt;span class="k"&gt;PASSWORD&lt;/span&gt; &lt;span class="s1"&gt;'your-new-password'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then quit PostgreSQL by using the "\q" command:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="se"&gt;\q&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Lets go back to the pg_hba.conf file one more time to make sure that local connections (connections through Unix domain sockets) also need a md5 password.
+Change the "local" line so it reads md5 at the end:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nb"&gt;local&lt;/span&gt;  all  all         md5
+&lt;/pre&gt;
+
+
+&lt;p&gt;Restart PostgreSQL and lets start making that database!
+Connect to PostgreSQL with the "postgres" user and the accompanying password:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ psql -U postgres
+&lt;/pre&gt;
+
+
+&lt;p&gt;First thing to do it to create the database user:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;USER&lt;/span&gt; &lt;span class="n"&gt;mailreader&lt;/span&gt; &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="k"&gt;PASSWORD&lt;/span&gt; &lt;span class="s1"&gt;'foo'&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now we have a user, but this user is a little bit too powerful. It can read and write.
+The only one who is allowed to write in our bookkeepers books is the factory boss (that's you).&lt;/p&gt;
+&lt;p&gt;To tightly secure PostgreSQL for unwanted write access (to the public schemas anyway) we first have to revoke it for everyone:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;REVOKE&lt;/span&gt; &lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="k"&gt;SCHEMA&lt;/span&gt; &lt;span class="n"&gt;public&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;PUBLIC&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;REVOKE&lt;/span&gt; &lt;span class="n"&gt;USAGE&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="k"&gt;SCHEMA&lt;/span&gt; &lt;span class="n"&gt;public&lt;/span&gt; &lt;span class="k"&gt;FROM&lt;/span&gt; &lt;span class="n"&gt;PUBLIC&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then give back access to the &lt;em&gt;postgres&lt;/em&gt; user itself:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;GRANT&lt;/span&gt; &lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="k"&gt;SCHEMA&lt;/span&gt; &lt;span class="n"&gt;public&lt;/span&gt; &lt;span class="k"&gt;TO&lt;/span&gt; &lt;span class="n"&gt;postgres&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;GRANT&lt;/span&gt; &lt;span class="n"&gt;USAGE&lt;/span&gt; &lt;span class="k"&gt;ON&lt;/span&gt; &lt;span class="k"&gt;SCHEMA&lt;/span&gt; &lt;span class="n"&gt;public&lt;/span&gt; &lt;span class="k"&gt;TO&lt;/span&gt; &lt;span class="n"&gt;postgres&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;From now on, every user that you create does not have write access to the public schema of any database.
+I think this is a better default, you now explicitly have to grant write access to a user if you really need it.&lt;/p&gt;
+&lt;p&gt;Now, lets create the database and the necessary tables for storing our data.
+We already know the database is going to be called "mail" so go ahead and create it and grant our fresh user (read) access to it:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;DATABASE&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt; &lt;span class="k"&gt;WITH&lt;/span&gt; &lt;span class="k"&gt;OWNER&lt;/span&gt; &lt;span class="n"&gt;mailreader&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now before you continue, make sure you switch to that database, otherwise you will be making tables inside the default &lt;em&gt;postgres&lt;/em&gt; database:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="err"&gt;\&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Time for the tables inside this database...which tables do we need?
+Hmmm, lets think about it, what would our bookkeeper like to register from our customers?
+He needs something to identify them with...and some basic information about their mail preferences.&lt;/p&gt;
+&lt;p&gt;The default style of configuring Postfix mailboxes is to use your Unix user accounts and map them to mailboxes on your harddrive.
+Instead of using Unix accounts we will use Postfix's "Virtual Mailbox" mechanism to tie email and destination on your harddrive together.&lt;/p&gt;
+&lt;p&gt;So lets start by making a table in the bookkeepers book called "users".
+In that table we will store the users emailadres, realname, email directory and the users password.&lt;/p&gt;
+&lt;p&gt;We can also optionally store the Unix &lt;em&gt;UID&lt;/em&gt; and &lt;em&gt;GID&lt;/em&gt; of the general owner of the mail directories, but since our mail system will not be based on Unix users and instead is based on database lookups or &lt;em&gt;virtual&lt;/em&gt; users, we will use only &lt;em&gt;one&lt;/em&gt; Unix user that will own &lt;em&gt;all&lt;/em&gt; mail directories and thus the UID and GID will be the same for every user we enter into the database. Because they will be the same we can actually &lt;em&gt;omit&lt;/em&gt; these two columns. Later we will see how we can tell Postfix and Dovecot about the UID and GID by "hardcoding" them.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;users&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;email&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="k"&gt;password&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;realname&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;maildir&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;created&lt;/span&gt; &lt;span class="nb"&gt;TIMESTAMP&lt;/span&gt; &lt;span class="nb"&gt;WITH TIME ZONE&lt;/span&gt; &lt;span class="k"&gt;DEFAULT&lt;/span&gt; &lt;span class="n"&gt;now&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt;
+    &lt;span class="k"&gt;PRIMARY&lt;/span&gt; &lt;span class="k"&gt;KEY&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;email&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;As you can see we also set some constraints in place, the only thing the user can leave blank is its real name.
+I also let PostgreSQL create a primary key on the email column, since we want that one to be unique.
+For me, setting a primary key on one or a combination of columns is better them creating an arbitrary integer id column.
+If we created an integer id column, we still could have duplicate values in the email column which would break our setup.&lt;/p&gt;
+&lt;p&gt;The first three columns are quite obvious, but what about the "maildir"?
+Well, the "maildir" tells Postfix the location where to read or write new mail from, specific for that user.&lt;/p&gt;
+&lt;p&gt;Lets set up our first mail user and fill the users table with an entry for that user, shall we?&lt;/p&gt;
+&lt;p&gt;Before we can make our first entry into the database, we will have to create the main directory where all users will store their mail.
+As we said before, their will be &lt;em&gt;one&lt;/em&gt; Unix user who owns this main directory and all directories under them (the actual mail directories of our virtual users).&lt;/p&gt;
+&lt;p&gt;That means that the very next thing we have to do is to create that Unix user on your system...or better, to first create a general group that that user will fit into.
+So go ahead and create your group called "mail":&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ groupadd -g &lt;span class="m"&gt;1000&lt;/span&gt; mail
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will create a group with a GID equal to 1000. We will need this number later!
+If you get an error stating that the group mail already exists, you can just lookup the GID for that group in the /etc/groups file.&lt;/p&gt;
+&lt;p&gt;Now you can make the user that owns the mail directories and put it in that group...lets call him "mailreader"&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ useradd -g mail -u &lt;span class="m"&gt;200&lt;/span&gt; -d /home/mail -s /sbin/nologin mailreader
+&lt;/pre&gt;
+
+
+&lt;p&gt;This will create a user with UID 200, set its home directory to "/home/mail" and make sure that this user cannot log in to your Unix system.
+This user is only needed for ownership on the "/home/mailbox" directory, we don't want him/her really logging in and changing stuff...&lt;/p&gt;
+&lt;p&gt;Before we continue, lets see if the ownership of the mail directory is okay.
+Go to that directory and do a ls -la listing to check if "mail" is owned by the correct user and group.&lt;/p&gt;
+&lt;p&gt;We can now make our first entry into PostgreSQL!
+Fire up your PostgreSQL shell and create the user:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;users&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;email&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="k"&gt;password&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="n"&gt;realname&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="n"&gt;maildir&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="s1"&gt;'foo@yourdomain.com'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="n"&gt;md5&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'ecnrypted_password'&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; 
+    &lt;span class="s1"&gt;'Foo Lastname'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="s1"&gt;'foo/'&lt;/span&gt;
+&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Note that the password should be encrypted. In the statement above I use the -not so strong- md5 without salting.
+This is considered bad practice. by me anyway, because this kind of hashing is weak and thus open to dictionary attacks.&lt;/p&gt;
+&lt;p&gt;I recommend using AES or a SHA variant (SSHA256 or SSHA512) or a BlowfFish (BF) variant. It will ask more of your mailserver CPU, but its much, much more secure.
+You can either use an external program to generate your password hash or you could use PostgreSQL's internal functions for that.
+If you use PostgreSQL functions to do the hashing job you will have to install the pgcrypto extension in each database you want these functions available.
+We will not be using PostgreSQL functions to do the job, simply because it is not all that compatible with the hashing schemes that Dovecot understands.
+In the last chapter, when we will learn more about Dovecot, we will use a program called "doveadm" that's shipped with Dovecot to do the job for us.&lt;/p&gt;
+&lt;p&gt;To generate a SHA512 password with doveadm, issue the following command:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ doveadm pw -s SHA512 -p yourpassword
+&lt;/pre&gt;
+
+
+&lt;p&gt;Where "yourpassword" should be replaced with your actual, desired password of course.
+This will give you back a string which is your SHA512 encrypted password, ready to be put into your PostgreSQL users table record.&lt;/p&gt;
+&lt;p&gt;But for the sake of knowing PostgreSQL a little bit better, I will explain how you would go about hashing passwords with pgcrypto.
+We want a strong bf/5 password, a BlowFish string hashed 5 times. An encryption of this type will take a 1.2 Ghz computer about 33 years to crack passwords only containing a-z.
+If you would use plain old md5 it would take that same computer only 1 day.&lt;/p&gt;
+&lt;p&gt;To make that hash on the fly we can use the crypt() and gen_salt() functions of PostgreSQL, it will do all the hard work for us....don't you just love that PostgreSQL!
+But...by default these two function are not available, you will have to install the &lt;em&gt;contrib&lt;/em&gt; package of the PostgreSQL core team first:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ yum install postgresql92-contrib
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then connect to the mail database and load that extension in that database:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;EXTENSION&lt;/span&gt; &lt;span class="n"&gt;pgcrypto&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;There, now, only for the mail database, PostgreSQL has loaded up the necessary functions to perform some hashing magic!
+Lets try to insert that user again, now with a stronger password hashing.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;users&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;email&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="k"&gt;password&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;realname&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;maildir&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="s1"&gt;'foo@yourdomain.com'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="n"&gt;crypt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'ecnrypted_password'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;gen_salt&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;'bf'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="mf"&gt;5&lt;/span&gt;&lt;span class="p"&gt;)),&lt;/span&gt; 
+    &lt;span class="s1"&gt;'Foo Lastname'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="s1"&gt;'foo/'&lt;/span&gt;
+&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Voila, now we have used PostgreSQL to do the hashing using one of its extensions.&lt;/p&gt;
+&lt;p&gt;But now, back to a world without pgcrypto...&lt;/p&gt;
+&lt;p&gt;In the statement we used to insert the new user, Note the "/" behind the users maildir entry. This is necessary for Postfix to function!
+You can also notice that I did not input the full directory path eg. "/home/mail/foo/" but just the directory inside of the mail directory.
+This is because you told Postfix that the &lt;em&gt;virtual_mailbox_base&lt;/em&gt; parameter is "/home/mail".&lt;/p&gt;
+&lt;p&gt;Yes! We have our first user!&lt;/p&gt;
+&lt;p&gt;Now our bookkeeper knows enough information about the customer named Foo.&lt;/p&gt;
+&lt;p&gt;But as we have seen before, the bookkeeper does not only hold customer data, it also holds internal factory information.
+One of these pieces of information is called a "transport".
+Via a transport, Postfix knows where to store emails coming from a certain domain.&lt;/p&gt;
+&lt;p&gt;Our setup is only on a single domain, so we actually don't need to explicitly define a transport, but, again, for the sake of knowledge, lets make one anyway.
+If you have a larger setup where you have one mail server accepting mail from several domains, you need to setup a transport for each single domain.&lt;/p&gt;
+&lt;p&gt;For us to store this transport information, we will ask our bookkeeper to make a new entry in its large book called "transports":&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;transports&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="k"&gt;domain&lt;/span&gt;  &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;gid&lt;/span&gt; &lt;span class="nb"&gt;INTEGER&lt;/span&gt; &lt;span class="k"&gt;UNIQUE&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;transport&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="k"&gt;PRIMARY&lt;/span&gt; &lt;span class="k"&gt;KEY&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;domain&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;This table is quite self-explanatory, it will contain the domain from which to receive email and the GID that corresponds to the Unix group you just made.
+In the transport column we can store which type of transport to use for which domain.
+For now we leave this on &lt;em&gt;virtual:&lt;/em&gt;, this will make a virtual transport for our domain.&lt;/p&gt;
+&lt;p&gt;"What is a virtual transport?", you ask.&lt;/p&gt;
+&lt;p&gt;A virtual transport is a default setting within Postfix that tells the system that this domain is the final destination.
+So for our factory this entry would be:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;transports&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="k"&gt;domain&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="n"&gt;gid&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="n"&gt;transport&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="s1"&gt;'exmaple.com'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="mf"&gt;1000&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s1"&gt;'virtual:'&lt;/span&gt;
+&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Finally we need to give information about aliases we want to use.
+A user can have multiple email addresses who all link to the same mailbox.
+In Postfix this is called "Virtual Maps", but I like to call them aliases...lets create that database table:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;CREATE&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;aliases&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+  &lt;span class="n"&gt;alias&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+  &lt;span class="n"&gt;email&lt;/span&gt; &lt;span class="nb"&gt;TEXT&lt;/span&gt; &lt;span class="k"&gt;NOT&lt;/span&gt; &lt;span class="k"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+  &lt;span class="k"&gt;PRIMARY&lt;/span&gt; &lt;span class="k"&gt;KEY&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;alias&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;And insert some data for demonstration purposes:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;INSERT&lt;/span&gt; &lt;span class="k"&gt;INTO&lt;/span&gt; &lt;span class="n"&gt;aliases&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="n"&gt;alias&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; 
+    &lt;span class="n"&gt;email&lt;/span&gt;
+&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;VALUES&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;
+    &lt;span class="s1"&gt;'bar@exmaple.com'&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+    &lt;span class="s1"&gt;'foo@example.com'&lt;/span&gt;
+&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Good, that's enough information for now.&lt;/p&gt;
+&lt;p&gt;Before you can continue however, we still need to change the ownership of these tables. You made these tables with the main user "postgres" so the user "mailreader" cannot access them.
+To change ownership make sure you are still connected to your database "mail" with the main user "postgres" and issue the following command on the whole database:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;DATABASE&lt;/span&gt; &lt;span class="n"&gt;mail&lt;/span&gt; &lt;span class="k"&gt;OWNER&lt;/span&gt; &lt;span class="k"&gt;TO&lt;/span&gt; &lt;span class="n"&gt;mailreader&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then alter the user for each table in your database:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;users&lt;/span&gt; &lt;span class="k"&gt;OWNER&lt;/span&gt; &lt;span class="k"&gt;TO&lt;/span&gt; &lt;span class="n"&gt;mailreader&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;transports&lt;/span&gt; &lt;span class="k"&gt;OWNER&lt;/span&gt; &lt;span class="k"&gt;TO&lt;/span&gt; &lt;span class="n"&gt;mailreader&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="err"&gt;$&lt;/span&gt; &lt;span class="k"&gt;ALTER&lt;/span&gt; &lt;span class="k"&gt;TABLE&lt;/span&gt; &lt;span class="n"&gt;aliases&lt;/span&gt; &lt;span class="k"&gt;OWNER&lt;/span&gt; &lt;span class="k"&gt;TO&lt;/span&gt; &lt;span class="n"&gt;mailreader&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;There, that's better!&lt;/p&gt;
+&lt;p&gt;But Postfix and PostgreSQL still don't know of each others existence.
+PostgreSQL is just sitting there, waiting to be read out, we have to instruct Postfix to get its information not from files but from the database.
+This is done by creating mapping files for the different Postfix mechanisms. These files will hold the queries which will return the necessary information to Postfix.
+For our setup to work we will have to create 4 different mapping files for transport, uids, gids, mailboxes.&lt;/p&gt;
+&lt;p&gt;Lets start with our mailboxes. Postfix needs to know which mailboxes exist so that when it receives mail on foo@example.com it knows that it can accept it.
+Instead of writing a database connect statement and a real query, the mapping files are in a right side and left side syntax.&lt;/p&gt;
+&lt;p&gt;Open up a new file called mailboxes.cf and put in your database information:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mailreader
+  &lt;span class="nv"&gt;password&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;secret
+  &lt;span class="nv"&gt;dbname&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mail
+  &lt;span class="nv"&gt;table&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;users
+  &lt;span class="nv"&gt;select_field&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;maildir
+  &lt;span class="nv"&gt;where_field&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;email
+  &lt;span class="nv"&gt;hosts&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;localhost
+&lt;/pre&gt;
+
+
+&lt;p&gt;This doesn't look to scary, right? We just define the user and password to connect to the "mail" database.
+Then we build up our query on the table users and get the "mailbox" field for the current email that Postfix is currently checking for.&lt;br&gt;
+All of these queries are very simple, we just connect to PostgreSQL via the correct privileged user and do a select on the correct table with a where clause.
+Now save this file in logical directory, the default is "/etc/postfix/pgsql/mailboxes.cf"&lt;/p&gt;
+&lt;p&gt;Let continue with the remaining four files. Open up a new file with the name &lt;em&gt;transport.cf&lt;/em&gt; and build your query:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mailreader
+  &lt;span class="nv"&gt;password&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;secret
+  &lt;span class="nv"&gt;dbname&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mail
+  &lt;span class="nv"&gt;table&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;transports
+  &lt;span class="nv"&gt;select_field&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;transport
+  &lt;span class="nv"&gt;where_field&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;domain
+  &lt;span class="nv"&gt;hosts&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;localhost
+&lt;/pre&gt;
+
+
+&lt;p&gt;Our third file will be called &lt;em&gt;virtual.cf&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;user&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mailreader
+  &lt;span class="nv"&gt;password&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;secret
+  &lt;span class="nv"&gt;dbname&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;mail
+  &lt;span class="nv"&gt;table&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;aliases
+  &lt;span class="nv"&gt;select_field&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;email
+  &lt;span class="nv"&gt;where_field&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="nb"&gt;alias&lt;/span&gt;
+  &lt;span class="nv"&gt;hosts&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;localhost
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now that we have our files ready for Postfix, we still need to tell it to use these files to communicate with PostgreSQL.
+For making this happen, open up the good old &lt;em&gt;main.cf&lt;/em&gt; file from Postfix, go to the bottom and start telling about PostgreSQL!&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;local_recipient_maps&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt;
+  &lt;span class="nv"&gt;virtual_uid_maps&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; static:200
+  &lt;span class="nv"&gt;virtual_gid_maps&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; static:1000
+  &lt;span class="nv"&gt;transport_maps&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; pgsql:/etc/postfix/pgsql/transport.cf
+  &lt;span class="nv"&gt;virtual_mailbox_base&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /home/mail
+  &lt;span class="nv"&gt;virtual_mailbox_maps&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; pgsql:/etc/postfix/pgsql/mailboxes.cf
+  &lt;span class="nv"&gt;virtual_maps&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; pgsql:/etc/postfix/pgsql/virtual.cf
+  &lt;span class="nv"&gt;mydestination&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$mydomain&lt;/span&gt;, &lt;span class="nv"&gt;$myhostname&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Notice the first line "local_recipient_maps =", it has no value at the end. This tells Postfix to turn off this kind of lookup since we only use virtual lookups via PostgreSQL.
+Also note that we added the &lt;em&gt;UID&lt;/em&gt; and &lt;em&gt;GID&lt;/em&gt; of the Unix user we created above, that owns all mail directories.&lt;/p&gt;
+&lt;p&gt;Phew, we are almost there, you can now restart Postfix to load in the new changes:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ /etc/init.d/postfix restart
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now you should be able to send mail to the addresses you input in your users table.
+Go to your "home/mail/USER" directory, it should be empty, but when Postfix delivers its first mail it will make a directory structure in there with three directories: "cur", "new" and "tmp".
+Also remember to check your maillog if your encounter any errors!&lt;/p&gt;
+&lt;p&gt;In the &lt;a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;next chapter&lt;/a&gt; we will do some some serious spam and virus fighting!&lt;/p&gt;
+&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>postfix</category><category>postgresql</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-2.html</guid><pubDate>Thu, 21 Mar 2013 10:00:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mailserver on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 1</title><link>http://shisaa.jp/postset/mailserver-1.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h4&gt;Note&lt;/h4&gt;
+&lt;ol&gt;
+&lt;li&gt;In this post I assume you have basic Unix knowledge. The intent of every post I write about Unix is to share what I have learned and in turn give you more know-how and make you less afraid of using this operating system.&lt;/li&gt;
+&lt;li&gt;I assume you have a basic CentOS 6 installation (though, with minimal tweaking, it is applicable for most Unix/Linux systems),  that you are root or can use the sudo command and that you are connected to the Internet.&lt;/li&gt;
+&lt;li&gt;I take it for granted that you have a hunger for knowledge and thus don't mind me taking small side steps to explain some things in more detail.&lt;/li&gt;
+&lt;li&gt;And finally I want to thank a good colleague of mine, mister &lt;a href="http://more-magic.net" title="Sjamaans homepage"&gt;Sjamaan&lt;/a&gt;, for shedding some light in a few of the deepest cavities of mail setup.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;Preface&lt;/h3&gt;
+&lt;p&gt;I'm not going to lie to you guys, setting up a mail server can be a pain in the ass.&lt;/p&gt;
+&lt;p&gt;The road to mail-server-setup is paved with carcasses of system administrators; one hand still clinging to their keyboards and the other reaching out to the light at the end of this gloomy path. &lt;/p&gt;
+&lt;p&gt;When stepping over the dead corpses you might notice something odd. Looking closely at the bony fingers you'll find the tips resting on the CTRL key...and the Y key (or CTRL and V key for the none Emacs corpses). Oh my god, that's meaning they where pasting something...right before meeting their maker? &lt;/p&gt;
+&lt;p&gt;Yes, they where...they where just copy and pasting the lines of code they found lying around the internet, hoping this way they would reach the land of mail server kingdom.&lt;/p&gt;
+&lt;p&gt;Helas, they where wrong.&lt;/p&gt;
+&lt;p&gt;The most important rule is to never just copy and paste, but learn what you are doing.
+Open up Duckduckgo.com and search beyond this blog post. Be hungry for knowledge!&lt;/p&gt;
+&lt;p&gt;The second most important rule to survive this setup is by building it piece by piece. Configure one piece, test it, confirm it is working accordingly and understand what you just did. Only then can you move on to the next bit.&lt;/p&gt;
+&lt;p&gt;Got it?&lt;/p&gt;
+&lt;p&gt;Good.&lt;/p&gt;
+&lt;p&gt;To try and make things more clear, I'll make the analogy to a factory, where our CentOS install is our clean factory floor and we will be building the inside piece by piece. &lt;/p&gt;
+&lt;p&gt;And remember, you are the boss of the factory. On your door is a gold plaque with the letters &lt;em&gt;Postmaster&lt;/em&gt; engraved into it. Sitting in your high office you can instruct and overview everything that's happening while drinking whiskey and smoking cigars. Oh, and you also have an en-suit Jacuzzi, of course.&lt;/p&gt;
+&lt;p&gt;Are you ready? Lets go!&lt;/p&gt;
+&lt;h3&gt;Outline&lt;/h3&gt;
+&lt;p&gt;Let me start of by giving you an outline of what we will be doing throughout this mailserver series:&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Chapter 1 - "Postfix, The Conveyor Belt" - About Postfix, SMTP and security&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Fire up the idea of a mail setup being a factory&lt;/li&gt;
+&lt;li&gt;Make sure that you have the latest available packages and if not, learn how to get them&lt;/li&gt;
+&lt;li&gt;Install Postfix and take a peek under the hood&lt;/li&gt;
+&lt;li&gt;Take a look at our first and most important part of Postfix, the SMTP daemon&lt;/li&gt;
+&lt;li&gt;Take a trip to Secure Land where I'll do my best to explain SSL/TLS/STARTTLS&lt;/li&gt;
+&lt;li&gt;Crack open Postfix's configuration files and start to setup a basic but secure mailserver, making sure you can send out mail&lt;/li&gt;
+&lt;li&gt;Actually sending out your first mail&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Chapter 2 - "PostgreSQL, The Solid Bookkeeper" - About using PostgreSQL as our back-end for keeping track of user settings&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Introducing you to mail setup with a database backend (And briefly beating MySQLs ass)&lt;/li&gt;
+&lt;li&gt;Installing and configuring the basics of PostgreSQL&lt;/li&gt;
+&lt;li&gt;Setting up the various tables and a database user inside of PostgreSQL&lt;/li&gt;
+&lt;li&gt;Setting up the different transports between PostgreSQL and Postfix&lt;/li&gt;
+&lt;li&gt;Configuring Postfix to talk with PostgreSQL through the previously setup transports&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Chapter 3 - "Milters, The Trusty Workers" - About building a solid protection against all kinds of spam and viruses&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Install and setup Amavis&lt;/li&gt;
+&lt;li&gt;Configure Postfix to let Amavis do some heavy check lifting&lt;/li&gt;
+&lt;li&gt;Install and configure ClamAV and make it run with Amavis&lt;/li&gt;
+&lt;li&gt;Install and configure Spamassasin and make it run with Amavas&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Chapter 4 - "Dovecot, The Friendly Frontdesk" - About letting your customers read and send their mail&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Small introduction to Dovecot&lt;/li&gt;
+&lt;li&gt;Introduction to IMAP and POP3&lt;/li&gt;
+&lt;li&gt;Configure Dovecot to use IMAP&lt;/li&gt;
+&lt;li&gt;Setup SSL/TLS inside Dovecot&lt;/li&gt;
+&lt;li&gt;Hashing our users passwords with doveadm&lt;/li&gt;
+&lt;li&gt;Setting up extra mail folder&lt;/li&gt;
+&lt;li&gt;Connecting with an email client&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;Chapter 1 - “Postfix, The Conveyor Belt”&lt;/h3&gt;
+&lt;p&gt;The first and most important piece is &lt;em&gt;Postfix&lt;/em&gt;. This nifty program is our centerpiece; the basis of our mail system. Without it, we'll have a beautiful politician: nice to look at, but does absolutely nothing. Postfix is whats called a &lt;em&gt;MTA&lt;/em&gt;, which is short for &lt;em&gt;Mail Transfer Agent&lt;/em&gt;. &lt;/p&gt;
+&lt;p&gt;What it basically does is receive the mail, pulls it through various checkpoints and if all is well, drops it off at the correct end point. This endpoint can either be a users local “mailbox” or another MTA on another server.&lt;/p&gt;
+&lt;p&gt;You can think of it as the main conveyor belt in our factory (hence the word Transport in MTA). It runs through our entire factory, starting and finishing at the same point, making a loop so to speak. This means that the transport is able to receive mail, but also deliver mail through the same “gate” or &lt;em&gt;port&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;At the sides of the belt are various workers who need to check the email on different criteria like viruses, spam, … . They will pick up the mail from the conveyor belt, check it, and if it is good put it back on the transport. If it is bad they can mark it as so and put it back on the belt or they might discard it all together. It all depends on how you, as the big boss, instruct your workers.&lt;/p&gt;
+&lt;p&gt;Other workers are stationed after these so called “Milters” and are instructed to read out the recipient name and carry it to their mailbox. Or, if the recipient is not known in this factory, carry it to the boss his mailbox and let him decide what to do with it.&lt;/p&gt;
+&lt;p&gt;After those we finally have workers who will put new mail onto the conveyor belt to be sent out from this factory to another factory.&lt;/p&gt;
+&lt;p&gt;But before we can install the conveyor belt and hire all our workers, we'll have to do a little bit of work on the outside of our factory; more specifically our factory name. Otherwise the mailmen cannot find our building, right?&lt;/p&gt;
+&lt;p&gt;Postfix requires us to have a &lt;em&gt;Fully Qualified Domain Name&lt;/em&gt; or &lt;em&gt;FQDN&lt;/em&gt;. Thats our full domain name, including our mail prefix, as our server name. To find out what your current server name is, you can use the command &lt;em&gt;hostname&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ hostname
+&lt;/pre&gt;
+
+
+&lt;p&gt;If it reads some funky name that is not your domain name then the mailmen will never be able find your building and thus Postfix will refuse to start. &lt;/p&gt;
+&lt;p&gt;If your domain is &lt;em&gt;example.org&lt;/em&gt; and you want your mail prefix to be &lt;em&gt;mail.example.org&lt;/em&gt; then thats what your FQDN should be. &lt;/p&gt;
+&lt;p&gt;To change your hostname you have to edit the "/etc/sysconfig/network" file and set the "HOSTNAME=" paramter:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;HOSTNAME&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s2"&gt;"mail.example.org"&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Be sure to reboot your machine after setting your new hostname.&lt;/p&gt;
+&lt;p&gt;After you set the server hostname, you will have to tell Postfix about it, but we'll do that later...keep on reading, lets first get ready to install Postfix!&lt;/p&gt;
+&lt;p&gt;Always try to install the latest, stable packages, &lt;em&gt;especially on a server thats open to the Internet&lt;/em&gt;. In CentOS, you basically have older, stable packages in your basic repositories. To enable newer packages you have to import a third-party repo. For installing Postfix I'll use &lt;em&gt;CentOS ALT&lt;/em&gt;.
+To find out about different repositories for any Linux distro, not only CentOS, I recommend &lt;a href="http://pkgs.org" title="Linux packages website"&gt;pkgs.org&lt;/a&gt;. It provides you with a clean search engine and a detailed outline of the available packages for your system.&lt;/p&gt;
+&lt;p&gt;First, import the repository into your installation. To do this, search and install the latest release rpm (in this case Centalt) file to your server:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ rpm -Uvh http://centos.alt.ru/repository/centos/6/x86_64/centalt-release-6-1.noarch.rpm
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now, lets start by installing that conveyor belt, shall we?&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ yum install postfix
+&lt;/pre&gt;
+
+
+&lt;p&gt;There you go, a fresh new conveyor belt, ready to roll...well, almost anyway. First a small peek under Postfix's hood.&lt;/p&gt;
+&lt;p&gt;Although you installed the Postfix program as one package, it will actually spawn several different daemons controlled by one master daemon. All these daemons are responsible for the different tasks Postfix can perform or that make Postfix interact with other programs. &lt;/p&gt;
+&lt;p&gt;The reason for this multi-daemon setup is merely out of security reasons. Because each of these daemons can only perform small tasks and have only limited rights, the impact of a daemon being compromised can be kept very minimal.&lt;/p&gt;
+&lt;p&gt;Keeping this in mind is crucial for being able to configure Postfix correctly. &lt;/p&gt;
+&lt;p&gt;One part of making Postfix tick is to setup the different daemons you would like to use in your system. You don't need more daemons then necessary; this would only consume system resources and bring in possible security threats.&lt;/p&gt;
+&lt;p&gt;Note: its possible to edit Postfix's configuration without opening any configuration file by using the &lt;em&gt;postconf&lt;/em&gt; command. I don't endorse using this command because I believe it is essential to see the structure of the configuration files and to know what other (maybe conflicting) values are in there. So in these posts I wont be using postconf but I will edit the configuration files directly instead.&lt;/p&gt;
+&lt;p&gt;Lets crack open the first configuration file in Postfix: the &lt;em&gt;master.cf&lt;/em&gt; file.&lt;/p&gt;
+&lt;p&gt;This file contains the information about all the daemons you want to spawn when running Postfix.&lt;/p&gt;
+&lt;p&gt;You can consider each daemon the connecting piece between your conveyor belt and the different workers around it. Throughout this post we will be returning to this file when we install new pieces around our conveyor belt.&lt;/p&gt;
+&lt;h4&gt;SMTP&lt;/h4&gt;
+&lt;p&gt;The first daemon we want to enable is our &lt;em&gt;SMTP&lt;/em&gt; daemon.&lt;/p&gt;
+&lt;p&gt;What is SMTP you ask? Its short for Simple Mail Transfer Protocol.&lt;/p&gt;
+&lt;p&gt;It is a standard in electronic mail transmission that takes care of sending and receiving mail between servers. SMTP creates guidelines for servers so that they can break up and transmit mail messages. It was presented in a &lt;a href="http://tools.ietf.org/html/rfc821" title="The 1982 spec about SMTP"&gt;1982 spec&lt;/a&gt; as a successor to FTP Mail.&lt;/p&gt;
+&lt;p&gt;SMTP roughly works as follows: when sending out a mail message with your mail client, all the different parts (sender, recipient, message body, ...) are put together in the form of text strings. These strings are separated by code words that SMTP can interpret so it knows what the "To:" address is, what the "Subject" is and what the "Message Body" contains. SMTP then looks at the "To:" addres(ses) and breaks it up into the user part (before the @) and the domain part (after the @). With this information, SMTP knows to which outside SMTP server to connect to deliver the mail. The receiving SMTP server in turn knows all the different parts and uses the simple commands to see if it knows the user that is in the "To:" part. If the user is known it will deliver the mail into the correct endpoint. When the user retrieves his/her mail with a mail client, that client, in turn, understands in which field to put which text when you are displaying the mail on your screen.&lt;/p&gt;
+&lt;p&gt;In our factory analogy the SMTP daemon is the workstation sitting between the outside of our factory and the start and endpoint of our conveyor belt. The factory has many gates on which things can be delivered or sent, but the SMTP workstation sits at gate 25.&lt;/p&gt;
+&lt;p&gt;But hold on...knowing that we want to make a ready-to-use mailserver, hooked up on the internet and thinking of the fact that SMTP uses simple text strings to sent information over, should make you cringe a little bit. Plain text from one server to the other...that can't be good right? Well, in the old days when internet was only used by Unicorns to communicate lovely, fluffy messages to each other, all was fine. But sending pure, unencrypted text messages in this day of age may not be the best idea...&lt;/p&gt;
+&lt;p&gt;So we need to secure things up...but how?&lt;/p&gt;
+&lt;p&gt;The short answer is: we could do it through &lt;em&gt;Transport Layer Security (TLS)&lt;/em&gt; or &lt;em&gt;Secure Socket Layer (SSL)&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;To fully answer that question, we will have to dive briefly into how current security mechanisms work on the internet.&lt;/p&gt;
+&lt;h4&gt;Lets go on a small trip to Secure land&lt;/h4&gt;
+&lt;p&gt;You probably have heard of the term &lt;em&gt;SSL&lt;/em&gt;, which stand for &lt;em&gt;Secure Socket Layer&lt;/em&gt;. This, &lt;em&gt;proprietary&lt;/em&gt; protocol was invented by Netscape way back and is intended to secure information and verify ownership. This protocol is mostly used in web browsers to authenticate websites (so you know that you are really visiting the website you want to visit) and encrypt the traveling data (so that nobody can eavesdrop over the wire). You know you are dealing with SSL when the address bar reads https instead of http (in most cases).&lt;/p&gt;
+&lt;p&gt;TLS does exactly the same thing, but in a slightly different way. Created by the IETF, TLS is actually the successor of SSL.
+Or to be more correct, TLS is the &lt;em&gt;open and standardized&lt;/em&gt; version of SSL.&lt;/p&gt;
+&lt;p&gt;A common mistake is to think that the main, big difference between SSL and TLS is that TLS can run on the same port where you would also run your insecure traffic. It could "upgrade" that port to accept a secure connection. This thought seems to be one of the biggest myths floating around SSL/TLS. The truth is: both protocols support running on the same port as there insecure variants. Even more so, on a protocol level, the difference between version 3 of SSL (SSLv3) and the first iteration of TLS (TLSv1.0) are so small you could consider both as the thing. So, in theory, you could use both SSL and TLS on the same ports for securing email traffic.&lt;/p&gt;
+&lt;p&gt;But, if we want to be totally spec complaint (you generally want to be just that) we have to forget about SSL completely.
+As the specification states, it is only allowed to use a STARTTLS command followed by a TLS secure connection.&lt;/p&gt;
+&lt;p&gt;Okay, kinda clear, but how does TLS (or SSL) work underwater?&lt;/p&gt;
+&lt;p&gt;Hmm, good question, okay, lets make a small sidestep here.&lt;/p&gt;
+&lt;p&gt;This is where a mechanism called &lt;em&gt;Public key Cryptography&lt;/em&gt; comes in to play. This mechanism provides each person with 2 keys, a &lt;em&gt;public&lt;/em&gt; and a &lt;em&gt;private&lt;/em&gt; one. The public key can be used to encrypt data where as the private key can be used to decrypt that data again and vice versa. The public key is known to the "whole world", the private one is only know to the owner. &lt;/p&gt;
+&lt;p&gt;When you send a message to someone, you can encrypt it with that persons public key, because everyone has everyone's public keys (given that you gave everyone your public). The data in that message can in turn only be decrypted with that persons private key. So, if the person really kept that key private, the data is secure. &lt;/p&gt;
+&lt;p&gt;And in reverse, if someone encrypts the data with his private key, every one can open it because the public key is known to the world. &lt;/p&gt;
+&lt;p&gt;Whats the purpose of doing the latter? &lt;/p&gt;
+&lt;p&gt;Well, it proves, without a doubt, that the message was sent by the owner of the private key, no one else could have encrypted that message with that key.
+So it works both ways. You can securely sent data, but also securely receive data while verifying it really comes from the person you expect it to come from.&lt;/p&gt;
+&lt;p&gt;These public and private key pairs can be made and installed by yourself, as we will do further up in this chapter.
+But the problem with making them yourself is that it is still difficult to setup trust between you and a person who doesn't know you.
+Also, the browser won't recognize your so called &lt;em&gt;self-signed&lt;/em&gt; certificate and issues a warning to the user saying that its from an untrusted source.&lt;/p&gt;
+&lt;p&gt;If you setup a personal mail server, as I have, then making a self-signed certificate is perfectly okay and you can safely ignore the browsers initial warning message, because who trusts yourself better then you do, right? &lt;/p&gt;
+&lt;p&gt;But if you want to setup a public mailserver, that everyone can visit and use, these keys should be handed out by a third party organization called a "Trusted Registry". Besides the fact that these organizations have too much authority and charge way to much for these certificates, you are still bound to them. They will act as a trusted, third person who checks that the server you want to secure is really yours and, of course, checks your identity. And most (modern) browsers accept these "official" certificates without warning.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Update&lt;/em&gt;: Recently a new Trusted Registry called &lt;em&gt;StartSSL&lt;/em&gt; raised itself up and is currently whipping the established mobs ass. They deliver &lt;em&gt;free&lt;/em&gt;, yes &lt;em&gt;FREE&lt;/em&gt; certificates. Well, non-wildcard, single domain certificates are free. If you want a wildcard or multi-domain certificate, you also pay just a &lt;em&gt;fraction&lt;/em&gt; of the price of the more common Mafia certificate issuers.&lt;/p&gt;
+&lt;p&gt;To acquire such a certificate you register one their &lt;a href="http://startssl.com" title="STARTSSL Website"&gt;site&lt;/a&gt; and you can order a certificate of choice. One cool thing about their way of handling things: you will get a certificate you have to install into your browser to be able to login to your account. Now that is taking security seriously!&lt;/p&gt;
+&lt;p&gt;So with this new gained knowledge, lets see how the state of affairs is when it comes to securing email with TLS/STARTTLS?&lt;/p&gt;
+&lt;p&gt;The next two versions of TLS (TLSv1.1 and TLSv1.2) are better prepared for more "recent" attack methods like the BEAST attack and offer enough security upgrades for them to be in favor of TLSv1.0.&lt;/p&gt;
+&lt;p&gt;But here you are faced with two new issues.&lt;/p&gt;
+&lt;p&gt;The first one being the client software. Client software wouldn't be client software if they would support these shiny, new protocols.
+In many cases...they don't. They still hang around TLSv1.0.
+So here you are as a server admin, wanting to give your users the utmost secure protocol available...but the users clients prohibit it.&lt;/p&gt;
+&lt;p&gt;The second issues is the so called STARTTLS command itself.&lt;/p&gt;
+&lt;p&gt;The way STARTTLS works is it first establishes an insecure connection. Traveling with that initial connection is a request to the server asking it to start a secure connection.
+This command (or request if you will) is, oh yes, a &lt;em&gt;plain text&lt;/em&gt; command. Knowing it is plain text, a person eavesdropping on your connection (a so called MitM or Man in the Middle) can simply read out that command and alter it. That middle man can delete that request for a secure connection by which the mailserver will setup an unencrypted connection to your client thus our eavesdropper is able to read out your email traffic.&lt;/p&gt;
+&lt;p&gt;How can I prevent this from happening?&lt;/p&gt;
+&lt;p&gt;Well...you can't. This really is a client-side issue.&lt;/p&gt;
+&lt;p&gt;To really prevent a downgrade of the connection, the users mail client has to enforce a secure connection and not accept plain text data traveling back to it.
+And to really, really be secure, the user needs to be &lt;em&gt;trained&lt;/em&gt;. Trained on how the internet works, trained to install a client side certificate on her/his computer, trained not to blindly accept every server-side certificate that comes floating by...but for most email users, this, regretfully, is a bridge to far.&lt;/p&gt;
+&lt;p&gt;Good, that was a big chunk to chew over in Secure Land, but we made it through!&lt;/p&gt;
+&lt;p&gt;I advice you, though, to dig deeper into this matter as it is crucial to know how the internet secures itself and how this effects you as a user and a server admin.
+For now, lets continue by having a quick look at the different ports available for mail traffic.&lt;/p&gt;
+&lt;p&gt;There are three commonly known ports for transferring email: The standard SMTP port &lt;em&gt;25&lt;/em&gt; which can be secured through TLS/SSL using STARTTLS, port &lt;em&gt;465&lt;/em&gt; which can be secured through SSL, and finally port &lt;em&gt;587&lt;/em&gt; which, like port 25, can use STARTTLS as a security upgrade request.&lt;/p&gt;
+&lt;p&gt;The reason for these different ports is a historical one where port 25 being the standard SMTP port already coined in the 1982 spec where SMTP was first introduced. Port 587 being the port that is considered the default port to be used in "modern", secure SMTP transfers, also called the &lt;em&gt;Submission&lt;/em&gt; port. Port 465 is an "unofficial" port that is not mentioned by the &lt;a href="http://tools.ietf.org/html/rfc3207"&gt;Internet Mail Consortium spec RFC3207&lt;/a&gt; and thus considered unorthodox to use.&lt;/p&gt;
+&lt;p&gt;But if both port 25 and port 587 can be secured in exactly the same way, and are both spec complaint, why not simply use port 25?&lt;/p&gt;
+&lt;p&gt;Ah, that a good question, another juicy detail to consider is that port 25 is blocked or relayed by most home user ISPs because it is commonly used by many infected, home user PC's to sent out spam. You can find many ranting flame wars about blocking port 25 for this purpose, mainly saying that its like treating long cancer with a cough syrup and that by blocking a valuable port is not tackling the real problem of spam. But, lets not discuss it here.&lt;/p&gt;
+&lt;p&gt;So in theory it would be best practice to use port 25 (or standardized practice anyway...), but the ISP's, having to much power under there fingertips, make this impossible. Therefor it is agreed upon to use port 587 to setup a secure connection to a mail server.&lt;/p&gt;
+&lt;p&gt;So our factory opens up gate 587.&lt;/p&gt;
+&lt;p&gt;Do we also need to bolt down gate 25, because it is used for spam, right?&lt;/p&gt;
+&lt;p&gt;Ah, euhm...no. We still need this port for communication between the different mailservers themselves.&lt;/p&gt;
+&lt;p&gt;What we addressed above was the communication between the mail server and the clients computer.
+When a user sends an email with his/her client to your server, the submission service (587) will be used.
+The client uses an general, not so smart ISP to connect to the internet and thus is effected by port 25 being blocked.&lt;/p&gt;
+&lt;p&gt;But mailservers, who are connected through the internet via more professional ways, still have access to that port and still use it to communicate between them.&lt;/p&gt;
+&lt;p&gt;Oh, so we also have to setup encryption on this port 25 too?&lt;/p&gt;
+&lt;p&gt;I'm afraid not. Welcome to the wonderful world of mail. The traffic between mailserver is mostly &lt;em&gt;not encrypted&lt;/em&gt;.
+And because many servers don't encrypt, your server cannot blindly assume it can send out secure traffic, there is a big chance the receiving server won't understand it.
+The only way you can try to get a secure connection is, again, through the STARTTLS command, but as we have seen, that request can be easily removed by an attacker.&lt;/p&gt;
+&lt;p&gt;So your mails are (mostly) protected when traveling from your desktop to the mailserver, but are just plain text when sent to another mail server.
+The only comfort you have here is that its harder to scan traffic between mailservers then it is to scan outgoing traffic from your computer.&lt;/p&gt;
+&lt;h4&gt;Back to our mailserver&lt;/h4&gt;
+&lt;p&gt;To correctly enable port 587 in our CentOS installation we first need to configure our firewall (assuming you have a firewall installed, which of course is &lt;em&gt;highly recommended&lt;/em&gt; if you are connect to the internet!). Open up port 587 and be sure to check if port 465 is not open while you're at it, you can also close that one down too. Now this series is not about configuring your firewall and there are many different firewalls out there that you can use, so I will not go into detail on how to change these settings. I currently use IPTables and find it to be quite difficult to configure or read the rendered out configuration file. But that's mainly what you are stuck with, by default, when using Linux.&lt;/p&gt;
+&lt;p&gt;Ok, we have configured our firewall, lets to the same for our Postfix daemons.
+Go ahead, open up the master.cf file:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ vi /etc/postfix/master.cf
+&lt;/pre&gt;
+
+
+&lt;p&gt;Uncomment the "submission" line and all the overwrites you find under it.
+The overwrites start with a few spaces and the character -o. These lines are used to overwrite configuration variables that can be set in the main.cf file. 
+But be careful uncommenting these lines: don't erase the spaces in front, otherwise Postfix won't recognize them as additions to the Submission line.&lt;/p&gt;
+&lt;p&gt;Eventually the entries should look something like this:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;submission     inet  n       -       n       -       -       smtpd 
+    -o syslog_name=postfix/submission
+    -o smtpd_tls_wrappermode=no
+    -o smtpd_tls_security_level = encrypt
+    -o smtpd_sasl_auth_enable=yes 
+    -o smtpd_client_restrictions=permit_mynetworks,permit_sasl_authenticated,reject 
+    -o milter_macro_daemon_name=ORIGINATING
+&lt;/pre&gt;
+
+
+&lt;p&gt;Now, what did you actually do?&lt;/p&gt;
+&lt;p&gt;Well, as you know, the first line you uncommented was to tell postfix to spawn and use the submission service on the SMTP daemon.&lt;/p&gt;
+&lt;p&gt;The extra overwrites I will explain in a little bit more detail.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;-o syslog_name=postfix/submission
+&lt;/pre&gt;
+
+
+&lt;p&gt;This line merely tells Postfix to write events happening with this daemon in the maillog under the name “postfix/submission”. You can change this to what ever seems fit, but I think the default is already quite decent.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;-o smtpd_tls_wrappermode=no
+&lt;/pre&gt;
+
+
+&lt;p&gt;This line tells Postfix to not use TLS fallback for older mail clients that don't understand STARTTLS.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;-o smtpd_tls_security_level=encrypt
+&lt;/pre&gt;
+
+
+&lt;p&gt;This line enforces TLS to be used. This means that clients who try to make an insecure connection or try to connect with SSL will be blocked by Postfix.&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;-o smtpd_sasl_auth_enable=yes
+&lt;/pre&gt;
+
+
+&lt;p&gt;This one enables &lt;em&gt;SASL&lt;/em&gt; authentication. Another abbreviation...Whats SASL?&lt;/p&gt;
+&lt;p&gt;SASL stands for Simple Authentication and Security Layer. It is a mechanism that provides a way of secure authentication (username/password) to protocols such as SMTP, POP and IMAP. &lt;/p&gt;
+&lt;p&gt;Oh wait...but doesn't STARTTLS use SSL/TLS for security? &lt;/p&gt;
+&lt;p&gt;Yes, it uses SSL/TLS, but it also uses SASL, they are complementary.&lt;/p&gt;
+&lt;p&gt;TLS is used for the “outside” traffic if you will, to encrypt the mails and verify the remote servers identity, as we discussed above. SASL is used to secure the “internal” traffic, the authentication between the mail server protocols and the mail user agent (your mail program). We'll touch more on this in our next chapter.&lt;/p&gt;
+&lt;p&gt;On to the next line:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;-o smtpd_client_restrictions=permit_mynetworks,permit_sasl_authenticated,reject
+&lt;/pre&gt;
+
+
+&lt;p&gt;By default this important line is empty or filled with a few defaults. Postfix uses this line to see what type of requests it will accept or not.
+But, instead of using this line, we will rename it to another restriction list: the "smtpd_recipient_restrictions" list.&lt;/p&gt;
+&lt;p&gt;Why?&lt;/p&gt;
+&lt;p&gt;Well, Postfix has around 6 restriction lists that are parsed, one after the other. If one gives the "OK" command, it will continue to the next list.
+If you use the &lt;em&gt;smtp_client_restrictions&lt;/em&gt; list, this will have exactly the same result, but it will happen sooner in the process.
+It will happen so soon that the log files will contains not enough information for you to troubleshoot.&lt;/p&gt;
+&lt;p&gt;If you use the &lt;em&gt;smtp_recipient_restrictions&lt;/em&gt; list instead, more useful information will be written in the logs (mainly sender and recipient addresses).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Update :&lt;/strong&gt; since Postfix 2.10 it is recommended you use a new setting called &lt;em&gt;smtp_relay_restrictions&lt;/em&gt; instead and set it up with these defaults:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;-o smtpd_relay_restrictions=permit_mynetworks,permit_sasl_authenticated,defer_unauth_destination
+&lt;/pre&gt;
+
+
+&lt;p&gt;You can specify a comma separated list of values corresponding to different types of requests you want the SMTPS daemon to support.
+This line is also our first line of defense against spam. Through a few simplistic mechanisms, Postfix is already able to determine if a message is from a trusted source or not.&lt;/p&gt;
+&lt;p&gt;We'll keep this line clean and simple, only adding support for local networks, so Postfix can handle mail from clients in the same subnet, and SASL authenticated clients. Everyone else, we reject.&lt;/p&gt;
+&lt;p&gt;Prior to 2.10, we would use the &lt;em&gt;smtp_recipient_restrictions&lt;/em&gt; line, at the end of this line it is good practice to set some kind of 'reject' value. This sends a correct reject message back if non of the specified values prior to this reject value where used in the request. This will also help to prevent your mail server of becoming a so called "open-relay server" which spammers can use to send mail through.&lt;/p&gt;
+&lt;p&gt;In the new &lt;em&gt;smtp_relay_restrictions&lt;/em&gt;, the final setting &lt;em&gt;defer_unauth_destination&lt;/em&gt; will take care of this for us. You &lt;em&gt;don't&lt;/em&gt; need to set the &lt;em&gt;reject&lt;/em&gt; value anymore.&lt;/p&gt;
+&lt;p&gt;After reading through this, and you are using a Postfix prior to 2.10, your line should look similar to this:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;-o smtpd_recipient_restrictions=permit_mynetworks,permit_sasl_authenticated,reject
+&lt;/pre&gt;
+
+
+&lt;p&gt;From 2.10 and up it should read:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;-o smtpd_relay_restrictions=permit_mynetworks,permit_sasl_authenticated,defer_unauth_destination
+&lt;/pre&gt;
+
+
+&lt;p&gt;Good, on to the final, funny looking line:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;-o milter_macro_daemon_name=ORIGINATING
+&lt;/pre&gt;
+
+
+&lt;p&gt;This guy sets the mail filter (milter) macro daemon name to be used.
+&lt;em&gt;Milter&lt;/em&gt; is an API that enables programs outside Postfix (our "Milter" workers at the sides of the conveyor belt) to tap into the transport and inspect SMTP events and mail content for viruses and spam.
+We will touch on this in one of the future chapters. &lt;/p&gt;
+&lt;p&gt;You have setup your SMTP daemon. You can now save that file.&lt;/p&gt;
+&lt;p&gt;Remember in the beginning of the chapter we where talking about setting up a FQDN? Now its time to tell Postfix about it.
+We will do that by setting the myhostname parameter in the main.cf file. By setting this parameter Postfix has enough information to derive your base hostname, mydomain parameter in the same main.cf file. So you dont need to set this separately.&lt;/p&gt;
+&lt;p&gt;To set this, open up the main.cf file&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ vi /etc/postfix/main.cf
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then find the &lt;em&gt;myhostname&lt;/em&gt; parameter. You will see a small explanation about this parameter and one or two myhostname sections in comment. It is good practice to not alter these lines by uncommenting them, but to just add your own, new line under it. This way you keep the example intact. If your FQDN was mail.example.org then insert that value:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;myhostname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; mail.example.org
+&lt;/pre&gt;
+
+
+&lt;p&gt;Don't exit the file just yet, because here are two more parameters that are best to be set: &lt;em&gt;myorigin&lt;/em&gt; and &lt;em&gt;mydestination&lt;/em&gt;.
+The myorigin parameter is used by Postfix to set a correct domain when users sent email that contains no domain in the envelope or header adres. You could set &lt;em&gt;myorigin&lt;/em&gt; to equal &lt;em&gt;myhostname&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;myorigin&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$myhostname&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;But then emailadresses who had an empty header or envelope domain will have an email adres set like so: info@mail.example.org...that does not look pretty.
+You probably want it to be info@example.org. To achieve this set the &lt;em&gt;myorigin&lt;/em&gt; to equal &lt;em&gt;mydomain&lt;/em&gt;:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;myorigin&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nv"&gt;$mydomain&lt;/span&gt;
+&lt;/pre&gt;
+
+
+&lt;p&gt;Et voila, now its a pretty mail adres. Remember, you did not need to set the &lt;em&gt;mydomain&lt;/em&gt; parameter because Postfix automatically derives it from &lt;em&gt;myhostname&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;The final parameter for now is &lt;em&gt;mydestination&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;This one tells Postfix from which local domains to receive mail from. In most mail setups that use one computer to handle all daemons, the default setting is perfect. The default settings tells Postfix to only receive mail from the &lt;em&gt;myhostname&lt;/em&gt; and local.mydomain. Check this in your main.cf file.&lt;/p&gt;
+&lt;p&gt;That's it for now!&lt;/p&gt;
+&lt;p&gt;For Postfix to pick up all these changes you have to reload or restart the daemon.
+I'm always in favor of totally restarting the daemon, but thats just my paranoia. Issue the following command to restart the daemon:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ /etc/init.d/postfix restart
+&lt;/pre&gt;
+
+
+&lt;p&gt;There, you have a basic Postfix working extended by a secure version of SMTP.&lt;/p&gt;
+&lt;p&gt;Try it, send email to a mailbox outside your system. 
+Use the mail command to send mail like so:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ mail foobar@domain.tld
+&lt;/pre&gt;
+
+
+&lt;p&gt;If you dont have the mail command, which is the case if you had a bare minimums install of CentOS, then install it like so:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ yum install mailx
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then enter a subject and press enter. Finally enter some body text and press CTRL-D to send the mail and exit the program. The mail should now arrive in your external inbox.&lt;/p&gt;
+&lt;p&gt;Now, chances are that you already can receive mail because you did not block port 25.
+Try replying to the email you just sent, and punch in the mail command after a few seconds.
+There should be a new mail waiting for you!&lt;/p&gt;
+&lt;p&gt;Now, before we go, lets create our certificate and tell Postfix about it, we will need it in the next chapters.
+For our TLS to work we need at least 2 files, a key file and a certificate file. These files should both be in PEM format.
+Thank to the OpenSSL library in Unix we can simply make the certificate ourselves, the so called "self-signed" certificates as we have discussed above.
+We will be storing these certificates in a "certs" directory in "etc/postfix". So first, go ahead and create the "certs" directory:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ mkdir certs
+&lt;/pre&gt;
+
+
+&lt;p&gt;Then issue OpenSSL to create the key and certificate file that will have a lifetime of about 10 years:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ openssl req -new -x509 -days &lt;span class="m"&gt;3650&lt;/span&gt; -nodes -out /etc/postfix/certs/cert.pem -keyout /etc/postfix/certs/key.pem
+&lt;/pre&gt;
+
+
+&lt;p&gt;Next we have to tell Postfix where these files are located. This can be added in your "main.cf" as such:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ &lt;span class="nv"&gt;smtpd_tls_key_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /etc/postfix/certs/key.pem
+  &lt;span class="nv"&gt;smtpd_tls_cert_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; /etc/postfix/certs/cert.pem
+&lt;/pre&gt;
+
+
+&lt;p&gt;Remember to restart Postfix:&lt;/p&gt;
+&lt;pre class="code literal-block"&gt;&lt;span&gt;&lt;/span&gt;$ /etc/init.d/postfix restart
+&lt;/pre&gt;
+
+
+&lt;p&gt;Congratulations! The basics of our conveyor belt are running smoothly!&lt;/p&gt;
+&lt;p&gt;Take a rest, drink some tea, you deserved it!
+In chapter 2, which will be online soon, we'll look at how we can fit the PostgreSQL database into our mailsetup for smooth user and mailbox management.&lt;/p&gt;
+&lt;p&gt;PS: No mail arrived on your external mailbox? Then our maillog is our friend!&lt;/p&gt;
+&lt;p&gt;Postfix logs all events in a file called maillog. You can find this file together with all other logs in /var/log.
+Go to the end of the file to find out the most recent error messages and see what could have went wrong. Common pitfalls are a firewall still blocking port 587 or syntax errors in your main.cf or master.cf file.&lt;/p&gt;
+&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>postfix</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-1.html</guid><pubDate>Fri, 08 Mar 2013 09:00:00 GMT</pubDate></item></channel></rss>

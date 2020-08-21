@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html><body><p>## -*- coding: utf-8 -*-
+
+
+
+
+
+<article class="listpage"><header><h1>${title|h}</h1>
+    </header>
+    ${archive_nav.archive_navigation()}
+    ${feeds_translations.translation_link()}
+    %if items:
+    <ul class="postlist">
+    % for text, link, count in items:
+        <li>
+<a href="%24%7Blink%7D">${text|h}</a>
+        % if count:
+            (${count})
+        % endif
+    % endfor
+    </li>
+</ul>
+    %else:
+    <p>${messages("Nothing found.")}</p>
+    %endif
+</article>%block&gt;</p></body></html>

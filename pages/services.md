@@ -1,0 +1,142 @@
+<!--
+.. title: Services
+.. slug: services
+.. date: 2014/03/11 20:00:00
+-->
+
+In daily life I venture as a freelancer and thus may be able to help you professionally with a variety of services.
+If you wish to discus a project, tiny, small, medium, large or big, send me <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">an email</a> and I am sure we can work something out. 
+
+## Quick and dirty
+
+So what is it that I have to offer you?
+
+### Python based websites & web applications
+
+Professionally and passionately written, version controlled Python based websites & web applications using Flask and PostgreSQL in either Python 2 or 3, including code documentation, unit tests and database migrations.
+
+### JavaScript applications (SPAs, Multi-page, ...)
+
+Modular, maintainable and unit-tested JavaScript applications (SPAs, Multi-page, ...), using the Backbone library in combination with RequireJS, Node, Bower, Grunt, Mocha, Chai and Blanket. 
+
+### Drupal websites & web applications (Drupal 6, 7 or 8)
+
+Crafting and maintaining of Drupal websites & web applications using only community approved and tested modules. Including migration from older Drupal versions or from other CMS systems such as Joomla, Wordpress, ...
+
+### Linux server installation & management
+
+Providing a basic managed server service for your unmaintained Linux box (or VPS), getting you off a broken shared host and on a dedicated Linux install, including full server installation and setup.
+
+Want to know more details? Let me first give you a dry, technical rundown of my working style after which I will elaborate a bit on what I have in store for you.
+
+## How I write a project
+
+* Unit tests: All code I write is written to be tested as atomic as possible, trying to reach the highest amount of code coverage. Using both Pytest and Nose as my testing tools.
+* Version control: Every aspect (except the sensitive bits containing credentials of any kind) are kept under version control. Commits are made as atomic as possible, carrying descriptive commit messages. I use both Mercurial and GiT.
+* Code documentation: All code I write is documented inline using Python's PEP 257 Docstring guidelines.
+* External documentation: Besides inline documentation I provide you with full application/code documentation written in LaTeX.
+* Database migration: After going live, all structural changes to the database are tracked, kept under version control and applied through Python's Nomad.
+* Code style: All code is written in accordance with PEP 8 and this standard is, where possible, adhered to the maximum.
+* Code logging: Through Python's core logging mechanism I provide every custom application with as much logging capabilities as possible.
+* PostgreSQL: No beating around the bush on this subject, PostgreSQL is a stable, sturdy and logical choice for small and large projects alike, using PsycoPG2 as the glue to Python. No ORM's allowed.
+
+## How I deploy a project
+
+* Most projects run on a dedicated Debian 7+ tailored OS and use a *no fuzz* setup comprised of Nginx and uWSGI.
+* Deployment is done strictly through version control.
+* Nginx is used as a reverse proxy to uWSGI and to serve non-WSGI content (static files) directly. It is a low memory, event driven server with a surprisingly easy configuration syntax.
+* uWSGI is used as the WSGI server, using the Emperor for product ready Vassal management through separate Vassal configuration files.
+
+## How do I manage a server
+
+* Servers are secured using Shorewall as the IPTables kernel setup tool, Fail2ban is used to keep frequent, ill-wanted knockers at the gate.
+* No root nor password access, only SSH keys of sufficient length are allowed.
+* Munin 2 is used to tap into Nginx, uWSGI, PostgreSQL and OS related processes to track, graph and alert about system events.
+* If applicable, I will extend Munin using its Perl plugin system to write tailored application specific trends monitors.
+* OS packages are kept up-to-date with a small report on every update round
+* Server stack packages are kept up-to-date with an identical report on every update round.
+* Updates and possible restarts are only done during Japanese office hours, which is favorable for all European, American and Canadian customers as possible downtime will thus only occur at nighttime in these areas.
+
+So what is it that I have to offer you?
+
+## Custom web development
+
+If you have a custom web project that would not be fit for an out-of-the-box framework such as Drupal (more about that in the Drupal section below) I offer custom web development services.
+Writing your application from the ground up in Python, using the Flask microframework as a base.
+
+While using the custom site development approach it is possible to create a website or web application that only contains the parts you need, cutting out the generics, avoiding bloat.
+
+Direct benefits of a custom approach are:
+
+* Speed improvements: Because there are less generic abstractions in code and/or idea, you can many times "shortcut" directly to your desired action instead of having to check several possible hooks which a user can influence.
+
+* Security improvements: Less generic code means more control over internal flow and  underlying  components. Better password hashing can be chosen (eg, BCrypt over SHA), more secure separation of code and templates can be achieved (eg. Jinja2 or lxml over string manipulation), proper form protection can be build (eg, CSRF), ... 
+
+* Better user experience: When using a generic framework you are in many ways restricted to what that framework offers. Placements of and interaction with interface elements are many times predefined and difficult to influence as is the flow from one screen to the other. When creating everything from the bottom-up you get almost full control over how everything behaves.
+
+## Basic Linux server management
+
+Maintaining Linux servers based on Debian or CentOS (and even Nixos) has also been one of my occupations in the last few years.
+
+Providing a basic managed server service for your unmaintained Linux box (or VPS), getting you off a broken shared host and on a dedicated Linux install.
+
+Of course, as an individual it is impossible to compete with the big guys and give you a guarantee that I will be on-call 24/7 or provide you with a full OTAB setup. That is also not my intent. This service is one I provide for folks who are new to or feel a little bit uncomfortable with using Linux on a dedicated service like a VPS provider, but are savvy enough not to run their sites / apps on an insecure, run-of-the-mill shared hosting platform.
+
+I will setup your server, secure it, maintain it and most important of all, *teach you* how to keep maintaining it so that eventually you will not need me anymore (if you are open to it).
+
+
+What do I understand under "maintaining"?
+
+* Setting up a server tailored to your (web) needs
+* Bolting down the server with a debloated Linux firewall like Shorewall and setting up SSH key only access
+* Providing the necessary, official security (and feature) updates to the various installed packages
+* Keeping the serving stack updated and in tune with your application(s).
+* Employing Munin 2 for permanent server monitoring and alerting
+* Keeping you in the loop at all times
+
+## Drupal website creation / module development / migration
+
+### Website creation
+
+Creating websites with the Drupal 7 "framework", enriching them with widely accepted modules and using more then 5 years of dedicated Drupal development experience to give you the best advice.
+As you know (or not know) I am not always as eager to employ Drupal, so this advice could also tell you that Drupal might not be fit for your type of project. More about the reasoning behind this at the end of this section.
+
+I will employ widely accepted modules for fast and reliable site deployment. A quick stroll trough the module list:
+
+- Views for slicing and dicing your sites data
+- Panels or Display Suite for more dynamic pages
+- Solar for a full text search engine, including searching in PDF, Word, Excel, ...
+- Pathauto for creating human and SEO friendly URLs
+- Commerce for creating feature full webshops
+- I18N for internationalization and translation
+- Feeds for converting "alien" content into your website
+- Rules for creating an event driven journey for your users
+- And more ...
+
+And of course a whole bunch of "under-the-hood" modules to lighten up the user experience of your sites visitors such as Better Exposed Filters, Fieldgroup, Automatic nodetitles, BeautyTips, Editable Fields, Google Analytics, Homebox, Menu Block and much much more.
+
+### Module development
+
+Need a module not present on Drupal.org? With experience in various Drupal internal APIs (Field, Entity, Theme, ...) I will try to create a module fit to your needs or I will guide you in combining existing modules to work together so your goal can eventually be met without custom development work.
+
+### Migration
+
+Still stuck on Drupal 6 or, dare I say it, Drupal 5? I have the necessary battle scars in migrating them to a newer, safer Drupal 7.
+Also remember that Drupal 6 will soon reach its end of life cycle and that all updates, including important security ones, will cease.
+
+On Joomla, Wordpress or another CMS and wish to transition to Drupal? Let me roll up my sleeves for you and get the job done.
+
+### Drupal, A Word of Caution
+
+So, why would I advice you not to use Drupal?
+
+While Drupal is a great (graphical) framework for rapidly building and maintaining your website, it is also a very generic system. It does not make much assumptions before hand, trying to deliver full flexibility to build whatever your can imagine. And in that aspect lies the problem, it is *too* generic. There are too many abstractions and too many nooks and crannies that can be influenced by the user and thus need to be checked with each page request. The more modules you enable, the more users your Drupal site gets, the slower it will become.
+
+Now there are Drupal developers who will try and bypass this slow-down caveat, sweep it under the rug so to speak, by employing a variety of caching systems such as reverse proxies (Varnish, Squid, ...), load balancing between servers or by using many of Drupal's built-in caching mechanisms to retrieve pre-rendered pages, blocks, views or other components.
+
+Do not get me wrong, a little bit of caching here and there will not hurt, like a few pinches of salt will lighten up your food. But as throwing in the full contents of your saltshaker will most likely stun your dinner guests, turning to heavy caching mechanisms to get any decent page response time will only frustrate your visitors, frustrate you and eventually frustrate Drupal itself.
+
+Caching to speed up your site is simply covering up the real problem and *it will* turn its back on you sooner or later. If serious caching is needed in turn for adequate response time, you probably need to stop using Drupal.
+
+It is my personal experience, in building complex Drupal sites, that Drupal is perfect for small to medium sized websites, but to be *absolutely avoided* for large scale projects. Knowing Drupal's strong and weak points inside out I can advice you beforehand if your project would be a Drupal fit, or if you should walk a more custom development path.
+
