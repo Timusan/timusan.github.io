@@ -9,7 +9,7 @@
 
 Welcome to the third part of our mailserver setup saga.
 
-If you've missed [chapter 1](http://shisaa.jp/postset/mailserver-1.html "First chapter of this mailserver series") or [chapter 2](http://shisaa.jp/postset/mailserver-2.html "Second chapter of this mailserver series") I recommend reading them first.
+If you've missed [chapter 1](http://shisaa.be/postset/mailserver-1.html "First chapter of this mailserver series") or [chapter 2](http://shisaa.be/postset/mailserver-2.html "Second chapter of this mailserver series") I recommend reading them first.
 
 In this episode, we will be looking a bit closer at our so called "Milters" or "Mail Filters".
 Especially the ones who will protect us from evil virusses and floods of spam.
@@ -319,6 +319,6 @@ This update can also be triggered manually by issuing the following command:
 Okay, we are through! We now have full virus and spam protection up and running.
 This chapter wasn't to bad, right?
 
-On to [chapter 4](http://shisaa.jp/postset/mailserver-4.html "Fourth chapter of this mailserver series"), where we will setup Dovecot which will connect our beautiful factory to the outside world!
+On to [chapter 4](http://shisaa.be/postset/mailserver-4.html "Fourth chapter of this mailserver series"), where we will setup Dovecot which will connect our beautiful factory to the outside world!
 
 And as always, thanks for reading!

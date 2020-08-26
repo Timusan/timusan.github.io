@@ -7,7 +7,7 @@
 
 Sometimes I can also write really, really short posts. Like this one!
 
-I present to you, my latest (and first on Shisaa.jp) 3D rendering.
+I present to you, my latest (and first on shisaa.be) 3D rendering.
 
 It depicts a traditional Japanese *onsen* or "hot tub", if you will.
 These babies are still in use today, mostly in the more expensive (or really countryside) bathhouses.

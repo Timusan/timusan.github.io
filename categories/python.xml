@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.jp (python)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/categories/python.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><lastBuildDate>Mon, 05 Jan 2015 12:42:50 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Nikola: the static blog engine A.K.A. How I build Shisaa.jp</title><link>http://shisaa.jp/postset/nikola-web.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Preface&lt;/h3&gt;
-&lt;p&gt;First, a big thank you to Roberto Alsina, creator of Nikola, for giving this post &lt;a href="http://nikola.ralsina.com.ar/blog/new-nikola-tutorial.html" title="Blog post about shisaa.jp on Nikola's blog"&gt;a warm welcome&lt;/a&gt; and embedding it in the Nikola documentation!&lt;/p&gt;
-&lt;p&gt;When I designed Shisaa.jp I spend quit some time thinking about the "backend" to use. What system would generate the website for me...which CMS to use?
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.be (python)</title><link>http://shisaa.be/</link><description></description><atom:link href="http://shisaa.be/categories/python.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><lastBuildDate>Mon, 05 Jan 2015 12:42:50 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Nikola: the static blog engine A.K.A. How I build shisaa.be</title><link>http://shisaa.be/postset/nikola-web.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Preface&lt;/h3&gt;
+&lt;p&gt;First, a big thank you to Roberto Alsina, creator of Nikola, for giving this post &lt;a href="http://nikola.ralsina.com.ar/blog/new-nikola-tutorial.html" title="Blog post about shisaa.be on Nikola's blog"&gt;a warm welcome&lt;/a&gt; and embedding it in the Nikola documentation!&lt;/p&gt;
+&lt;p&gt;When I designed shisaa.be I spend quit some time thinking about the "backend" to use. What system would generate the website for me...which CMS to use?
 As I have quite some experience with Drupal, that would be a possible candidate...but being familiar with Drupal, is also knowing some hard-to-ignore facts:&lt;/p&gt;
 &lt;ul&gt;&lt;li&gt;Drupal is written in PHP which is not a language I aspire much to program in.&lt;/li&gt;
 &lt;li&gt;Drupal, besides being a powerful tool, is slow-as-hell, which is a typical burden of most all-purpose-cms-so-large-it-almost-becomes-framework systems out there.&lt;/li&gt;
@@ -53,7 +53,7 @@ After Virtualenv is done setting up your sandbox, &lt;strong&gt;go to that direc
 &lt;p&gt;This will give you Nikola 5.3 (on the time of writing) and install all the necessary dependencies for you. We can now initialize our site.&lt;/p&gt;
 &lt;h3&gt;The basics&lt;/h3&gt;
 &lt;p&gt;To setup a new site, you can simply run:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;nikola init shisaa.jp
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;$ &lt;/span&gt;nikola init shisaa.be
 &lt;/pre&gt;
 
 
@@ -90,9 +90,9 @@ So the first thing we have to do is to load in some Python modules so Nikola can
 
 &lt;p&gt;Next we can setup some basic information about our site, variables that we can use later in our templates:&lt;/p&gt;
 &lt;pre class="code literal-block"&gt;&lt;span class="n"&gt;BLOG_AUTHOR&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"Tim van der Linden"&lt;/span&gt;
-&lt;span class="n"&gt;BLOG_TITLE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"Shisaa.jp"&lt;/span&gt;
-&lt;span class="n"&gt;BLOG_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"http://Shisaa.jp"&lt;/span&gt;
-&lt;span class="n"&gt;BLOG_EMAIL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"tim@Shisaa.jp"&lt;/span&gt;
+&lt;span class="n"&gt;BLOG_TITLE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"shisaa.be"&lt;/span&gt;
+&lt;span class="n"&gt;BLOG_URL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"http://shisaa.be"&lt;/span&gt;
+&lt;span class="n"&gt;BLOG_EMAIL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"tim@shisaa.be"&lt;/span&gt;
 &lt;span class="n"&gt;BLOG_DESCRIPTION&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s"&gt;"A blog about Programming, Japan and Photography"&lt;/span&gt;
 &lt;/pre&gt;
 
@@ -266,7 +266,7 @@ This file &lt;em&gt;has&lt;/em&gt; to be filled with a module import and a dicti
 
 &lt;p&gt;Even if you don't use all of these translations, you still need to declare them.&lt;/p&gt;
 &lt;p&gt;Next we can build our actual template files used for rendering out the final HTML.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;Warning: I altered each tmpl file more of less to fit my needs for Shisaa.jp. I do not make use of comments or multilingual features. Please review the tmpl files from the Orphan theme if you would like to see the original theme code!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Warning: I altered each tmpl file more of less to fit my needs for shisaa.be. I do not make use of comments or multilingual features. Please review the tmpl files from the Orphan theme if you would like to see the original theme code!&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;Because we need quite some HTML and a lot of Mako structures in our template files it can get very unreadable, very quickly.
 To prevent this, it is a good practice to make use of Mako's &lt;em&gt;definition blocks&lt;/em&gt;.
 As we have seen a little bit earlier, Mako's gives you the ability to define blocks of "code" that you later can call by means of a simple function call.&lt;/p&gt;
@@ -706,8 +706,8 @@ This means Nikola now has enough information to actually render out each individ
 
 &lt;p&gt;If you still have a Nikola server running in another terminal, you can just refresh your page and see your new template in action.
 Of course, we did not make any CSS, so everything will look quite like &lt;a href="https://duckduckgo.com/?q=css+naked+day" title="Duck Duck Go search for CSS Naked Day"&gt;CSS Naked Day&lt;/a&gt; (which by itself is a good test).&lt;/p&gt;
-&lt;p&gt;In the beginning of this post we constructed the header and included some CSS files as I have used them on Shisaa.jp. Now go ahead and style your theme, correctly link up the files, and build again.&lt;/p&gt;
+&lt;p&gt;In the beginning of this post we constructed the header and included some CSS files as I have used them on shisaa.be. Now go ahead and style your theme, correctly link up the files, and build again.&lt;/p&gt;
 &lt;p&gt;Now there you have it, a Nikola site up and running!&lt;/p&gt;
 &lt;p&gt;I hope I could make you feel the power you have at your fingertips when making your site with Nikola.
 Its now ready to be tinkered with more and I encourage you to go and explore more features such as the gallery, multilingual, disqus integration, try a different markup language, ...&lt;/p&gt;
-&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>python</category><category>web</category><guid>http://shisaa.jp/postset/nikola-web.html</guid><pubDate>Fri, 01 Feb 2013 18:52:05 GMT</pubDate></item></channel></rss>
+&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>python</category><category>web</category><guid>http://shisaa.be/postset/nikola-web.html</guid><pubDate>Fri, 01 Feb 2013 18:52:05 GMT</pubDate></item></channel></rss>

@@ -9,7 +9,7 @@
 
 And here we arrive at the final stage of our egg development.
 
-If you did not yet do so, please go and read [chapter 1](http://shisaa.jp/postset/chicken-scheme-1.html "Chapter 1 of the CHICKEN series.") and [chapter 2](http://shisaa.jp/postset/chicken-scheme-2.html "Chapter 2 of the CHICKEN series.") before you endeavor on this final hop to a published egg in CHICKEN.
+If you did not yet do so, please go and read [chapter 1](http://shisaa.be/postset/chicken-scheme-1.html "Chapter 1 of the CHICKEN series.") and [chapter 2](http://shisaa.be/postset/chicken-scheme-2.html "Chapter 2 of the CHICKEN series.") before you endeavor on this final hop to a published egg in CHICKEN.
 
 Let us find out what we will be dealing with:
 

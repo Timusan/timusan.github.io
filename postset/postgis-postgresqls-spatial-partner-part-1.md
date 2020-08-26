@@ -22,7 +22,7 @@ And, as the same some of you might know, I love PostgreSQL.
 So, knowing that I cannot write short posts *and* I like PostgreSQL...what would you suspect would happen if you ask me how far Tokyo is from my current location?
 You guessed it, simply use The Elephant to figure that out!
 
-As I have showed you [before](http://shisaa.jp/postset/postgresql-full-text-search-part-1.html "PostgreSQL full text search, chapter one."), PostgreSQL is capable of storing, matching and retrieving much more then boring VARCHAR or INT data types and it is designed to be extendable.
+As I have showed you [before](http://shisaa.be/postset/postgresql-full-text-search-part-1.html "PostgreSQL full text search, chapter one."), PostgreSQL is capable of storing, matching and retrieving much more then boring VARCHAR or INT data types and it is designed to be extendable.
 And extending is what the folks behind the *PostGIS* project did. To summarize, the PostGIS project extends PostgreSQL to store, match, manipulate and retrieve *spatial* data. It makes PostgreSQL a full-blown GIS.
 
 The purpose of this series is to get your feet wet with PostGIS and to learn a thing or two about GIS itself.

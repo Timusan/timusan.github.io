@@ -9,7 +9,7 @@
 
 And so we arrive at the final big stop of our mailserver series.
 
-If you've missed [chapter 1](http://shisaa.jp/postset/mailserver-1.html "First chapter of this mailserver series"), [chapter 2](http://shisaa.jp/postset/mailserver-2.html "Second chapter of this mailserver series") or [chapter 3](http://shisaa.jp/postset/mailserver-3.html "Third chapter of this mailserver series") I recommend reading them first.
+If you've missed [chapter 1](http://shisaa.be/postset/mailserver-1.html "First chapter of this mailserver series"), [chapter 2](http://shisaa.be/postset/mailserver-2.html "Second chapter of this mailserver series") or [chapter 3](http://shisaa.be/postset/mailserver-3.html "Third chapter of this mailserver series") I recommend reading them first.
 
 First, the outline:
 

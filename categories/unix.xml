@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.jp (unix)</title><link>http://shisaa.jp/</link><description></description><atom:link href="http://shisaa.jp/categories/unix.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><lastBuildDate>Mon, 05 Jan 2015 12:42:48 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5</title><link>http://shisaa.jp/postset/mailserver-5.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 5 - Dovecot continued: our frontdesk in more detail&lt;/h3&gt;
-&lt;p&gt;Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.jp mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.&lt;/p&gt;
+<?xml-stylesheet type="text/xsl" href="../assets/xml/rss.xsl" media="all"?><rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>shisaa.be (unix)</title><link>http://shisaa.be/</link><description></description><atom:link href="http://shisaa.be/categories/unix.xml" type="application/rss+xml" rel="self"></atom:link><language>en</language><lastBuildDate>Mon, 05 Jan 2015 12:42:48 GMT</lastBuildDate><generator>http://getnikola.com/</generator><docs>http://blogs.law.harvard.edu/tech/rss</docs><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5</title><link>http://shisaa.be/postset/mailserver-5.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 5 - Dovecot continued: our frontdesk in more detail&lt;/h3&gt;
+&lt;p&gt;Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.be mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.&lt;/p&gt;
 &lt;p&gt;Which ever being the case, lets see Dovecot in a little bit more detail.&lt;/p&gt;
 &lt;h4&gt;Time moved backwards&lt;/h4&gt;
 &lt;p&gt;First, lets mingle with time. Or to be more precise, lets &lt;em&gt;fix&lt;/em&gt; time....the time on our server that is. What does this have to do with Dovecot?
@@ -56,7 +56,7 @@ In here, setup the timezone server you which to use. To get a list of servers vi
 &lt;p&gt;Why?&lt;/p&gt;
 &lt;p&gt;If you check your mail on multiple devices, you don't want to setup the filter rules on each client. You want to manage your filtering on the server and watch the magic happen automatically on each machine you use.&lt;/p&gt;
 &lt;p&gt;The combination of Postfix and Dovecot is ideal for this task.&lt;/p&gt;
-&lt;p&gt;If you have followed &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;my&lt;/a&gt; &lt;a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;previous&lt;/a&gt; &lt;a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;four&lt;/a&gt; &lt;a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapters&lt;/a&gt; and setup your own mailserver, then currently Dovecot is only used to check mail and authenticate, all through the IMAP protocol.
+&lt;p&gt;If you have followed &lt;a href="http://shisaa.be/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;my&lt;/a&gt; &lt;a href="http://shisaa.be/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;previous&lt;/a&gt; &lt;a href="http://shisaa.be/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;four&lt;/a&gt; &lt;a href="http://shisaa.be/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapters&lt;/a&gt; and setup your own mailserver, then currently Dovecot is only used to check mail and authenticate, all through the IMAP protocol.
 The actual delivery is done by Postfix itself using the Postfix LMTP delivery mechanism. This is a simple mechanism that, well, just delivers mail and does nothing else.
 To setup server side filtering we have to plugin Dovecot's &lt;em&gt;Local Delivery Agent&lt;/em&gt; or &lt;em&gt;LDA&lt;/em&gt; into our workflow. Substituting Postfix LMTP for Dovecot LDA gives us two main advantages:&lt;/p&gt;
 &lt;ul&gt;&lt;li&gt;By letting Dovecot deliver the mail to the users mailfolder the filtering is done at the correct timing in the delivery workflow, while the mail is in transit, before it is delivered.&lt;/li&gt;
@@ -71,8 +71,8 @@ To setup server side filtering we have to plugin Dovecot's &lt;em&gt;Local Deliv
 
 &lt;p&gt;This will initiate the LDA mechanism and load in any plugins we define. We will need this later down the road.
 Next we need to define 2 important variables for Dovecot to be able to act as a delivery agent. Add these to the same file:&lt;/p&gt;
-&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;postmaster_address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; tim@shisaa.jp
-&lt;span class="nv"&gt;hostname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; mail.shisaa.jp
+&lt;pre class="code literal-block"&gt;&lt;span class="nv"&gt;postmaster_address&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; tim@shisaa.be
+&lt;span class="nv"&gt;hostname&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; mail.shisaa.be
 &lt;/pre&gt;
 
 
@@ -209,11 +209,11 @@ Save this file into the defined location and make sure it is readable by Dovecot
 &lt;/pre&gt;
 
 
-&lt;p&gt;Now remember, the &lt;em&gt;"Spam"&lt;/em&gt; in this script corresponds to a folder that you made with Dovecot. If you have not made a &lt;em&gt;Spam&lt;/em&gt; folder, go and make one now, checkout &lt;a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapter four&lt;/a&gt; for details on how to do this.&lt;/p&gt;
+&lt;p&gt;Now remember, the &lt;em&gt;"Spam"&lt;/em&gt; in this script corresponds to a folder that you made with Dovecot. If you have not made a &lt;em&gt;Spam&lt;/em&gt; folder, go and make one now, checkout &lt;a href="http://shisaa.be/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapter four&lt;/a&gt; for details on how to do this.&lt;/p&gt;
 &lt;p&gt;Next you want to put messages from a specific someone into its own folder? Lets do that then!
 For this we need "fileinto" and also a plugin to read out the message envelope.&lt;/p&gt;
 &lt;pre class="code literal-block"&gt;require ["fileinto","envelope"];
-if envelope "from" "tim@shisaa.jp" {
+if envelope "from" "tim@shisaa.be" {
     fileinto "Shisaa";
 }
 &lt;/pre&gt;
@@ -223,7 +223,7 @@ if envelope "from" "tim@shisaa.jp" {
 &lt;pre class="code literal-block"&gt;require "vacation";
 :days 1
 :subject "I'm on vacation!"
-:addresses ["tim@shisaa.jp,postmaster@shisaa.jp"]
+:addresses ["tim@shisaa.be,postmaster@shisaa.be"]
 "I'm on vacation, you can join me or wait until I'm back.
 Cheers
 Tim";
@@ -237,12 +237,12 @@ And of course you can put everything together in one big Sieve script:&lt;/p&gt;
 &lt;span class="k"&gt;if&lt;/span&gt; header :contains &lt;span class="s2"&gt;"X-Spam-Flag"&lt;/span&gt; &lt;span class="s2"&gt;"YES"&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
     fileinto &lt;span class="s2"&gt;"Spam"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="o"&gt;}&lt;/span&gt;
-&lt;span class="k"&gt;if&lt;/span&gt; envelope &lt;span class="s2"&gt;"from"&lt;/span&gt; &lt;span class="s2"&gt;"tim@shisaa.jp"&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; envelope &lt;span class="s2"&gt;"from"&lt;/span&gt; &lt;span class="s2"&gt;"tim@shisaa.be"&lt;/span&gt; &lt;span class="o"&gt;{&lt;/span&gt;
     fileinto &lt;span class="s2"&gt;"Shisaa"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
 &lt;span class="o"&gt;}&lt;/span&gt;
 :days 1
 :subject &lt;span class="s2"&gt;"I'm on vacation!"&lt;/span&gt;
-:addresses &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"tim@shisaa.jp,postmaster@shisaa.jp"&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
+:addresses &lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;"tim@shisaa.be,postmaster@shisaa.be"&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;
 &lt;span class="s2"&gt;"I'm on vacation, you can join me or wait until I'm back.&lt;/span&gt;
 &lt;span class="s2"&gt;Cheers&lt;/span&gt;
 &lt;span class="s2"&gt;Tim"&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
@@ -258,9 +258,9 @@ And of course you can put everything together in one big Sieve script:&lt;/p&gt;
 
 
 &lt;p&gt;Now go out and learn more about what you can do with Sieve and harvest that knowledge!&lt;/p&gt;
-&lt;p&gt;And as always, thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>dovecot</category><category>postfix</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-5.html</guid><pubDate>Sat, 08 Jun 2013 20:30:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 4</title><link>http://shisaa.jp/postset/mailserver-4.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 4 - Dovecot, the friendly front desk&lt;/h3&gt;
+&lt;p&gt;And as always, thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>dovecot</category><category>postfix</category><category>unix</category><guid>http://shisaa.be/postset/mailserver-5.html</guid><pubDate>Sat, 08 Jun 2013 20:30:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 4</title><link>http://shisaa.be/postset/mailserver-4.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 4 - Dovecot, the friendly front desk&lt;/h3&gt;
 &lt;p&gt;And so we arrive at the final big stop of our mailserver series.&lt;/p&gt;
-&lt;p&gt;If you've missed &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;chapter 1&lt;/a&gt;, &lt;a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;chapter 2&lt;/a&gt; or &lt;a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;chapter 3&lt;/a&gt; I recommend reading them first.&lt;/p&gt;
+&lt;p&gt;If you've missed &lt;a href="http://shisaa.be/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;chapter 1&lt;/a&gt;, &lt;a href="http://shisaa.be/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;chapter 2&lt;/a&gt; or &lt;a href="http://shisaa.be/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;chapter 3&lt;/a&gt; I recommend reading them first.&lt;/p&gt;
 &lt;p&gt;First, the outline:&lt;/p&gt;
 &lt;ul&gt;&lt;li&gt;Small introduction to Dovecot&lt;/li&gt;
 &lt;li&gt;Introduction to IMAP and POP3&lt;/li&gt;
@@ -444,9 +444,9 @@ Try sending out an email...it should arrive at the other end...and in your sent 
 &lt;p&gt;Now remember, in these four lengthy chapters we only seen the tip of the iceberg.
 Both Postfix and Dovecot are capable of many, many more powerful things...but I suggest that you keep hungry for knowledge and go explore these extra possibilities!&lt;/p&gt;
 &lt;p&gt;I decided to write a fifth, "unofficial" chapter about setting up some extra functionality to do some more fancy and useful stuff like filtering mail, setting up a vacation responder and an issue named "Time moved backwards". Stay tuned...&lt;/p&gt;
-&lt;p&gt;And as always, thanks for reading.&lt;/p&gt;&lt;/div&gt;</description><category>dovecot</category><category>postfix</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-4.html</guid><pubDate>Sat, 20 Apr 2013 10:30:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 3</title><link>http://shisaa.jp/postset/mailserver-3.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 3 - Milters, the trusty workers&lt;/h3&gt;
+&lt;p&gt;And as always, thanks for reading.&lt;/p&gt;&lt;/div&gt;</description><category>dovecot</category><category>postfix</category><category>unix</category><guid>http://shisaa.be/postset/mailserver-4.html</guid><pubDate>Sat, 20 Apr 2013 10:30:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 3</title><link>http://shisaa.be/postset/mailserver-3.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;Chapter 3 - Milters, the trusty workers&lt;/h3&gt;
 &lt;p&gt;Welcome to the third part of our mailserver setup saga.&lt;/p&gt;
-&lt;p&gt;If you've missed &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;chapter 1&lt;/a&gt; or &lt;a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;chapter 2&lt;/a&gt; I recommend reading them first.&lt;/p&gt;
+&lt;p&gt;If you've missed &lt;a href="http://shisaa.be/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;chapter 1&lt;/a&gt; or &lt;a href="http://shisaa.be/postset/mailserver-2.html" title="Second chapter of this mailserver series"&gt;chapter 2&lt;/a&gt; I recommend reading them first.&lt;/p&gt;
 &lt;p&gt;In this episode, we will be looking a bit closer at our so called "Milters" or "Mail Filters".
 Especially the ones who will protect us from evil virusses and floods of spam.&lt;/p&gt;
 &lt;p&gt;First, the outline of this chapter:&lt;/p&gt;
@@ -725,10 +725,10 @@ This update can also be triggered manually by issuing the following command:&lt;
 
 &lt;p&gt;Okay, we are through! We now have full virus and spam protection up and running.
 This chapter wasn't to bad, right?&lt;/p&gt;
-&lt;p&gt;On to &lt;a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapter 4&lt;/a&gt;, where we will setup Dovecot which will connect our beautiful factory to the outside world!&lt;/p&gt;
-&lt;p&gt;And as always, thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>amavis</category><category>postfix</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-3.html</guid><pubDate>Fri, 05 Apr 2013 18:00:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mailserver on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 2</title><link>http://shisaa.jp/postset/mailserver-2.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;PostgreSQL - The Solid Bookkeeper&lt;/h3&gt;
+&lt;p&gt;On to &lt;a href="http://shisaa.be/postset/mailserver-4.html" title="Fourth chapter of this mailserver series"&gt;chapter 4&lt;/a&gt;, where we will setup Dovecot which will connect our beautiful factory to the outside world!&lt;/p&gt;
+&lt;p&gt;And as always, thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>amavis</category><category>postfix</category><category>unix</category><guid>http://shisaa.be/postset/mailserver-3.html</guid><pubDate>Fri, 05 Apr 2013 18:00:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mailserver on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 2</title><link>http://shisaa.be/postset/mailserver-2.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h3&gt;PostgreSQL - The Solid Bookkeeper&lt;/h3&gt;
 &lt;p&gt;Welcome to the second iteration of our mailserver setup!&lt;/p&gt;
-&lt;p&gt;I'm happy you lived through &lt;a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;part 1&lt;/a&gt;, and I promise this part will be shorter.&lt;/p&gt;
+&lt;p&gt;I'm happy you lived through &lt;a href="http://shisaa.be/postset/mailserver-1.html" title="First chapter of this mailserver series"&gt;part 1&lt;/a&gt;, and I promise this part will be shorter.&lt;/p&gt;
 &lt;p&gt;Before we dive in, let me go over the different challenges we will be tackling shortly.
 Remember in the last chapter we setup our conveyor belt to run smoothly and we secured things up where possible?
 The focus in this chapter will be about keeping track which users we have and some detailed information about them.&lt;/p&gt;
@@ -1108,8 +1108,8 @@ Also note that we added the &lt;em&gt;UID&lt;/em&gt; and &lt;em&gt;GID&lt;/em&gt
 &lt;p&gt;Now you should be able to send mail to the addresses you input in your users table.
 Go to your "home/mail/USER" directory, it should be empty, but when Postfix delivers its first mail it will make a directory structure in there with three directories: "cur", "new" and "tmp".
 Also remember to check your maillog if your encounter any errors!&lt;/p&gt;
-&lt;p&gt;In the &lt;a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;next chapter&lt;/a&gt; we will do some some serious spam and virus fighting!&lt;/p&gt;
-&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>postfix</category><category>postgresql</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-2.html</guid><pubDate>Thu, 21 Mar 2013 10:00:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mailserver on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 1</title><link>http://shisaa.jp/postset/mailserver-1.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h4&gt;Note&lt;/h4&gt;
+&lt;p&gt;In the &lt;a href="http://shisaa.be/postset/mailserver-3.html" title="Third chapter of this mailserver series"&gt;next chapter&lt;/a&gt; we will do some some serious spam and virus fighting!&lt;/p&gt;
+&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>postfix</category><category>postgresql</category><category>unix</category><guid>http://shisaa.be/postset/mailserver-2.html</guid><pubDate>Thu, 21 Mar 2013 10:00:00 GMT</pubDate></item><item><title>Installing a fully fledged, ready to use mailserver on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 1</title><link>http://shisaa.be/postset/mailserver-1.html</link><dc:creator>Tim van der Linden</dc:creator><description>&lt;div&gt;&lt;h4&gt;Note&lt;/h4&gt;
 &lt;ol&gt;&lt;li&gt;In this post I assume you have basic Unix knowledge. The intent of every post I write about Unix is to share what I have learned and in turn give you more know-how and make you less afraid of using this operating system.&lt;/li&gt;
 &lt;li&gt;I assume you have a basic CentOS 6 installation (though, with minimal tweaking, it is applicable for most Unix/Linux systems),  that you are root or can use the sudo command and that you are connected to the Internet.&lt;/li&gt;
 &lt;li&gt;I take it for granted that you have a hunger for knowledge and thus don't mind me taking small side steps to explain some things in more detail.&lt;/li&gt;
@@ -1436,4 +1436,4 @@ In chapter 2, which will be online soon, we'll look at how we can fit the Postgr
 &lt;p&gt;PS: No mail arrived on your external mailbox? Then our maillog is our friend!&lt;/p&gt;
 &lt;p&gt;Postfix logs all events in a file called maillog. You can find this file together with all other logs in /var/log.
 Go to the end of the file to find out the most recent error messages and see what could have went wrong. Common pitfalls are a firewall still blocking port 587 or syntax errors in your main.cf or master.cf file.&lt;/p&gt;
-&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>postfix</category><category>unix</category><guid>http://shisaa.jp/postset/mailserver-1.html</guid><pubDate>Fri, 08 Mar 2013 09:00:00 GMT</pubDate></item></channel></rss>
+&lt;p&gt;And as always...thanks for reading!&lt;/p&gt;&lt;/div&gt;</description><category>postfix</category><category>unix</category><guid>http://shisaa.be/postset/mailserver-1.html</guid><pubDate>Fri, 08 Mar 2013 09:00:00 GMT</pubDate></item></channel></rss>

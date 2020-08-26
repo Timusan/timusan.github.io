@@ -2,12 +2,12 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="title" content="Nikola: the static blog engine A.K.A. How I build Shisaa.jp | shisaa.jp">
+<meta name="title" content="Nikola: the static blog engine A.K.A. How I build shisaa.be | shisaa.be">
 <meta name="description" content="">
 <meta name="author" content="Tim van der Linden">
 <meta name="viewport" content="width=device-width; initial-scale=1.0">
-<title>Nikola: the static blog engine A.K.A. How I build Shisaa.jp | shisaa.jp</title>
-<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<title>Nikola: the static blog engine A.K.A. How I build shisaa.be | shisaa.be</title>
+<link rel="alternate" type="application/rss+xml" title="shisaa.be" href="rss.xml">
 <link type="image/x-icon" href="../../assets/img/favicon.ico" rel="icon">
 <link type="image/x-icon" href="../../assets/img/favicon.ico" rel="shortcut icon">
 <link href="../../assets/css/all.css" rel="stylesheet" type="text/css">
@@ -16,8 +16,8 @@
     <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
     <div id="wrapper" class="clearfix">
       <h1 id="blog-title">
-	<img src="../../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
-	  <span class="title">shisaa.jp</span><span class="interest ja-interest">ホームページ制作 / Webアプリケーション / Unix</span>
+	<img src="../../assets/img/shisaa.png" width="137px" height="160px" alt="shisaa.be Logo depicting a Shisaa demon"><a href="http://shisaa.be/" title="shisaa.be" id="tagline">
+	  <span class="title">shisaa.be</span><span class="interest ja-interest">ホームページ制作 / Webアプリケーション / Unix</span>
 	  <span class="ja-subtitle">フリーランスのシステムエンジニア（SE）、システム管理者へのソフトウェア開発</span>
 	  <span class="en-subtitle">Freelance Developer</span>
 	</a>
@@ -61,7 +61,7 @@
 	
     <div class="postbox">
     
-    <h2><a href="#">Nikola: the static blog engine A.K.A. How I build Shisaa.jp</a></h2>
+    <h2><a href="#">Nikola: the static blog engine A.K.A. How I build shisaa.be</a></h2>
 
     <p class="post-date">01/02/2013 <span>-</span> </p>
     
@@ -72,8 +72,8 @@
 <div class="post">
       <div>
 <h3>Preface</h3>
-<p>First, a big thank you to Roberto Alsina, creator of Nikola, for giving this post <a href="http://nikola.ralsina.com.ar/blog/new-nikola-tutorial.html" title="Blog post about shisaa.jp on Nikola's blog">a warm welcome</a> and embedding it in the Nikola documentation!</p>
-<p>When I designed Shisaa.jp I spend quit some time thinking about the "backend" to use. What system would generate the website for me...which CMS to use?
+<p>First, a big thank you to Roberto Alsina, creator of Nikola, for giving this post <a href="http://nikola.ralsina.com.ar/blog/new-nikola-tutorial.html" title="Blog post about shisaa.be on Nikola's blog">a warm welcome</a> and embedding it in the Nikola documentation!</p>
+<p>When I designed shisaa.be I spend quit some time thinking about the "backend" to use. What system would generate the website for me...which CMS to use?
 As I have quite some experience with Drupal, that would be a possible candidate...but being familiar with Drupal, is also knowing some hard-to-ignore facts:</p>
 <ul>
 <li>Drupal is written in PHP which is not a language I aspire much to program in.</li>
@@ -129,7 +129,7 @@ After Virtualenv is done setting up your sandbox, <strong>go to that directory</
 <p>This will give you Nikola 5.3 (on the time of writing) and install all the necessary dependencies for you. We can now initialize our site.</p>
 <h3>The basics</h3>
 <p>To setup a new site, you can simply run:</p>
-<pre class="code literal-block"><span class="nv">$ </span>nikola init shisaa.jp
+<pre class="code literal-block"><span class="nv">$ </span>nikola init shisaa.be
 </pre>
 
 
@@ -166,9 +166,9 @@ So the first thing we have to do is to load in some Python modules so Nikola can
 
 <p>Next we can setup some basic information about our site, variables that we can use later in our templates:</p>
 <pre class="code literal-block"><span class="n">BLOG_AUTHOR</span> <span class="o">=</span> <span class="s">"Tim van der Linden"</span>
-<span class="n">BLOG_TITLE</span> <span class="o">=</span> <span class="s">"Shisaa.jp"</span>
-<span class="n">BLOG_URL</span> <span class="o">=</span> <span class="s">"http://Shisaa.jp"</span>
-<span class="n">BLOG_EMAIL</span> <span class="o">=</span> <span class="s">"tim@Shisaa.jp"</span>
+<span class="n">BLOG_TITLE</span> <span class="o">=</span> <span class="s">"shisaa.be"</span>
+<span class="n">BLOG_URL</span> <span class="o">=</span> <span class="s">"http://shisaa.be"</span>
+<span class="n">BLOG_EMAIL</span> <span class="o">=</span> <span class="s">"tim@shisaa.be"</span>
 <span class="n">BLOG_DESCRIPTION</span> <span class="o">=</span> <span class="s">"A blog about Programming, Japan and Photography"</span>
 </pre>
 
@@ -346,7 +346,7 @@ This file <em>has</em> to be filled with a module import and a dictionary called
 
 <p>Even if you don't use all of these translations, you still need to declare them.</p>
 <p>Next we can build our actual template files used for rendering out the final HTML.</p>
-<p><strong>Warning: I altered each tmpl file more of less to fit my needs for Shisaa.jp. I do not make use of comments or multilingual features. Please review the tmpl files from the Orphan theme if you would like to see the original theme code!</strong></p>
+<p><strong>Warning: I altered each tmpl file more of less to fit my needs for shisaa.be. I do not make use of comments or multilingual features. Please review the tmpl files from the Orphan theme if you would like to see the original theme code!</strong></p>
 <p>Because we need quite some HTML and a lot of Mako structures in our template files it can get very unreadable, very quickly.
 To prevent this, it is a good practice to make use of Mako's <em>definition blocks</em>.
 As we have seen a little bit earlier, Mako's gives you the ability to define blocks of "code" that you later can call by means of a simple function call.</p>
@@ -797,7 +797,7 @@ This means Nikola now has enough information to actually render out each individ
 
 <p>If you still have a Nikola server running in another terminal, you can just refresh your page and see your new template in action.
 Of course, we did not make any CSS, so everything will look quite like <a href="https://duckduckgo.com/?q=css+naked+day" title="Duck Duck Go search for CSS Naked Day">CSS Naked Day</a> (which by itself is a good test).</p>
-<p>In the beginning of this post we constructed the header and included some CSS files as I have used them on Shisaa.jp. Now go ahead and style your theme, correctly link up the files, and build again.</p>
+<p>In the beginning of this post we constructed the header and included some CSS files as I have used them on shisaa.be. Now go ahead and style your theme, correctly link up the files, and build again.</p>
 <p>Now there you have it, a Nikola site up and running!</p>
 <p>I hope I could make you feel the power you have at your fingertips when making your site with Nikola.
 Its now ready to be tinkered with more and I encourage you to go and explore more features such as the gallery, multilingual, disqus integration, try a different markup language, ...</p>
@@ -813,7 +813,7 @@ Its now ready to be tinkered with more and I encourage you to go and explore mor
 </div>
 
       </div>
-      <div id="footer">Feel free to drop me a line or to <a href="../../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+      <div id="footer">Feel free to drop me a line or to <a href="../../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>shisaa.be - © <a href="mailto:&#116;&#105;&#109;&#064;&#115;&#104;&#105;&#115;&#097;&#097;&#046;&#098;&#101;">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
     </div>
     
         <script src="../../assets/js/all.js" type="text/javascript"></script>

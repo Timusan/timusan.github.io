@@ -5,207 +5,207 @@
     xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
                         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
  <sitemap>
-  <loc>http://shisaa.jp/categories/3d.xml</loc>
+  <loc>http://shisaa.be/categories/3d.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/amavis.xml</loc>
+  <loc>http://shisaa.be/categories/amavis.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/blender.xml</loc>
+  <loc>http://shisaa.be/categories/blender.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/chicken.xml</loc>
+  <loc>http://shisaa.be/categories/chicken.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/dovecot.xml</loc>
+  <loc>http://shisaa.be/categories/dovecot.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/full-text-search.xml</loc>
+  <loc>http://shisaa.be/categories/full-text-search.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/japan.xml</loc>
+  <loc>http://shisaa.be/categories/japan.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/json-rpc.xml</loc>
+  <loc>http://shisaa.be/categories/json-rpc.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/postfix.xml</loc>
+  <loc>http://shisaa.be/categories/postfix.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/postgis.xml</loc>
+  <loc>http://shisaa.be/categories/postgis.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/postgresql.xml</loc>
+  <loc>http://shisaa.be/categories/postgresql.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/python.xml</loc>
+  <loc>http://shisaa.be/categories/python.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/scheme.xml</loc>
+  <loc>http://shisaa.be/categories/scheme.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/timezone.xml</loc>
+  <loc>http://shisaa.be/categories/timezone.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/unix.xml</loc>
+  <loc>http://shisaa.be/categories/unix.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/categories/web.xml</loc>
+  <loc>http://shisaa.be/categories/web.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/3d.xml</loc>
+  <loc>http://shisaa.be/ja/categories/3d.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/amavis.xml</loc>
+  <loc>http://shisaa.be/ja/categories/amavis.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/blender.xml</loc>
+  <loc>http://shisaa.be/ja/categories/blender.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/chicken.xml</loc>
+  <loc>http://shisaa.be/ja/categories/chicken.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/dovecot.xml</loc>
+  <loc>http://shisaa.be/ja/categories/dovecot.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/full-text-search.xml</loc>
+  <loc>http://shisaa.be/ja/categories/full-text-search.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/japan.xml</loc>
+  <loc>http://shisaa.be/ja/categories/japan.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/json-rpc.xml</loc>
+  <loc>http://shisaa.be/ja/categories/json-rpc.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/postfix.xml</loc>
+  <loc>http://shisaa.be/ja/categories/postfix.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/postgis.xml</loc>
+  <loc>http://shisaa.be/ja/categories/postgis.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/postgresql.xml</loc>
+  <loc>http://shisaa.be/ja/categories/postgresql.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/python.xml</loc>
+  <loc>http://shisaa.be/ja/categories/python.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/scheme.xml</loc>
+  <loc>http://shisaa.be/ja/categories/scheme.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/timezone.xml</loc>
+  <loc>http://shisaa.be/ja/categories/timezone.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/unix.xml</loc>
+  <loc>http://shisaa.be/ja/categories/unix.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/categories/web.xml</loc>
+  <loc>http://shisaa.be/ja/categories/web.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/photography/belgian-coast/rss.xml</loc>
+  <loc>http://shisaa.be/ja/photography/belgian-coast/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/photography/cape-hedo/rss.xml</loc>
+  <loc>http://shisaa.be/ja/photography/cape-hedo/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/photography/kin-blue-beach/rss.xml</loc>
+  <loc>http://shisaa.be/ja/photography/kin-blue-beach/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/photography/okinawa-high-school-graduation/rss.xml</loc>
+  <loc>http://shisaa.be/ja/photography/okinawa-high-school-graduation/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/photography/rss.xml</loc>
+  <loc>http://shisaa.be/ja/photography/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/photography/tokyo-in-june/rss.xml</loc>
+  <loc>http://shisaa.be/ja/photography/tokyo-in-june/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/photography/visiting-okinawa/rss.xml</loc>
+  <loc>http://shisaa.be/ja/photography/visiting-okinawa/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/photography/yachimun-pottery/rss.xml</loc>
+  <loc>http://shisaa.be/ja/photography/yachimun-pottery/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/ja/rss.xml</loc>
+  <loc>http://shisaa.be/ja/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/photography/belgian-coast/rss.xml</loc>
+  <loc>http://shisaa.be/photography/belgian-coast/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/photography/cape-hedo/rss.xml</loc>
+  <loc>http://shisaa.be/photography/cape-hedo/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/photography/kin-blue-beach/rss.xml</loc>
+  <loc>http://shisaa.be/photography/kin-blue-beach/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/photography/okinawa-high-school-graduation/rss.xml</loc>
+  <loc>http://shisaa.be/photography/okinawa-high-school-graduation/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/photography/rss.xml</loc>
+  <loc>http://shisaa.be/photography/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/photography/tokyo-in-june/rss.xml</loc>
+  <loc>http://shisaa.be/photography/tokyo-in-june/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/photography/visiting-okinawa/rss.xml</loc>
+  <loc>http://shisaa.be/photography/visiting-okinawa/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/photography/yachimun-pottery/rss.xml</loc>
+  <loc>http://shisaa.be/photography/yachimun-pottery/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/rss.xml</loc>
+  <loc>http://shisaa.be/rss.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
  <sitemap>
-  <loc>http://shisaa.jp/sitemap.xml</loc>
+  <loc>http://shisaa.be/sitemap.xml</loc>
   <lastmod>2015-01-05</lastmod>
  </sitemap>
 </sitemapindex>

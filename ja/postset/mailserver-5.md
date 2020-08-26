@@ -7,7 +7,7 @@
 
 ## Chapter 5 - Dovecot continued: our frontdesk in more detail
 
-Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.jp mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.
+Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.be mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.
 
 Which ever being the case, lets see Dovecot in a little bit more detail.
 
@@ -85,7 +85,7 @@ If you check your mail on multiple devices, you don't want to setup the filter r
 
 The combination of Postfix and Dovecot is ideal for this task.
 
-If you have followed [my](http://shisaa.jp/postset/mailserver-1.html "First chapter of this mailserver series") [previous](http://shisaa.jp/postset/mailserver-2.html "Second chapter of this mailserver series") [four](http://shisaa.jp/postset/mailserver-3.html "Third chapter of this mailserver series") [chapters](http://shisaa.jp/postset/mailserver-4.html "Fourth chapter of this mailserver series") and setup your own mailserver, then currently Dovecot is only used to check mail and authenticate, all through the IMAP protocol.
+If you have followed [my](http://shisaa.be/postset/mailserver-1.html "First chapter of this mailserver series") [previous](http://shisaa.be/postset/mailserver-2.html "Second chapter of this mailserver series") [four](http://shisaa.be/postset/mailserver-3.html "Third chapter of this mailserver series") [chapters](http://shisaa.be/postset/mailserver-4.html "Fourth chapter of this mailserver series") and setup your own mailserver, then currently Dovecot is only used to check mail and authenticate, all through the IMAP protocol.
 The actual delivery is done by Postfix itself using the Postfix LMTP delivery mechanism. This is a simple mechanism that, well, just delivers mail and does nothing else.
 To setup server side filtering we have to plugin Dovecot's *Local Delivery Agent* or *LDA* into our workflow. Substituting Postfix LMTP for Dovecot LDA gives us two main advantages:
 
@@ -105,8 +105,8 @@ This will initiate the LDA mechanism and load in any plugins we define. We will 
 Next we need to define 2 important variables for Dovecot to be able to act as a delivery agent. Add these to the same file:
 
 	:::bash
-	postmaster_address = tim@shisaa.jp
-	hostname = mail.shisaa.jp
+	postmaster_address = tim@shisaa.be
+	hostname = mail.shisaa.be
 
 Since Dovecot will do the delivery, it will now also do the rejection handling if something is wrong (instead of Postfix). When it rejects mail it needs to know where to sent a notification to.
 The hostname is used for including in the message headers.
@@ -264,14 +264,14 @@ Save this file into the defined location and make sure it is readable by Dovecot
 	:::bash
 	chown mailreader:mail /home/mail/default.sieve
 
-Now remember, the *"Spam"* in this script corresponds to a folder that you made with Dovecot. If you have not made a *Spam* folder, go and make one now, checkout [chapter four](http://shisaa.jp/postset/mailserver-4.html "Fourth chapter of this mailserver series") for details on how to do this.
+Now remember, the *"Spam"* in this script corresponds to a folder that you made with Dovecot. If you have not made a *Spam* folder, go and make one now, checkout [chapter four](http://shisaa.be/postset/mailserver-4.html "Fourth chapter of this mailserver series") for details on how to do this.
 
 Next you want to put messages from a specific someone into its own folder? Lets do that then!
 For this we need "fileinto" and also a plugin to read out the message envelope.
 
 	:::sieve
 	require ["fileinto","envelope"];
-	if envelope "from" "tim@shisaa.jp" {
+	if envelope "from" "tim@shisaa.be" {
 		fileinto "Shisaa";
 	}
 
@@ -282,7 +282,7 @@ And what about that vacation responder? Also, piece of cake:
 	require "vacation";
 	:days 1
 	:subject "I'm on vacation!"
-	:addresses ["tim@shisaa.jp,postmaster@shisaa.jp"]
+	:addresses ["tim@shisaa.be,postmaster@shisaa.be"]
     "I'm on vacation, you can join me or wait until I'm back.
     Cheers
     Tim";
@@ -296,12 +296,12 @@ And of course you can put everything together in one big Sieve script:
 	if header :contains "X-Spam-Flag" "YES" {
 		fileinto "Spam";
 	}
-	if envelope "from" "tim@shisaa.jp" {
+	if envelope "from" "tim@shisaa.be" {
 		fileinto "Shisaa";
 	}
 	:days 1
 	:subject "I'm on vacation!"
-	:addresses ["tim@shisaa.jp,postmaster@shisaa.jp"]
+	:addresses ["tim@shisaa.be,postmaster@shisaa.be"]
     "I'm on vacation, you can join me or wait until I'm back.
     Cheers
     Tim";

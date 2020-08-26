@@ -1,5 +1,5 @@
 <!--
-.. title: Nikola: the static blog engine A.K.A. How I build Shisaa.jp
+.. title: Nikola: the static blog engine A.K.A. How I build shisaa.be
 .. slug: nikola-web
 .. date: 2013/02/01 18:52:05
 .. tags: web, python
@@ -7,9 +7,9 @@
 
 ## Preface
 
-First, a big thank you to Roberto Alsina, creator of Nikola, for giving this post [a warm welcome](http://nikola.ralsina.com.ar/blog/new-nikola-tutorial.html "Blog post about shisaa.jp on Nikola's blog") and embedding it in the Nikola documentation!
+First, a big thank you to Roberto Alsina, creator of Nikola, for giving this post [a warm welcome](http://nikola.ralsina.com.ar/blog/new-nikola-tutorial.html "Blog post about shisaa.be on Nikola's blog") and embedding it in the Nikola documentation!
 
-When I designed Shisaa.jp I spend quit some time thinking about the "backend" to use. What system would generate the website for me...which CMS to use?
+When I designed shisaa.be I spend quit some time thinking about the "backend" to use. What system would generate the website for me...which CMS to use?
 As I have quite some experience with Drupal, that would be a possible candidate...but being familiar with Drupal, is also knowing some hard-to-ignore facts:
 
 * Drupal is written in PHP which is not a language I aspire much to program in.
@@ -84,7 +84,7 @@ This will give you Nikola 5.3 (on the time of writing) and install all the neces
 To setup a new site, you can simply run:
 
 	:::bash
-	$ nikola init shisaa.jp
+	$ nikola init shisaa.be
 	
 Since Nikola 5.2 this creates a *really* empty site containing only the basic directory structure and an example configuration file.
 You could go ahead and build this site, it works out of the box. Prior to 5.2 the init command would generate an empty site and fill it with demonstration data.
@@ -126,9 +126,9 @@ Next we can setup some basic information about our site, variables that we can u
 
 	:::python
 	BLOG_AUTHOR = "Tim van der Linden"
-	BLOG_TITLE = "Shisaa.jp"
-	BLOG_URL = "http://Shisaa.jp"
-	BLOG_EMAIL = "tim@Shisaa.jp"
+	BLOG_TITLE = "shisaa.be"
+	BLOG_URL = "http://shisaa.be"
+	BLOG_EMAIL = "tim@shisaa.be"
 	BLOG_DESCRIPTION = "A blog about Programming, Japan and Photography"
 
 Simple enough right? Now is a good time to save the file. It *has* to be named conf.py and *has* to be saved in the root of your Nikola site directory.
@@ -339,7 +339,7 @@ Even if you don't use all of these translations, you still need to declare them.
 
 Next we can build our actual template files used for rendering out the final HTML.
 
-**Warning: I altered each tmpl file more of less to fit my needs for Shisaa.jp. I do not make use of comments or multilingual features. Please review the tmpl files from the Orphan theme if you would like to see the original theme code!**
+**Warning: I altered each tmpl file more of less to fit my needs for shisaa.be. I do not make use of comments or multilingual features. Please review the tmpl files from the Orphan theme if you would like to see the original theme code!**
 
 Because we need quite some HTML and a lot of Mako structures in our template files it can get very unreadable, very quickly.
 To prevent this, it is a good practice to make use of Mako's *definition blocks*.
@@ -817,7 +817,7 @@ So, are you ready for our second build? With your own theme this time? Punch it 
 If you still have a Nikola server running in another terminal, you can just refresh your page and see your new template in action.
 Of course, we did not make any CSS, so everything will look quite like [CSS Naked Day](https://duckduckgo.com/?q=css+naked+day "Duck Duck Go search for CSS Naked Day") (which by itself is a good test).
 
-In the beginning of this post we constructed the header and included some CSS files as I have used them on Shisaa.jp. Now go ahead and style your theme, correctly link up the files, and build again.
+In the beginning of this post we constructed the header and included some CSS files as I have used them on shisaa.be. Now go ahead and style your theme, correctly link up the files, and build again.
 
 Now there you have it, a Nikola site up and running!
 

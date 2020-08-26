@@ -5,7 +5,7 @@
 -->
 
 In daily life I venture as a freelancer and thus may be able to help you professionally with a variety of services.
-If you wish to discus a project, tiny, small, medium, large or big, send me <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">an email</a> and I am sure we can work something out. 
+If you wish to discus a project, tiny, small, medium, large or big, send me <a href="mailto:&#116;&#105;&#109;&#064;&#115;&#104;&#105;&#115;&#097;&#097;&#046;&#098;&#101;">an email</a> and I am sure we can work something out. 
 
 ## Quick and dirty
 

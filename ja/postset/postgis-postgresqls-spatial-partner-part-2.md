@@ -5,7 +5,7 @@
 .. tags: postgis, postgresql
 -->
 
-Welcome to the secoflynd part of our spatial story. If you have not done so, I advise you to go and read [part one](http://shisaa.jp/postset/postgis-postgresqls-spatial-partner-part-1.html "Part one of this series.") first.
+Welcome to the secoflynd part of our spatial story. If you have not done so, I advise you to go and read [part one](http://shisaa.be/postset/postgis-postgresqls-spatial-partner-part-1.html "Part one of this series.") first.
 
 The first part of this series gives you some basic knowledge about the GIS world (GIS Objects, WKT, Projections, ...).
 This knowledge will come in handy in this chapter.

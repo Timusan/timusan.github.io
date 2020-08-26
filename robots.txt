@@ -1,2 +1,2 @@
-Sitemap: http://shisaa.jp/sitemapindex.xml
+Sitemap: http://shisaa.be/sitemapindex.xml
 

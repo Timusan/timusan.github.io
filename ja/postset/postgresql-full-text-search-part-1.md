@@ -10,7 +10,7 @@
 PostgreSQL, the database of miracles, the RDBMS of wonders.
 
 People who have read my stuff before know that I am a fan of the blue-ish elephant and I greatly entrust it with my data. 
-For reasons why, I invite you to read the "Dolphin ass-whopping" part of the [second chapter](http://shisaa.jp/postset/mailserver-2.html "Second chapter of the mail setup series.") of my mail server setup series.
+For reasons why, I invite you to read the "Dolphin ass-whopping" part of the [second chapter](http://shisaa.be/postset/mailserver-2.html "Second chapter of the mail setup series.") of my mail server setup series.
 
 But what some of you may not know is that PostgreSQL is capable of much more then simply storing and retrieving your data.
 Well, that is actually not entirely correct...you are *always* storing and retrieving data.

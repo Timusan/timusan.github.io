@@ -14,7 +14,7 @@ However, creating new content requires research and time, which I gladly invest 
 ## Encourage through Flattr
 
 What I mentioned above is the Flattr principle. Encouraging a (content) creator to create more and better stuff. 
-So at any time, feel free to <a href="https://flattr.com/submit/auto?user_id=timusan&url=http%3A%2F%2Fshisaa.jp" target="_blank">Flattr me</a>.
+So at any time, feel free to <a href="https://flattr.com/submit/auto?user_id=timusan&url=http%3A%2F%2Fshisaa.be" target="_blank">Flattr me</a>.
 
 ## Encourage through Paypal
 
@@ -23,7 +23,7 @@ So at any time, feel free to <a href="https://flattr.com/submit/auto?user_id=tim
 A few people have already contacted me that they want to chip in, but do not have a Flattr account and/or do not agree with Flattr keeping 10% of the funding.
 They have, on the other hand, a Paypal account they wish to use.
 
-Paypal has various ways of receiving money, one of them being a so called "Donate" button. However, I feel such a button or such a term is not fit for Shisaa.jp.
+Paypal has various ways of receiving money, one of them being a so called "Donate" button. However, I feel such a button or such a term is not fit for shisaa.be.
 So if you wish to send an encouragement through Paypal you are free to use my Paypal account: &#116;&#105;&#109;&#064;&#115;&#104;&#105;&#115;&#097;&#097;&#046;&#106;&#112;
 
 ## Encourage through Amazon

@@ -9,11 +9,11 @@
 <a name="steps"></a>
 
 Web shops are a special kind of web application that combine a corporate homepage with an online shopping system.
-Shisaa.jp employs its many years of experience in the Drupal CMS system together with the Drupal Commerce web shop suite, to provide you with a modern, fully customizable, open source web shop.
+shisaa.be employs its many years of experience in the Drupal CMS system together with the Drupal Commerce web shop suite, to provide you with a modern, fully customizable, open source web shop.
 
 
 
-To give you a better look at how Shisaa.jp helps you to create your web shop, please take a look at the following steps from idea to finished project:
+To give you a better look at how shisaa.be helps you to create your web shop, please take a look at the following steps from idea to finished project:
 <br/>
 <br/>
 
@@ -26,7 +26,7 @@ To give you a better look at how Shisaa.jp helps you to create your web shop, pl
 	  <li>What is the message I want to tell these people?</li>
   </ul>
 
-<p>Shisaa.jp will help you to form your idea as best as possible, guiding you in the process.</p>
+<p>shisaa.be will help you to form your idea as best as possible, guiding you in the process.</p>
 </div>
 
 <h3 class="steps"><span>Step 2</span> Setup the shop structure</h3>
@@ -46,7 +46,7 @@ To give you a better look at how Shisaa.jp helps you to create your web shop, pl
 
 	<p>After you have your corporate information structured, you will need to take a look at which features you wish to have inside your shop. How would you like your visitors to use the web shop?</p>
 
-	<p>In both the previous and this step, Shisaa.jp will give you guidance into getting your idea and structure fixed.</p>
+	<p>In both the previous and this step, shisaa.be will give you guidance into getting your idea and structure fixed.</p>
 
 </div>
 
@@ -54,7 +54,7 @@ To give you a better look at how Shisaa.jp helps you to create your web shop, pl
 
 <div class="steps-content">
 	<p>After the idea and structure are laid down, it is time to make it look beautiful.
-	   Together with your input, Shisaa.jp will propose a design for your web shop, a graphical look & feel.</p>
+	   Together with your input, shisaa.be will propose a design for your web shop, a graphical look & feel.</p>
 	<p>This design will encompass the landing page, basic page elements (forms, tables, lists, ...), a basic design for additional pages, a design for product listings and a design for a detail product page.</p>
 	<p>A maximum of three alteration request can be made within the proposed design budget (see pricing table below).</p>
 	<p>We highly appreciate and encourage our customers input. If you have your own designer, or your own pictures, do not hesitate to present them during this step.
@@ -85,7 +85,7 @@ An important note is that each phase (consulting, design, development, server) w
 <a name="cost"></a>
 ## What does it cost?
 
-Shisaa.jp offers you a very straightforward, modern pricing model that is designed with you, the customer, in mind. There are no extra charges for small requests, but if certain features fall beyond the scope of the homepage package Shisaa.jp will fully discuss it with you beforehand.
+shisaa.be offers you a very straightforward, modern pricing model that is designed with you, the customer, in mind. There are no extra charges for small requests, but if certain features fall beyond the scope of the homepage package shisaa.be will fully discuss it with you beforehand.
 
 The following pricing table will give you an overview of the web shop package:
 
@@ -140,7 +140,7 @@ The following pricing table will give you an overview of the web shop package:
 		</tr>
 		<tr class="total-row">
 			<td class="info">
-				* Times are rough estimates and vary depending on complexity and how fast your information reaches Shisaa.jp.<br/>
+				* Times are rough estimates and vary depending on complexity and how fast your information reaches shisaa.be.<br/>
 				** mentioned prices do not include VAT.
 			</td>
 			<td></td>
@@ -216,17 +216,17 @@ If is, however, possibe to have more advanced features on your web shop if you w
 
 ## Web shop content
 
-Shisaa.jp gives you your web shop free of content. The content of your shop is very personal and entirely up to you.
+shisaa.be gives you your web shop free of content. The content of your shop is very personal and entirely up to you.
 Since you have full control over the backend, you are fully capable of inputting all your desired text, images and products after the shop has been put on your own server.
 
-If needed, Shisaa.jp does offers inputting all your content and products for you, if delivered properly.
+If needed, shisaa.be does offers inputting all your content and products for you, if delivered properly.
 This is a separate service and is priced according to the volume of content you wish to have input.
 Once the content is known, a separate price will be proposed.
 
 <a name="hosting"></a>
 ## Web shop hosting
 
-After your web shop is up and running, Shisaa.jp offers a separate hosting and maintenance contract to run your shop, keep the server and your shop (Drupal CMS and Commerce) up-to-date and secure. Remember, Shisaa.jp does everything in house, even the full server management. This means the most optimal server installation for your web shop. This contract will give you the following:
+After your web shop is up and running, shisaa.be offers a separate hosting and maintenance contract to run your shop, keep the server and your shop (Drupal CMS and Commerce) up-to-date and secure. Remember, shisaa.be does everything in house, even the full server management. This means the most optimal server installation for your web shop. This contract will give you the following:
 
 * Dedicated hosting of your web shop
 * You do not share your server with other customers, you get your own virtual private server
@@ -272,5 +272,5 @@ This contract carries the following, competitive pricing:
 	</tbody>
 </table>
 
-All the servers that Shisaa.jp uses for its customers are located in Tokyo so you enjoy the best speeds and performance for your web shop.
+All the servers that shisaa.be uses for its customers are located in Tokyo so you enjoy the best speeds and performance for your web shop.
 Note that all servers come with a minimal, monthly royal data transfer limit of 2 Tb (2000 Gb). If this limit is crossed, extra costs will be billed.

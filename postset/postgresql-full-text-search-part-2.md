@@ -7,7 +7,7 @@
 
 Welcome to the second installment of our look into full text search within PostgreSQL.
 
-If this is the first time you heard about full text search I highly encourage you to go and read [the first chapter](http://shisaa.jp/postset/postgresql-full-text-search-part-1.html "First chapter introducing the full text search capabilities of PostgreSQL.") in this series before continuing. This chapter builds on what we have seen previously.
+If this is the first time you heard about full text search I highly encourage you to go and read [the first chapter](http://shisaa.be/postset/postgresql-full-text-search-part-1.html "First chapter introducing the full text search capabilities of PostgreSQL.") in this series before continuing. This chapter builds on what we have seen previously.
 
 ## A look back
 

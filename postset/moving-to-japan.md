@@ -8,7 +8,7 @@
 ## Preface
 
 If you have had the courage to read my
-[about page](http://shisaa.jp/stories/about.html "About me") you will have noticed
+[about page](http://shisaa.be/stories/about.html "About me") you will have noticed
 that I have an interest in Japan and that I am married to a Citizen of the
 Japanese Empire. People who have a spouse from another country, continent or
 planet will have had to make the decision, sooner or later: who of the two will

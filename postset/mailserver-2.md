@@ -9,7 +9,7 @@
 
 Welcome to the second iteration of our mailserver setup!
 
-I'm happy you lived through [part 1](http://shisaa.jp/postset/mailserver-1.html "First chapter of this mailserver series"), and I promise this part will be shorter.
+I'm happy you lived through [part 1](http://shisaa.be/postset/mailserver-1.html "First chapter of this mailserver series"), and I promise this part will be shorter.
 
 Before we dive in, let me go over the different challenges we will be tackling shortly.
 Remember in the last chapter we setup our conveyor belt to run smoothly and we secured things up where possible?
@@ -451,6 +451,6 @@ Now you should be able to send mail to the addresses you input in your users tab
 Go to your "home/mail/USER" directory, it should be empty, but when Postfix delivers its first mail it will make a directory structure in there with three directories: "cur", "new" and "tmp".
 Also remember to check your maillog if your encounter any errors!
 
-In the [next chapter](http://shisaa.jp/postset/mailserver-3.html "Third chapter of this mailserver series") we will do some some serious spam and virus fighting!
+In the [next chapter](http://shisaa.be/postset/mailserver-3.html "Third chapter of this mailserver series") we will do some some serious spam and virus fighting!
 
 And as always...thanks for reading!

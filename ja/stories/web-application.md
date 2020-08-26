@@ -8,11 +8,11 @@
 
 <a name="steps"></a>
 
-One of Shisaa.jp's main pillars is developing custom web based software using only open source tools to bring your idea to life. No dreadful licensing fees, no nontransparent, black-box software.
+One of shisaa.be's main pillars is developing custom web based software using only open source tools to bring your idea to life. No dreadful licensing fees, no nontransparent, black-box software.
 All web applications will be programmed in Python: a very mature, object oriented programming language with a large community of professional developers.
 
-When developing, Shisaa.jp does not reinvent the wheel and tries to apply existing and proven libraries and concepts to bring your project to the screen.
-Using the Flask micro framework as the base ingredient, Shisaa.jp uses a bottoms-up approach to building your web application, avoiding bloat and creating only the parts you need.
+When developing, shisaa.be does not reinvent the wheel and tries to apply existing and proven libraries and concepts to bring your project to the screen.
+Using the Flask micro framework as the base ingredient, shisaa.be uses a bottoms-up approach to building your web application, avoiding bloat and creating only the parts you need.
 
 Only the best libraries and tools are coupled together to deliver a fast, secure and slim web application:
 
@@ -29,14 +29,14 @@ Only the best libraries and tools are coupled together to deliver a fast, secure
 Furthermore, all the code is written with a test driven approach and thus all the application components will carry unit tests with a maximum coverage.
 This does not only mean that every aspect of the code is tested on each change, but the code itself is clean, pythonic and atomically written.
 
-To give you a better look at how Shisaa.jp helps you to create your web application, please take a look at the following steps from idea to finished project:
+To give you a better look at how shisaa.be helps you to create your web application, please take a look at the following steps from idea to finished project:
 <br/>
 <br/>
 
 <h3 class="steps"><span>Step 1</span> Your idea, your business</h3>
 
 <div class="steps-content">
-  <p>Each web application is different and unique and requires careful planning. This planning starts by looking at what it is you want to actually build. What is the type of application, how complex will it be and what special requirements does it take. Shisaa.jp will help you to form your idea as best as possible, guiding you in the process.</p>
+  <p>Each web application is different and unique and requires careful planning. This planning starts by looking at what it is you want to actually build. What is the type of application, how complex will it be and what special requirements does it take. shisaa.be will help you to form your idea as best as possible, guiding you in the process.</p>
 </div>
 
 <h3 class="steps"><span>Step 2</span> Setup the application flow and wireframe models</h3>
@@ -61,8 +61,8 @@ To give you a better look at how Shisaa.jp helps you to create your web applicat
 
 <div class="steps-content">
 	<p>After the idea, flow and design is approved and ready, the actual coding can begin. Since each web application is different, each developing route will be even so.</p>
-	<p>To help lift up the mystery and to keep you in the loop during the coding process, the web application will be build in phases. Each phase will be discussed beforehand, build and approved before starting on the next phase. This way you will know exactly what is already build, how it looks and feels and if the development is going in the right direction. This also allows you and Shisaa.jp to make last minute alterations before starting a new phase.</p>
-	<p>Shisaa.jp has built countless applications, online and offline, and knows how important flexibility is, even during the coding process. Working in phases and keeping the communications channels open has been very welcomed by our current customers and has been a proven way to deliver solid, well coded applications, fully accommodating to the customers wishes.</p>
+	<p>To help lift up the mystery and to keep you in the loop during the coding process, the web application will be build in phases. Each phase will be discussed beforehand, build and approved before starting on the next phase. This way you will know exactly what is already build, how it looks and feels and if the development is going in the right direction. This also allows you and shisaa.be to make last minute alterations before starting a new phase.</p>
+	<p>shisaa.be has built countless applications, online and offline, and knows how important flexibility is, even during the coding process. Working in phases and keeping the communications channels open has been very welcomed by our current customers and has been a proven way to deliver solid, well coded applications, fully accommodating to the customers wishes.</p>
 </div>
 
 <h3 class="steps"><span>Step 5</span> Server setup</h3>
@@ -76,7 +76,7 @@ To give you a better look at how Shisaa.jp helps you to create your web applicat
 ## What does it cost?
 
 Since a web application is very custom and complexity and size varies greatly across applications, it is impossible to tell you how much your application will costs without knowing all the details. 
-To give you a basic idea of what to expect, however, Shisaa.jp has prepared a starting price plan:
+To give you a basic idea of what to expect, however, shisaa.be has prepared a starting price plan:
 
 <table>
 	<thead>
@@ -129,7 +129,7 @@ To give you a basic idea of what to expect, however, Shisaa.jp has prepared a st
 		</tr>
 		<tr class="total-row">
 			<td class="info">
-				* Times are rough estimates and vary depending on complexity, size and how fast your information reaches Shisaa.jp.<br/>
+				* Times are rough estimates and vary depending on complexity, size and how fast your information reaches shisaa.be.<br/>
 				** mentioned prices do not include VAT.
 			</td>
 			<td></td>
@@ -144,7 +144,7 @@ Another important note is that each phase (consulting, design, development, serv
 <a name="hosting"></a>
 ## Web application hosting
 
-After your web application is up and running, Shisaa.jp offers a separate hosting and maintenance contract to run your application, keep the server and your application up-to-date and secure. Remember, Shisaa.jp does everything in house, even the full server management. This means the most optimal server installation for your web application. This contract will give you the following:
+After your web application is up and running, shisaa.be offers a separate hosting and maintenance contract to run your application, keep the server and your application up-to-date and secure. Remember, shisaa.be does everything in house, even the full server management. This means the most optimal server installation for your web application. This contract will give you the following:
 
 * Dedicated hosting of your web application
 * You do not share your server with other customers, you get your own virtual private server
@@ -188,5 +188,5 @@ This contract carries the following, competitive pricing:
 	</tbody>
 </table>
 
-All the servers that Shisaa.jp uses for its customers are located in Tokyo so you enjoy the best speeds and performance for your web application.
+All the servers that shisaa.be uses for its customers are located in Tokyo so you enjoy the best speeds and performance for your web application.
 Note that all servers come with a minimal, monthly royal data transfer limit of 2 Tb (2000 Gb). If this limit is crossed, extra costs will be billed.

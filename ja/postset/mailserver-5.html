@@ -2,12 +2,12 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="title" content="Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5 | shisaa.jp">
+<meta name="title" content="Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5 | shisaa.be">
 <meta name="description" content="">
 <meta name="author" content="Tim van der Linden">
 <meta name="viewport" content="width=device-width; initial-scale=1.0">
-<title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5 | shisaa.jp</title>
-<link rel="alternate" type="application/rss+xml" title="Shisaa.jp" href="rss.xml">
+<title>Installing a fully fledged, ready to use mail server on CentOS 6 with Postfix, PostgreSQL, Amavis, ClamAV, Spamassassin and Dovecot - Part 5 | shisaa.be</title>
+<link rel="alternate" type="application/rss+xml" title="shisaa.be" href="rss.xml">
 <link type="image/x-icon" href="../../assets/img/favicon.ico" rel="icon">
 <link type="image/x-icon" href="../../assets/img/favicon.ico" rel="shortcut icon">
 <link href="../../assets/css/all.css" rel="stylesheet" type="text/css">
@@ -16,8 +16,8 @@
     <div id="rouw" title="Rest quietly, mom. ° 1958 - ✝ 2014"></div>
     <div id="wrapper" class="clearfix">
       <h1 id="blog-title">
-	<img src="../../assets/img/shisaa.png" width="137px" height="160px" alt="Shisaa.jp Logo depicting a Shisaa demon"><a href="http://shisaa.jp/" title="shisaa.jp" id="tagline">
-	  <span class="title">shisaa.jp</span><span class="interest ja-interest">ホームページ制作 / Webアプリケーション / Unix</span>
+	<img src="../../assets/img/shisaa.png" width="137px" height="160px" alt="shisaa.be Logo depicting a Shisaa demon"><a href="http://shisaa.be/" title="shisaa.be" id="tagline">
+	  <span class="title">shisaa.be</span><span class="interest ja-interest">ホームページ制作 / Webアプリケーション / Unix</span>
 	  <span class="ja-subtitle">フリーランスのシステムエンジニア（SE）、システム管理者へのソフトウェア開発</span>
 	  <span class="en-subtitle">Freelance Developer</span>
 	</a>
@@ -73,7 +73,7 @@
 <div class="post">
       <div>
 <h3>Chapter 5 - Dovecot continued: our frontdesk in more detail</h3>
-<p>Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.jp mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.</p>
+<p>Okay, I actually wanted this saga to be a four chapter series and I kinda did keep it at that, but there where a few things I noticed myself configuring inside my own shisaa.be mailserver that I did not mention in the previous four chapters. Maybe I wanted to keep the previous chapters short...or...well...less long, or I was just being a lazy bastard.</p>
 <p>Which ever being the case, lets see Dovecot in a little bit more detail.</p>
 <h4>Time moved backwards</h4>
 <p>First, lets mingle with time. Or to be more precise, lets <em>fix</em> time....the time on our server that is. What does this have to do with Dovecot?
@@ -129,7 +129,7 @@ In here, setup the timezone server you which to use. To get a list of servers vi
 <p>Why?</p>
 <p>If you check your mail on multiple devices, you don't want to setup the filter rules on each client. You want to manage your filtering on the server and watch the magic happen automatically on each machine you use.</p>
 <p>The combination of Postfix and Dovecot is ideal for this task.</p>
-<p>If you have followed <a href="http://shisaa.jp/postset/mailserver-1.html" title="First chapter of this mailserver series">my</a> <a href="http://shisaa.jp/postset/mailserver-2.html" title="Second chapter of this mailserver series">previous</a> <a href="http://shisaa.jp/postset/mailserver-3.html" title="Third chapter of this mailserver series">four</a> <a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series">chapters</a> and setup your own mailserver, then currently Dovecot is only used to check mail and authenticate, all through the IMAP protocol.
+<p>If you have followed <a href="http://shisaa.be/postset/mailserver-1.html" title="First chapter of this mailserver series">my</a> <a href="http://shisaa.be/postset/mailserver-2.html" title="Second chapter of this mailserver series">previous</a> <a href="http://shisaa.be/postset/mailserver-3.html" title="Third chapter of this mailserver series">four</a> <a href="http://shisaa.be/postset/mailserver-4.html" title="Fourth chapter of this mailserver series">chapters</a> and setup your own mailserver, then currently Dovecot is only used to check mail and authenticate, all through the IMAP protocol.
 The actual delivery is done by Postfix itself using the Postfix LMTP delivery mechanism. This is a simple mechanism that, well, just delivers mail and does nothing else.
 To setup server side filtering we have to plugin Dovecot's <em>Local Delivery Agent</em> or <em>LDA</em> into our workflow. Substituting Postfix LMTP for Dovecot LDA gives us two main advantages:</p>
 <ul>
@@ -146,8 +146,8 @@ To setup server side filtering we have to plugin Dovecot's <em>Local Delivery Ag
 
 <p>This will initiate the LDA mechanism and load in any plugins we define. We will need this later down the road.
 Next we need to define 2 important variables for Dovecot to be able to act as a delivery agent. Add these to the same file:</p>
-<pre class="code literal-block"><span class="nv">postmaster_address</span> <span class="o">=</span> tim@shisaa.jp
-<span class="nv">hostname</span> <span class="o">=</span> mail.shisaa.jp
+<pre class="code literal-block"><span class="nv">postmaster_address</span> <span class="o">=</span> tim@shisaa.be
+<span class="nv">hostname</span> <span class="o">=</span> mail.shisaa.be
 </pre>
 
 
@@ -286,11 +286,11 @@ Save this file into the defined location and make sure it is readable by Dovecot
 </pre>
 
 
-<p>Now remember, the <em>"Spam"</em> in this script corresponds to a folder that you made with Dovecot. If you have not made a <em>Spam</em> folder, go and make one now, checkout <a href="http://shisaa.jp/postset/mailserver-4.html" title="Fourth chapter of this mailserver series">chapter four</a> for details on how to do this.</p>
+<p>Now remember, the <em>"Spam"</em> in this script corresponds to a folder that you made with Dovecot. If you have not made a <em>Spam</em> folder, go and make one now, checkout <a href="http://shisaa.be/postset/mailserver-4.html" title="Fourth chapter of this mailserver series">chapter four</a> for details on how to do this.</p>
 <p>Next you want to put messages from a specific someone into its own folder? Lets do that then!
 For this we need "fileinto" and also a plugin to read out the message envelope.</p>
 <pre class="code literal-block">require ["fileinto","envelope"];
-if envelope "from" "tim@shisaa.jp" {
+if envelope "from" "tim@shisaa.be" {
     fileinto "Shisaa";
 }
 </pre>
@@ -300,7 +300,7 @@ if envelope "from" "tim@shisaa.jp" {
 <pre class="code literal-block">require "vacation";
 :days 1
 :subject "I'm on vacation!"
-:addresses ["tim@shisaa.jp,postmaster@shisaa.jp"]
+:addresses ["tim@shisaa.be,postmaster@shisaa.be"]
 "I'm on vacation, you can join me or wait until I'm back.
 Cheers
 Tim";
@@ -314,12 +314,12 @@ And of course you can put everything together in one big Sieve script:</p>
 <span class="k">if</span> header :contains <span class="s2">"X-Spam-Flag"</span> <span class="s2">"YES"</span> <span class="o">{</span>
     fileinto <span class="s2">"Spam"</span><span class="p">;</span>
 <span class="o">}</span>
-<span class="k">if</span> envelope <span class="s2">"from"</span> <span class="s2">"tim@shisaa.jp"</span> <span class="o">{</span>
+<span class="k">if</span> envelope <span class="s2">"from"</span> <span class="s2">"tim@shisaa.be"</span> <span class="o">{</span>
     fileinto <span class="s2">"Shisaa"</span><span class="p">;</span>
 <span class="o">}</span>
 :days 1
 :subject <span class="s2">"I'm on vacation!"</span>
-:addresses <span class="o">[</span><span class="s2">"tim@shisaa.jp,postmaster@shisaa.jp"</span><span class="o">]</span>
+:addresses <span class="o">[</span><span class="s2">"tim@shisaa.be,postmaster@shisaa.be"</span><span class="o">]</span>
 <span class="s2">"I'm on vacation, you can join me or wait until I'm back.</span>
 <span class="s2">Cheers</span>
 <span class="s2">Tim"</span><span class="p">;</span>
@@ -350,7 +350,7 @@ And of course you can put everything together in one big Sieve script:</p>
 </div>
 
       </div>
-      <div id="footer">Feel free to drop me a line or to <a href="../../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>Shisaa.jp - © <a href="mailto:%74%69%6D%40%73%68%69%73%61%61%2E%6A%70">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
+      <div id="footer">Feel free to drop me a line or to <a href="../../stories/encourage-the-shisaa.html">Encourage the Shisaa</a>!<br>shisaa.be - © <a href="mailto:&#116;&#105;&#109;&#064;&#115;&#104;&#105;&#115;&#097;&#097;&#046;&#098;&#101;">Tim van der Linden</a> 2012~2015 - Powered by <a href="http://nikola.ralsina.com.ar">Nikola</a><br>Twitter: <a target="_blank" href="https://twitter.com/timusan">@timusan</a> - Ohloh: <a target="_blank" href="https://www.ohloh.net/accounts/Timusan">https://www.ohloh.net/accounts/Timusan</a><br> You are reading the footer - So this appears to be the end of this page. <br> I'm bad at saying goodbye...so please scroll back to the top. - And lets pretend you never read this.</div>
     </div>
     
         <script src="../../assets/js/all.js" type="text/javascript"></script>

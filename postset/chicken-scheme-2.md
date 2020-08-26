@@ -9,7 +9,7 @@
 
 Welcome to the second installment of this introduction into the CHICKEN programming language.
 
-If you haven't done so, I encourage you to go and read [chapter 1](http://shisaa.jp/postset/chicken-scheme-1.html "Chapter 1 of the CHICKEN series.") before you continue.
+If you haven't done so, I encourage you to go and read [chapter 1](http://shisaa.be/postset/chicken-scheme-1.html "Chapter 1 of the CHICKEN series.") before you continue.
 
 In the first chapter we talked about the programming language CHICKEN, which is a Scheme implementation. To introduce you to this language I decided to guide you trough making your own egg.
 This egg will become a translator to talk to a JSON-RPC server so you could send over commands and invoke remote procedure calls trough JSON right out of CHICKEN.

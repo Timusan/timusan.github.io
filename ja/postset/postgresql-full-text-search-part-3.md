@@ -7,7 +7,7 @@
 
 And so we arrive at the last part of the series.
 
-If you have not done so, please read [part one](http://shisaa.jp/postset/postgresql-full-text-search-part-1.html "First chapter introducing the full text search capabilities of PostgreSQL.") and [part two](http://shisaa.jp/postset/postgresql-full-text-search-part-2.html "Second chapter introducing the full text search capabilities of PostgreSQL.") before embarking.
+If you have not done so, please read [part one](http://shisaa.be/postset/postgresql-full-text-search-part-1.html "First chapter introducing the full text search capabilities of PostgreSQL.") and [part two](http://shisaa.be/postset/postgresql-full-text-search-part-2.html "Second chapter introducing the full text search capabilities of PostgreSQL.") before embarking.
 
 Today we will close up the introduction into PostgreSQL's full text capabilities by showing you a few aspects I have intentionally neglected in the previous parts. The most important ones being ranking and indexing.
 

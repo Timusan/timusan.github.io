@@ -5,7 +5,7 @@
 .. tags: postgis, postgresql
 -->
 
-You have arrived at the final chapter of this PostGIS introduction  series. Before continuing, I recommend you read [chapter one](http://shisaa.jp/postset/postgis-postgresqls-spatial-partner-part-1.html "Part one of this series.") and [chapter two](http://shisaa.jp/postset/postgis-postgresqls-spatial-partner-part-2.html "Part one of this series.") first.
+You have arrived at the final chapter of this PostGIS introduction  series. Before continuing, I recommend you read [chapter one](http://shisaa.be/postset/postgis-postgresqls-spatial-partner-part-1.html "Part one of this series.") and [chapter two](http://shisaa.be/postset/postgis-postgresqls-spatial-partner-part-2.html "Part one of this series.") first.
 
 In the last chapter we finished by doing some real world distance measuring and we saw how different projections pushed forward different results.
 
@@ -268,7 +268,7 @@ And every time an index is potentially left alone, you should start to worry, es
 
 How do I know they are ignored? Simple, we did not make any indexes (and we deleted the ones made by "osm2pgsql")...which makes me pretty sure we cannot use them.
 
-I refer you to [chapter three](http://shisaa.jp/postset/postgresql-full-text-search-part-3.html) of my PostgreSQL Full Text series where I talk a bit more about GiST and B-Tree index types.
+I refer you to [chapter three](http://shisaa.be/postset/postgresql-full-text-search-part-3.html) of my PostgreSQL Full Text series where I talk a bit more about GiST and B-Tree index types.
 And, as I also say in that chapter, I highly recommend reading Markus Winand's [Use The Index, Luke](http://use-the-index-luke.com/ "Use The Index, Luke series written by Markus Winand.") series, which explains in great detail how database indexes work.
 
 The first thing to realize is that an index will only be used if the data set on which it is build is of sufficient size.
